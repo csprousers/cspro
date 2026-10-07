@@ -4,6 +4,7 @@
 #include "PreinitializedVariable.h"
 #include "ValueSet.h"
 #include "WorkVariable.h"
+#include <engine/VarT.h>
 
 
 LogicArray* LogicCompiler::CompileLogicArrayDeclarationOnly(bool use_function_parameter_syntax)
@@ -114,6 +115,9 @@ LogicArray* LogicCompiler::CompileLogicArrayDeclarationOnly(bool use_function_pa
 
                 if( !is_numeric_array || value_set.IsDynamic() )
                     IssueError(MGF::DeckArray_only_numeric_arrays_47501);
+
+                ASSERT(value_set.GetVarT() != nullptr);
+                value_set.GetVarT()->SetUsed(true);
 
                 dimension_size = value_set.GetDictValueSet().GetNumValues();
                 dimension_symbol = Tokstindex;

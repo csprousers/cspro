@@ -97,6 +97,7 @@ private:
     void ClearNotes(const Case& data_case);
     void WriteNotes(const Case& data_case);
     std::string GetUuidByPosition(double position_in_repository);
+    double GetNextFileOrder();
     void IncrementVectorClock(const std::string& uuid);
     int UpdateCase(const Case& data_case, int64_t revision);
     int InsertCase(const Case& data_case, int64_t revision);
@@ -124,7 +125,6 @@ private:
 
     void MakeDatabaseTemporarilyWriteable(sqlite3** db);
     void EndMakeDatabaseTemporarilyWriteable(sqlite3** db);
-    void UpdateFilePosition(Case& data_case);
     static std::string GetDictionaryStructureMd5(sqlite3* db);
 
     std::unique_ptr<SQLiteRepositoryCaseIterator> GetCasesModifiedSinceRevisionIterator(
@@ -176,6 +176,7 @@ private:
     sqlite3_stmt* m_stmtInsertRevision;
     sqlite3_stmt* m_stmtInsertLocalRevision;
     sqlite3_stmt* m_stmtQueryUuidByPosition;
+    sqlite3_stmt* m_stmtGetMaxFileOrder;
     sqlite3_stmt* m_stmtUpdateClock;
     sqlite3_stmt* m_stmtIncrementClock;
     sqlite3_stmt* m_stmtNewClock;
@@ -198,7 +199,6 @@ private:
     sqlite3_stmt* m_stmtGetPrevFileOrder;
     sqlite3_stmt* m_stmtSetSyncRevLastId;
     sqlite3_stmt* m_stmtClearSyncRevLastId;
-    sqlite3_stmt* m_stmtGetFileOrderFromUuid;
 
     std::unique_ptr<SyncStatusEvaluator> m_syncStatusEvaluator;
 };

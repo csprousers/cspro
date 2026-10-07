@@ -28,6 +28,12 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 **Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.5-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.5-release-notes.txt)
 
+**Merged pull requests**:
+
+| Date | Branch | Pull Request Message |
+| --- | --- | --- |
+| 2026&#8209;09&#8209;28 | [release/v8.1.5-20260928](https://github.com/CSProDevelopment/cspro/commit/def81d00d0a8a68afec2f3cf4aeaa3d9a27759b2) | fixed bugs, creating version 8.1.5 |
+
 
 ## CSPro 8.1.4
 

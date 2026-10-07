@@ -2,7 +2,6 @@ package gov.census.cspro.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
@@ -10,7 +9,6 @@ import androidx.security.crypto.MasterKeys;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import gov.census.cspro.csentry.CSEntry;
 import gov.census.cspro.csentry.R;
 import timber.log.Timber;
 
@@ -19,78 +17,81 @@ import timber.log.Timber;
 */
 public class CredentialStore {
 
-	private SharedPreferences m_preferences;
-	
-	public CredentialStore(Context context)
+    private final Context m_context;
+    private final String m_fileName;
+    private SharedPreferences m_preferences;
+
+    public CredentialStore(Context context)
     {
-        String masterKeyAlias = null;
-        if (Build.VERSION.SDK_INT < 23) {
-            createSharedPrefsForOlderDevice(context);
-        } else {
-            try {
-                masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+        m_context = context.getApplicationContext();
+        m_fileName = m_context.getString(R.string.preferences_file_credentials);
 
-                m_preferences = EncryptedSharedPreferences.create(
-                    context.getString(R.string.preferences_file_credentials),
-                    masterKeyAlias,
-                    context,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-                );
-            } catch (GeneralSecurityException e)
-            {
-                Timber.e(e, "Error reading Credential");
-            } catch (IOException e)
-            {
-                Timber.e(e, "Error reading Credential");
-            } catch (NullPointerException e)
-            {
-                if(masterKeyAlias == null) {
-                    Timber.e(e, "masterKeyAlias null");
-                    createSharedPrefsForOlderDevice(context);
-                }
-            }
+        m_preferences = createEncryptedPrefs();
+
+        if (m_preferences == null) {
+            // Keystore/prefs file may be corrupted (backup restore, OS upgrade): reset once and retry
+            m_context.deleteSharedPreferences(m_fileName);
+            m_preferences = createEncryptedPrefs();
+        }
+
+        if (m_preferences == null) {
+            createPlainSharedPrefs();
         }
     }
 
-    private void createSharedPrefsForOlderDevice(Context context) {
-        m_preferences = context.getSharedPreferences(context.getString(R.string.preferences_file_credentials), Context.MODE_PRIVATE);
+    private SharedPreferences createEncryptedPrefs() {
+        try {
+            String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+            return EncryptedSharedPreferences.create(
+                m_fileName,
+                masterKeyAlias,
+                m_context,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+        } catch (GeneralSecurityException | IOException | RuntimeException e) {
+            Timber.e(e, "Error creating encrypted credential store");
+            return null;
+        }
     }
-	
-	public void Store(String attribute, String secret_value)
-	{
-		SharedPreferences.Editor editor = m_preferences.edit();
-		editor.putString(attribute, secret_value);
-		editor.commit();
-	}
-	
-	public String Retrieve(String attribute)
-	{
-	    try {
-		return m_preferences.getString(attribute, null);// needed?
+
+    // Separate file so plain entries never mix with the encrypted file
+    private void createPlainSharedPrefs() {
+        try {
+            m_preferences = m_context.getSharedPreferences(m_fileName + "_fallback", Context.MODE_PRIVATE);
+        } catch (RuntimeException e) {
+            Timber.e(e, "Error creating fallback shared prefs");
+        }
+    }
+
+    public void Store(String attribute, String secret_value)
+    {
+        SharedPreferences.Editor editor = m_preferences.edit();
+        editor.putString(attribute, secret_value);
+        editor.commit();
+    }
+
+    public String Retrieve(String attribute)
+    {
+        try {
+            return m_preferences.getString(attribute, null);
         } catch (SecurityException ex) {
-            if (Build.VERSION.SDK_INT > 22) {
-                m_preferences = CSEntry.Companion.getContext().getSharedPreferences(CSEntry.Companion.getContext().getString(R.string.preferences_file_credentials), Context.MODE_PRIVATE);
-                return m_preferences.getString(attribute, null);
-            }
+            createPlainSharedPrefs();
+            return m_preferences.getString(attribute, null);
         }
-        return m_preferences.getString(attribute, null);
-	}
+    }
 
-	public int GetNumberCredentials()
-	{
-	    try {
+    public int GetNumberCredentials()
+    {
+        try {
             return m_preferences.getAll().size();
         } catch (SecurityException ex) {
-            if (Build.VERSION.SDK_INT > 22) {
-                m_preferences = CSEntry.Companion.getContext().getSharedPreferences(CSEntry.Companion.getContext().getString(R.string.preferences_file_credentials), Context.MODE_PRIVATE);
-                return m_preferences.getAll().size();
-            }
+            createPlainSharedPrefs();
+            return m_preferences.getAll().size();
         }
-        return -1;
-	}
+    }
 
-	public void Clear()
+    public void Clear()
     {
         SharedPreferences.Editor editor = m_preferences.edit();
         editor.clear();

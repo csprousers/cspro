@@ -53,6 +53,7 @@ SQLiteRepository::SQLiteRepository(const DataRepositoryType type, std::shared_pt
         m_stmtInsertRevision(nullptr),
         m_stmtInsertLocalRevision(nullptr),
         m_stmtQueryUuidByPosition(nullptr),
+        m_stmtGetMaxFileOrder(nullptr),
         m_stmtUpdateClock(nullptr),
         m_stmtIncrementClock(nullptr),
         m_stmtNewClock(nullptr),
@@ -74,8 +75,7 @@ SQLiteRepository::SQLiteRepository(const DataRepositoryType type, std::shared_pt
         m_stmtCaseExists(nullptr),
         m_stmtGetPrevFileOrder(nullptr),
         m_stmtSetSyncRevLastId(nullptr),
-        m_stmtClearSyncRevLastId(nullptr),
-        m_stmtGetFileOrderFromUuid(nullptr)
+        m_stmtClearSyncRevLastId(nullptr)
 {
     ModifyCaseAccess(m_caseAccess);
 }
@@ -453,7 +453,7 @@ void SQLiteRepository::CreatePreparedStatements()
         throw SQLiteErrorWithMessage(m_db);
     }
 
-    if (sqlite3_prepare_v2(m_db, "SELECT file_order FROM cases WHERE id=?", -1, &m_stmtGetFileOrderFromUuid, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(m_db, "SELECT MAX(file_order) FROM cases", -1, &m_stmtGetMaxFileOrder, nullptr) != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 
@@ -477,6 +477,7 @@ void SQLiteRepository::ClearPreparedStatements()
     safe_sqlite3_finalize(m_stmtInsertRevision);
     safe_sqlite3_finalize(m_stmtInsertLocalRevision);
     safe_sqlite3_finalize(m_stmtQueryUuidByPosition);
+    safe_sqlite3_finalize(m_stmtGetMaxFileOrder);
     safe_sqlite3_finalize(m_stmtUpdateClock);
     safe_sqlite3_finalize(m_stmtIncrementClock);
     safe_sqlite3_finalize(m_stmtNewClock);
@@ -499,7 +500,6 @@ void SQLiteRepository::ClearPreparedStatements()
     safe_sqlite3_finalize(m_stmtGetPrevFileOrder);
     safe_sqlite3_finalize(m_stmtSetSyncRevLastId);
     safe_sqlite3_finalize(m_stmtClearSyncRevLastId);
-    safe_sqlite3_finalize(m_stmtGetFileOrderFromUuid);
 
     if( m_syncStatusEvaluator != nullptr )
         m_syncStatusEvaluator->ClearPreparedStatements();
@@ -871,8 +871,11 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
         throw DataRepositoryException::WriteAccessRequired();
     }
 
+    // for new cases that are not being updated or inserted at a specific position, add them to the end
     ASSERT(new_case || position_in_repository != 0);
-    data_case.SetPositionInRepository(position_in_repository.value_or(0));
+    data_case.SetPositionInRepository(
+        position_in_repository.has_value() ? *position_in_repository : GetNextFileOrder()
+    );
 
     ASSERT(new_case || !uuid.empty());
     data_case.SetUuid(!uuid.empty() ? std::move(uuid) : CreateUuid());
@@ -913,9 +916,6 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
 
         if( insertResult != SQLITE_DONE )
             throw SQLiteErrorWithMessage(m_db);
-
-        // Update the file pos in the case to make caching work
-        UpdateFilePosition(data_case);
 
         data_case.GetVectorClock().increment(m_deviceId);
         InsertVectorClock(data_case);
@@ -1007,6 +1007,27 @@ std::string SQLiteRepository::GetUuidByPosition(const double position_in_reposit
         throw DataRepositoryException::CaseNotFound();
 
     return stmt.GetColumn<std::string>(0);
+}
+
+
+double SQLiteRepository::GetNextFileOrder()
+{
+    // for new cases, the file order was historically set via:
+    //     COALESCE(@ord, (SELECT MAX(file_order) + 1 FROM cases), 1)
+    // but to prevent a somewhat slow query to get the "position in repository"
+    // value post-writing, we can set it directly
+    SQLiteStatement stmt(m_stmtGetMaxFileOrder);
+
+    switch( stmt.Step() )
+    {
+        // even when there are no cases, MAX(file_order) will return a row with null,
+        // which sqlite3_column_double will convert to 0
+        case SQLITE_ROW:
+            return stmt.GetColumn<double>(0) + 1;
+
+        default:
+            throw SQLiteErrorWithMessage(m_db);
+    }
 }
 
 
@@ -2267,19 +2288,6 @@ void SQLiteRepository::EndTransaction()
             throw SQLiteErrorWithMessage(m_db);
     }
 }
-
-
-void SQLiteRepository::UpdateFilePosition(Case& data_case)
-{
-    SQLiteStatement get_file_pos(m_stmtGetFileOrderFromUuid);
-    get_file_pos.Bind(1, data_case.GetUuid());
-
-    if( get_file_pos.Step() != SQLITE_ROW )
-        throw SQLiteErrorWithMessage(m_db);
-
-    data_case.SetPositionInRepository(get_file_pos.GetColumn<double>(0));
-}
-
 
 
 template<typename CF>

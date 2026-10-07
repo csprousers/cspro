@@ -247,8 +247,14 @@ class DialogWebViewFragment: DialogFragment(R.layout.fragment_dialog_webview) {
         actionInvoker?.cancelAndWaitOnActionsInProgress()
 
         super.onDestroy()
-
-        if (!alreadyDismissed) {
+        /* An IllegalStateException that is thrown when a fragment transaction is attempted after the activity's state has
+         already been saved. During the destruction of EntryActivity, the lifecycle method onDestroy() is invoked, which triggers onDestroy() on the
+         active fragments, including DialogWebViewFragment. Inside DialogWebViewFragment.onDestroy(), a call is made to onReturn(), which subsequently
+         calls dismiss() on the DialogFragment. Because the activity is already being destroyed and the instance state has been saved,
+         calling dismiss() attempts to commit a fragment transaction at an invalid point in the lifecycle, resulting in the crash.
+         */
+        if (!alreadyDismissed && !isStateSaved && activity?.isFinishing == false) {
+            // Avoid triggering onReturn() if the state has already been saved
             onReturn(null)
         }
     }
