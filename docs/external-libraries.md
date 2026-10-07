@@ -7,17 +7,18 @@ Prebuilt libraries, creating using CMake, are available to download as part of t
 [release assets](https://github.com/csprousers/cspro-libraries-third-party/releases).
 These libraries, located in *third_party/prebuilt*, are linked to as static or dynamic libraries.
 
-Other libraries, primarily located in *third_party/sources*, are built as part of the CSPro solution. Batch scripts to update many of these libraries are located here:
+Other libraries, primarily located in *third_party/sources*, are built as part of the CSPro solution.
+Batch scripts to update many of these libraries are located here:
 
 - *build-tools/Build External Libraries*
 
 
-## Libraries in the Third-Party Libraries Repository
+## Libraries in the Third-Party Libraries Repository (Prebuilt)
 
 
 ### bzip2
 
-*Current version: 1.0.8*
+*Current prebuilt version: 1.0.8*
 
 1. CSPro-specific code is located in a cloned repository: https://github.com/csprousers/cspro-libraries-fork-bzip2
 2. Incorporate any new code, if available, into the *cspro* branch: https://www.sourceware.org/bzip2/downloads.html
@@ -28,7 +29,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### CHMLib
 
-*Current version: 0.3 (this library no longer appears to be updated)*
+*Current prebuilt version: 0.3 (this library no longer appears to be updated)*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-CHMLib
 2. Confirm that there are no longer updates: https://github.com/jedwing/CHMLib
@@ -39,7 +40,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### curl
 
-*Current version: 8.22.0*
+*Current prebuilt version: 8.22.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-curl
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/curl/curl/releases/latest
@@ -51,7 +52,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### EditorConfig
 
-*Current version: 0.12.11*
+*Current prebuilt version: 0.12.11*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-editorconfig-core-c
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/editorconfig/editorconfig-core-c/releases/latest
@@ -63,7 +64,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### GPAC
 
-*Current version: 2.4.0*
+*Current prebuilt version: 2.4.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gpac
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/gpac/gpac/releases/latest
@@ -75,7 +76,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### gumbo-parser
 
-*Current version: 0.10.1 (this library is archived and no longer updated)*
+*Current prebuilt version: 0.10.1 (this library is archived and no longer updated)*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gumbo-parser
 2. Confirm that there are no longer updates: https://github.com/google/gumbo-parser
@@ -86,7 +87,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libexif
 
-*Current version: 0.6.26*
+*Current prebuilt version: 0.6.26*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libexif
 2. Merge the latest release into the *cspro* branch: https://github.com/libexif/libexif/releases/latest
@@ -99,7 +100,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libgit2
 
-*Current version: 1.9.7*
+*Current prebuilt version: 1.9.7*
 
 1. Set the Git submodule to the latest release: https://github.com/libgit2/libgit2/releases/latest
 2. Run the build script.
@@ -110,7 +111,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libwebm
 
-*Current version: 1.0.0.32*
+*Current prebuilt version: 1.0.0.32*
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebm/tags
 2. Run the build script.
@@ -121,7 +122,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libwebp
 
-*Current version: 1.6.0*
+*Current prebuilt version: 1.6.0*
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebp/tags
 2. Run the build script.
@@ -132,7 +133,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libxlsxwriter
 
-*Current version: 1.2.4*
+*Current prebuilt version: 1.2.4*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libxlsxwriter
 2. Merge the latest release into the *cspro* branch: https://github.com/jmcnamara/libxlsxwriter/releases/latest
@@ -144,7 +145,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### md4c
 
-*Current version: 0.5.3*
+*Current prebuilt version: 0.5.3*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-md4c
 2. Merge the latest release into the *cspro* branch: https://github.com/mity/md4c/tags
@@ -155,7 +156,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### miniz
 
-*Current version: 3.1.2*
+*Current prebuilt version: 3.1.2*
 
 1. Set the Git submodule to the latest release: https://github.com/richgel999/miniz/releases/latest
 2. Run the build script.
@@ -166,7 +167,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### pugixml
 
-*Current version: 1.16*
+*Current prebuilt version: 1.16*
 
 1. Set the Git submodule to the latest release: https://github.com/zeux/pugixml/releases/latest
 2. Run the build script.
@@ -177,7 +178,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### yaml-cpp
 
-*Current version: 0.9.0*
+*Current prebuilt version: 0.9.0*
 
 1. Set the Git submodule to the latest release: https://github.com/jbeder/yaml-cpp/releases/latest
 2. Run the build script.
@@ -188,7 +189,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### zlib
 
-*Current version: 1.3.2*
+*Current prebuilt version: 1.3.2*
 
 1. Set the Git submodule to the latest release: https://github.com/madler/zlib/releases/latest
 2. Run the build script.
