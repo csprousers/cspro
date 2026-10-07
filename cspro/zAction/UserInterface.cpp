@@ -1,14 +1,17 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "AccessToken.h"
 #include <zToolsO/Screen.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/Viewers.h>
+#include <zUtilF/ErrmsgDlg.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zAppO/PFF.h>
-#include <zEngineF/ErrmsgDlg.h>
+#include <zMessageO/Messages.h>
 
 
+CREATE_JSON_KEY(choices)
+CREATE_JSON_KEY(defaultChoiceIndex)
 CREATE_JSON_KEY(targetOrigin)
 CREATE_JSON_KEY(webViews)
 
@@ -232,19 +235,60 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_showDialog(const JsonNode& json
 ActionInvoker::Result ActionInvoker::Runtime::UI_alert(const JsonNode& json_node, Caller& /*caller*/)
 {
     // use the errmsg dialog
-    const std::string dialog_file_path = GetHtmlDialogFilePath(PortableFunctions::PathAppendFileExtension(std::string(ErrmsgDlg::DialogName), FileExtensions::HTML));
+    ErrmsgDlg errmsg_dlg;
 
-    // create the input data
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    errmsg_dlg.SetTitle(json_node.Contains(JK::title) ? json_node.Get<std::string>(JK::title) : "Alert");
+    errmsg_dlg.SetMessage(json_node.Get<std::string>(JK::text));
+    errmsg_dlg.SetButtons({ MGF::GetMessageText(MGF::Ok) });
 
-    json_writer->BeginObject()
-                .Write(JK::title, json_node.Contains(JK::title) ? json_node.Get<std::string_view>(JK::title) : "Alert")
-                .Write(JK::message, json_node.Get<std::string_view>(JK::text))
-                .EndObject();
-
-    ShowHtmlDialog(dialog_file_path, json_writer->ReleaseSharableString());
+    errmsg_dlg.DoModalOnUIThread();
 
     return Result::Undefined();
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::UI_showMessage(const JsonNode& json_node, Caller& /*caller*/)
+{
+    // use the errmsg dialog
+    constexpr bool RequireUserToMakeSelection = true;
+    ErrmsgDlg errmsg_dlg;
+
+    if( json_node.Contains(JK::title) )
+        errmsg_dlg.SetTitle(json_node.Get<std::string>(JK::title));
+
+    errmsg_dlg.SetMessage(
+        GetFormattedMessageText(json_node)
+    );
+
+    std::vector<SharableString> buttons = json_node.Contains(JK::choices)
+        ? json_node.Get(JK::choices).GetArray().GetVector<SharableString>()
+        : std::vector<SharableString>({ MGF::GetMessageText(MGF::Ok) });
+
+    if( buttons.empty() )
+        throw CSProException("At least one choice must be specified.");
+
+    const std::optional<int> default_button_index = json_node.GetOptional<int>(JK::defaultChoiceIndex);
+
+    if( default_button_index.has_value() )
+    {
+        if( *default_button_index <= 0 || *default_button_index > buttons.size() )
+        {
+            throw CSProException("The default choice index must be in the range of choice options (1%s).",
+                                 ( buttons.size() == 1 ) ? "" : FormatText(" - %d", static_cast<int>(buttons.size())).c_str());
+        }
+
+        errmsg_dlg.SetDefaultButtonIndex(*default_button_index);
+    }
+
+    errmsg_dlg.SetButtons(std::move(buttons));
+
+    while( errmsg_dlg.DoModalOnUIThread() != IDOK )
+    {
+        if( !RequireUserToMakeSelection )
+            return Result::Number(0);
+    }
+
+    return Result::Number(errmsg_dlg.GetSelectedButtonIndex());
 }
 
 

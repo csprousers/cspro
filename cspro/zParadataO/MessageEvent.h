@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/Event.h>
 #include <zMessageO/MessageType.h>
@@ -16,7 +16,8 @@ public:
         System,
         Errmsg,
         Warning,
-        Logtext
+        Logtext,
+        Display
     };
 
 public:

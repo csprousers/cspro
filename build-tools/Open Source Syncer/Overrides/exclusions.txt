@@ -11,10 +11,7 @@
 
 # built libraries
 
-/cspro/external/*/bin/
-/cspro/external/*/lib/
 /cspro/CSEntryDroid/app/libs/
-/cspro/CSEntryDroid/app/src/main/jni/external/
 
 
 # some build tool batch scripts

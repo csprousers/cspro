@@ -1,15 +1,13 @@
-﻿#pragma once
+#pragma once
 
-#include <zEngineF/zEngineF.h>
+#include <zUtilF/zUtilF.h>
 #include <zHtml/CSHtmlDlgRunner.h>
 
 
-class ErrmsgDlg : public CSHtmlDlgRunner
+class CLASS_DECL_ZUTILF ErrmsgDlg : public CSHtmlDlgRunner
 {
 public:
-    static constexpr const char* DialogName = "errmsg";
-
-    CLASS_DECL_ZENGINEF ErrmsgDlg();
+    ErrmsgDlg();
 
     void SetTitle(SharableString title) { m_title = std::move(title); }
 

@@ -153,6 +153,7 @@ namespace
         { "declare",            "declare_modifier.html",                TokenCode::TOKDECLARE },
         { "StringWriter",       "StringWriter_statement.html",          TokenCode::TOKKWSTRINGWRITER },
         // VIDEO_TODO_RESTORE_FOR_CSPRO8X { "Video",              "Video_statement.html",                 TokenCode::TOKKWVIDEO },
+        { "choices",            "display_function.html",                TokenCode::TOKCHOICES },
     };
 }
 

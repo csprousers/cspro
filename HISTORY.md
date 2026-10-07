@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;10&#8209;07 | [display-function](https://github.com/CSProDevelopment/cspro/commit/354a988037c334c007c796ec325a456f993f7326) | reworked the display function to always show modal dialogs, added choices as a select alternative, and added the UI.showMessage action |
 | 2026&#8209;09&#8209;21 | [externalize-third-party-libraries](https://github.com/CSProDevelopment/cspro/commit/7c21bdf191539d7eb2ce1a21cd260367927d9a9b) | externalized third-party libraries, with these libraries built using the cspro-libraries-third-party repository |
 | 2026&#8209;08&#8209;27 | [portable-builds-cmake](https://github.com/CSProDevelopment/cspro/commit/0c17be1b54e19efa29846388b9858b4f980c4f69) | used CMake to build the console application + updated the Android build |
 | 2026&#8209;08&#8209;27 | [engine-to-dll+engine-value](https://github.com/CSProDevelopment/cspro/commit/6a4bb71a2abf6b3ee01650c129f510e73f5c4433) | moved some engine functionality to zEngineO, refactoring functions to use engine values |
@@ -16,6 +17,13 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 | 2026&#8209;07&#8209;29 | [engine-to-dll+value-processor](https://github.com/CSProDevelopment/cspro/commit/8e120762c455c3ee401890753ebb25996f9dcbc8) | moved some engine functionality to zEngineO + refactored the value processors (and some other objects) to use non-wide strings |
 | 2026&#8209;07&#8209;14 | [android-cmake](https://github.com/CSProDevelopment/cspro/commit/652bb11960af3d73c326c8a2fbe5c1c4533c3a1c) | refactored the Android build to use CMake |
 | 2026&#8209;07&#8209;13 | [dictionary-analysis-dialog](https://github.com/CSProDevelopment/cspro/commit/627293268b40ea5506dca4de407f4e98bb8794bb) | reworked the dictionary analysis reports into a single dialog and added reports about linked value sets and special values |
+
+
+## CSPro 8.1.5
+
+**Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.5-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.5-windows-x86.exe)
+
+**Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.5-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.5-release-notes.txt)
 
 
 ## CSPro 8.1.4

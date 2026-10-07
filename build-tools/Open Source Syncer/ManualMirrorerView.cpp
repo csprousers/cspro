@@ -9,6 +9,7 @@ IMPLEMENT_DYNCREATE(ManualMirrorerView, CFormView)
 BEGIN_MESSAGE_MAP(ManualMirrorerView, CFormView)
     ON_COMMAND(IDC_MIRROR_COMMIT, OnMirrorCommit)
     ON_COMMAND(IDC_MIRROR_MERGE_COMMIT, OnMirrorMergeCommit)
+    ON_COMMAND(IDC_SPOOF_COMMIT, OnSpoofCommit)
 END_MESSAGE_MAP()
 
 
@@ -39,6 +40,8 @@ void ManualMirrorerView::DoDataExchange(CDataExchange* const pDX)
     DDX_Text(pDX, IDC_MERGE_COMMIT, m_mergeCommit, true);
     DDX_Text(pDX, IDC_PARENT_COMMIT1, m_parentCommit1, true);
     DDX_Text(pDX, IDC_PARENT_COMMIT2, m_parentCommit2, true);
+
+    DDX_Text(pDX, IDC_COMMIT_TO_SPOOF, m_commitToSpoof, true);
 }
 
 
@@ -166,4 +169,33 @@ void ManualMirrorerView::OnMirrorMergeCommit(Controller& controller,
         open_source_repo.LookupCommit(parent_commit_sha1),
         open_source_repo.LookupCommit(parent_commit_sha2)
     );
+}
+
+
+void ManualMirrorerView::OnSpoofCommit()
+{
+    UpdateData(TRUE);
+
+    m_controller.RunOperation(GetParentFrame(),
+        [this, commit_to_spoof_sha = m_commitToSpoof]
+        (Controller& controller)
+        {
+            OnSpoofCommit(controller, *commit_to_spoof_sha);
+        });
+}
+
+
+void ManualMirrorerView::OnSpoofCommit(Controller& controller, const std::string& commit_to_spoof_sha)
+{
+    GitRepository& private_repo = controller.GetPrivateRepo();
+    Syncer& syncer = controller.GetSyncer();
+
+    // validate the commit
+    if( commit_to_spoof_sha.empty() )
+        throw CSProException("Specify the commit to spoof.");
+
+    const GitCommit cs_commit = private_repo.LookupCommit(commit_to_spoof_sha);
+
+    // spoof the commit
+    syncer.SpoofCommit(cs_commit);
 }

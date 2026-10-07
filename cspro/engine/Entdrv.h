@@ -163,8 +163,8 @@ public:
     void    ResetLevelCurOccs( int iLevel, bool bResetItAlso );
     void    ResetGroupCurOccs( int iSymGroup, bool bResetItAlso = true );
 
-    int     DisplayMessage(MessageType message_type, const RuntimeMessage& runtime_message) override;
-    int     DisplayMessage_pre77(MessageType message_type, const RuntimeMessage& runtime_message);
+    int     HandleErrorMessage(MessageType message_type, const RuntimeMessage& runtime_message) override;
+    int     HandleErrorMessage_pre77(MessageType message_type, const RuntimeMessage& runtime_message);
 
     // defuncs
 public:

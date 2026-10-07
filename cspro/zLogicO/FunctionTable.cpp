@@ -390,7 +390,7 @@ namespace
         {
             "display",
             "display(Message, [Item, [Item ...]])",
-            "deprecated_features.html",
+            "display_function.html",
             FunctionCode::FNDISPLAY_CODE,
             SymbolType::None,
             DataType::Numeric,

@@ -21,9 +21,6 @@
     <ClCompile Include="EngineUIWindows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ErrmsgDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PifInfoPopulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,9 +57,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EngineUINodes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ErrmsgDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PifInfoPopulator.h">

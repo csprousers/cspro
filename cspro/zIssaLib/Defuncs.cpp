@@ -225,7 +225,7 @@ bool CEntryDriver::ConfirmValue(const bool value_is_notappl, VART* const pVarT, 
         }
     );
 
-    const int selected_button_number = DisplayMessage(message_type, runtime_message);
+    const int selected_button_number = HandleErrorMessage(message_type, runtime_message);
 
     if( message_event != nullptr )
     {

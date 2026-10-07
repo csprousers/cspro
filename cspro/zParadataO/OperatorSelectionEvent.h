@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/Event.h>
 
@@ -22,7 +22,8 @@ public:
         ListShow,
         MapShow,
         ValueSetShow,
-        BarcodeRead
+        BarcodeRead,
+        Display
     };
 
     OperatorSelectionEvent(Source source);

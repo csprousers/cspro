@@ -224,6 +224,8 @@ UI = {
   setWebViewOptionsAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,11210,args);},
   showDialog: (args)=>{return CSProActionInvoker.$Impl.run(this,49835,args);},
   showDialogAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,49835,args);},
+  showMessage: (args)=>{return CSProActionInvoker.$Impl.run(this,60833,args);},
+  showMessageAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,60833,args);},
   view: (args)=>{return CSProActionInvoker.$Impl.run(this,50017,args);},
   viewAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,50017,args);}
 };

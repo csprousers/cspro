@@ -237,25 +237,24 @@ Language=EN
 751    Cannot nest a dictionary FOR loop while already inside another dictionary FOR loop
 
 /* --- display/errmsg messages */
-770    Alpha expression expected in SELECT clause
-771    Display/Errmsg/Write require at least one argument specifying either a message number or message text
+770    Alpha expression expected in '%s' clause
+771    display/errmsg/write require at least one argument specifying either a message number or message text
 772    Numbered messages require a positive integer message number no greater than %d (so %f is invalid)
-773    The DENOM specification cannot be used with the CASE clause
+773    The 'denom' specification cannot be used with the 'case' clause
+774    You cannot specify both 'select' and 'choices'
 775    Message number %d does not exist in the application message file and will be processed without text
-776    Repeated DENOM/SELECT specification
-777    DENOM specification is not allowed for Display messages
-779    Missing '=' following DENOM clause
-780    No DENOM variable provided following 'DENOM=' specification
-781    Invalid DENOM variable - must be either an on-the-fly variable or a working storage dictionary numeric single variable
-782    Repeated CASE clause
-783    Invalid CASE clause - SUMMARY keyword aready specified
-784    CASE clause is not allowed for Display messages
-785    Repeated SUMMARY clause
-786    Invalid SUMMARY clause - CASE keyword already specified
-787    SUMMARY clause is not allowed for Display messages
-788    When using SELECT with the warning function, you must specify an option that does not require operator input
-789    The SELECT feature only supports up to %d options
-790    Based on the number of SELECT options, DEFAULT must be %s
+776    You cannot specify '%s' more than once
+777    The 'display' function can no longer be used with '%s' (starting in CSPro 8.2)
+779    Missing '=' following 'denom' clause
+780    No denominator variable provided following 'denom=' specification
+781    Invalid 'denom' variable - must be either an on-the-fly variable or a working storage dictionary numeric single variable
+782    Repeated 'case' clause
+783    Invalid 'case' clause - 'summary' keyword aready specified
+785    Repeated 'summary' clause
+786    Invalid 'summary' clause - 'case' keyword already specified
+788    When using 'summary' with the 'warning' function, you must specify an option that does not require operator input
+789    The '%s' feature only supports up to %d options
+790    Based on the number of '%s' options, 'default' must be %s
 
 /* --- EXEC' functions */
 900    Exec' functions allow only constants and variables

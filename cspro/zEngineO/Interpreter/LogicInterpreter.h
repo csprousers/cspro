@@ -176,6 +176,8 @@ public:
     Engine::Value ex_warning(int program_index);
     Engine::Value ex_variablevalue(int program_index);
 
+    int DisplayUserMessage(MessageType message_type, const RuntimeMessage& runtime_message);
+
 private:
     virtual void IssueMessageWorker(MessageType message_type, int message_number, ...) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::string GetFormattedMessageWorker(int message_number, ...) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -1038,7 +1040,7 @@ private:
 public:
     virtual std::shared_ptr<SystemMessageIssuer> GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
 private:
-    virtual int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual int HandleErrorMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool InAdvance_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual

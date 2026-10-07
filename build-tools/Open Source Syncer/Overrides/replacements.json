@@ -8,11 +8,11 @@
     "replacementPath": "replacement-ApiKeys.h"
   },
   {
-    "repoPath": "cspro/external/SQLite/sqlite3.c",
+    "repoPath": "third_party/sources/sqlite/sqlite3.c",
     "replacementRoutine": "SqliteWithoutSEE"
   },
   {
-    "repoPath": "cspro/external/SQLite/sqlite3.h",
+    "repoPath": "third_party/sources/sqlite/sqlite3.h",
     "replacementRoutine": "SqliteWithoutSEE"
   }
 ]

@@ -19,15 +19,10 @@ int LogicCompiler::CompileMessageFunctions()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    if( function_code == FunctionCode::FNDISPLAY_CODE )
+    if( function_code == FunctionCode::FNWRITE_CODE &&
+        m_engineData->application != nullptr )
     {
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF_TODO::m_95001, "DISPLAY", "ERRMSG");
-    }
-
-    else if( function_code == FunctionCode::FNWRITE_CODE )
-    {
-        if( m_engineData->application != nullptr )
-            m_engineData->application->SetHasWriteStatements();
+        m_engineData->application->SetHasWriteStatements();
     }
 
     return CompileMessageFunction(function_code);
@@ -219,21 +214,18 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
     std::optional<int> denominator_symbol_index;
     std::optional<Nodes::ExtendedMessage::DisplayType> display_type;
+    const char* select_type = nullptr; // select or choices
     std::vector<int> select_button_texts;
     std::vector<int> select_movements;
     std::optional<int> select_default_button_expression;
 
-    bool display_function = ( function_code == FunctionCode::FNDISPLAY_CODE );
-
-    if( display_function )
-        display_type = Nodes::ExtendedMessage::DisplayType::Case;
-
     bool read_next_token = true;
-    bool extended_message_node_necessary = display_function;
+    bool extended_message_node_necessary = false;
 
     while( true )
     {
-        const size_t additional_clauses_selection = NextKeyword({ "DENOM", "CASE", "SUMMARY", "SELECT" });
+        const std::initializer_list<const char*> keywords { "denom", "case", "summary", "select", "choices" };
+        const size_t additional_clauses_selection = NextKeyword(keywords);
 
         if( additional_clauses_selection == 0 )
         {
@@ -247,17 +239,21 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
             break;
         }
 
+        const char* const selected_keyword = *( keywords.begin() + additional_clauses_selection - 1 );
+
+        // listing-related options are invalid for display functions (starting in CSPro 8.2)
+        if( function_code == FunctionCode::FNDISPLAY_CODE &&
+            additional_clauses_selection <= 3 )
+        {
+            IssueError(MGF_TODO::m_777, selected_keyword);
+        }
 
         // denom
         else if( additional_clauses_selection == 1 )
         {
             // don't allow multiple specifications
             if( denominator_symbol_index.has_value() )
-                IssueError(MGF_TODO::m_776);
-
-            // invalid for display functions
-            if( display_function )
-                IssueError(MGF_TODO::m_777);
+                IssueError(MGF_TODO::m_776, selected_keyword);
 
             // invalid along with case
             if( display_type == Nodes::ExtendedMessage::DisplayType::Case )
@@ -285,14 +281,12 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
 
         // case + summary
-        else if( bool specifying_case = ( additional_clauses_selection == 2 ); specifying_case || additional_clauses_selection == 3 )
+        else if( const bool specifying_case = ( additional_clauses_selection == 2 );
+                 specifying_case || additional_clauses_selection == 3 )
         {
-            // invalid for display functions
-            if( display_function )
-                IssueError(specifying_case ? MGF_TODO::m_784 : MGF_TODO::m_787);
-
-            Nodes::ExtendedMessage::DisplayType new_display_type = specifying_case ? Nodes::ExtendedMessage::DisplayType::Case :
-                                                                                     Nodes::ExtendedMessage::DisplayType::Summary;
+            const Nodes::ExtendedMessage::DisplayType new_display_type = specifying_case
+                ? Nodes::ExtendedMessage::DisplayType::Case
+                : Nodes::ExtendedMessage::DisplayType::Summary;
 
             // don't allow multiple specifications
             if( display_type == new_display_type )
@@ -314,12 +308,18 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
         }
 
 
-        // select
-        else if( additional_clauses_selection == 4 )
+        // select + choices
+        else if( const bool using_select = ( additional_clauses_selection == 4 );
+                 ( using_select || additional_clauses_selection == 5 ) )
         {
             // don't allow multiple specifications
+            if( select_type != nullptr && select_type != selected_keyword )
+                IssueError(MGF_TODO::m_774);
+
             if( !select_button_texts.empty() )
-                IssueError(MGF_TODO::m_776);
+                IssueError(MGF_TODO::m_776, selected_keyword);
+
+            select_type = selected_keyword;
 
             bool has_path_for_warning_function = false;
 
@@ -332,7 +332,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
             while( true )
             {
                 if( select_button_texts.size() == MaximumNumberSelectButtons )
-                    IssueError(MGF_TODO::m_789, static_cast<int>(MaximumNumberSelectButtons));
+                    IssueError(MGF_TODO::m_789, selected_keyword, static_cast<int>(MaximumNumberSelectButtons));
 
                 if( IsCurrentTokenString() )
                 {
@@ -340,42 +340,51 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 }
 
                 // for some reason the original compilation allowed blank button text
-                else if( Tkn == TOKCOMMA )
+                else if( using_select && Tkn == TOKCOMMA )
                 {
                     select_button_texts.emplace_back(CreateStringLiteralNode(std::string()));
                 }
 
                 else
                 {
-                    IssueError(MGF_TODO::m_770);
+                    IssueError(MGF_TODO::m_770, selected_keyword);
                 }
 
-                // move past the optional comma to the movement specification
-                if( Tkn == TOKCOMMA )
-                    NextToken();
-
-                if( Tkn == TOKCONTINUE || Tkn == TOKNEXT )
+                // choices only expects text, whereas select expects text and a movement specifier
+                if( !using_select )
                 {
-                    has_path_for_warning_function = true;
                     select_movements.emplace_back(-1);
-                    NextToken();
                 }
 
-                else if( Tkn == TOKREENTER )
-                {
-                    select_movements.emplace_back(CompileReenterStatement_COMPILER_DLL_TODO(false));
-                    NextToken();
-                }
-
-                else if( Tkn == TOKVAR || Tkn == TOKBLOCK || Tkn == TOKGROUP || Tkn == TOKWORKSTRING )
-                {
-                    select_movements.emplace_back(CompileMoveStatement_COMPILER_DLL_TODO(true));
-                }
-
-                // expecting a variable
                 else
                 {
-                    IssueError(MGF::expecting_variable_11);
+                    // move past the optional comma to the movement specification
+                    if( Tkn == TOKCOMMA )
+                        NextToken();
+
+                    if( Tkn == TOKCONTINUE || Tkn == TOKNEXT )
+                    {
+                        has_path_for_warning_function = true;
+                        select_movements.emplace_back(-1);
+                        NextToken();
+                    }
+
+                    else if( Tkn == TOKREENTER )
+                    {
+                        select_movements.emplace_back(CompileReenterStatement_COMPILER_DLL_TODO(false));
+                        NextToken();
+                    }
+
+                    else if( Tkn == TOKVAR || Tkn == TOKBLOCK || Tkn == TOKGROUP || Tkn == TOKWORKSTRING )
+                    {
+                        select_movements.emplace_back(CompileMoveStatement_COMPILER_DLL_TODO(true));
+                    }
+
+                    // expecting a variable
+                    else
+                    {
+                        IssueError(MGF::expecting_variable_11);
+                    }
                 }
 
                 if( Tkn != TOKCOMMA )
@@ -383,6 +392,8 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
                 NextToken();
             }
+
+            ASSERT(select_button_texts.size() == select_movements.size());
 
             IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
@@ -402,8 +413,10 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 {
                     if( !IsNumericConstantInteger() || Tokvalue < 1 || Tokvalue > select_movements.size() )
                     {
-                        IssueError(MGF_TODO::m_790, ( select_movements.size() == 1 ) ? "1" :
-                                                                                       FormatText("1-%d", static_cast<int>(select_movements.size())).c_str());
+                        IssueError(MGF_TODO::m_790,
+                            selected_keyword,
+                            ( select_movements.size() == 1 ) ? "1" : FormatText("1-%d", static_cast<int>(select_movements.size())).c_str()
+                        );
                     }
                 }
 

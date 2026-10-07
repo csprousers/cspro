@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ErrmsgDlg.h"
 
 
@@ -15,7 +15,7 @@ ErrmsgDlg::ErrmsgDlg()
 
 std::string ErrmsgDlg::GetDialogName()
 {
-    return DialogName;
+    return "errmsg";
 }
 
 
