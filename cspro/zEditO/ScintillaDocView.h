@@ -2,21 +2,21 @@
 
 /*
 Module : ScintillaDocView.h
-Purpose: Defines the interface for MFC CView and CDocument derived wrapper classes for the Scintilla
+Purpose: Defines the interface for MFC CView and CDocument derived wrapper classes for the Scintilla 
          edit control (www.scintilla.org)
 Created: PJN / 19-03-2004
 
-Copyright (c) 2004 - 2025 by PJ Naughter (Web: www.naughter.com, Email: pjna@naughter.com)
+Copyright (c) 2004 - 2026 by PJ Naughter (Web: www.naughter.com, Email: pjna@naughter.com)
 
 All rights reserved.
 
 Copyright / Usage Details:
 
-You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise)
-when your product is released in binary form. You are allowed to modify the source code in any way you want
-except you cannot modify the copyright details at the top of each module. If you want to distribute source
-code with your application, then you are only allowed to distribute versions released by the author. This is
-to maintain a single distribution point for the source code.
+You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise) 
+when your product is released in binary form. You are allowed to modify the source code in any way you want 
+except you cannot modify the copyright details at the top of each module. If you want to distribute source 
+code with your application, then you are only allowed to distribute versions released by the author. This is 
+to maintain a single distribution point for the source code. 
 
 */
 
