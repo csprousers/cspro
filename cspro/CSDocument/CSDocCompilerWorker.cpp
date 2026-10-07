@@ -462,7 +462,7 @@ std::vector<std::string> CSDocCompilerWorker::GetTagComponentsV8(const std::stri
 }
 
 
-std::map<std::string_view, std::string_view> CSDocCompilerWorker::ProcessTagComponentsV8(const cs::span<const std::string> tag_components)
+std::map<std::string_view, std::string_view> CSDocCompilerWorker::ProcessTagComponentsV8(const std::span<const std::string> tag_components)
 {
     std::map<std::string_view, std::string_view> mapped_tag_components;
 
@@ -480,11 +480,11 @@ std::map<std::string_view, std::string_view> CSDocCompilerWorker::ProcessTagComp
 
 
 void CSDocCompilerWorker::ValidateTagComponentsV8(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components,
-                                                  const cs::span<const std::string_view> required_attribute_names,
-                                                  const cs::span<const std::string_view> optional_attribute_names/* = cs::span<const std::string_view>()*/,
-                                                  const cs::span<const std::string_view> attribute_names_where_value_can_be_blank/* = cs::span<const std::string_view>()*/)
+                                                  const std::span<const std::string_view> required_attribute_names,
+                                                  const std::span<const std::string_view> optional_attribute_names/* = std::span<const std::string_view>()*/,
+                                                  const std::span<const std::string_view> attribute_names_where_value_can_be_blank/* = std::span<const std::string_view>()*/)
 {
-    auto index_in_span = [](const std::string_view& name_sv, const cs::span<const std::string_view>& attribute_names)
+    auto index_in_span = [](const std::string_view& name_sv, const std::span<const std::string_view>& attribute_names)
     {
         size_t index = 0;
 
@@ -564,10 +564,10 @@ std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const s
         const std::string_view start_tag_sv = SO::TrimLeft(text_sv.substr(start_tag_position + 1));
 
         const size_t expected_tag_components =
-            SO::StartsWith(start_tag_sv, DefineTag_sv)     ? 4 :
-            SO::StartsWith(start_tag_sv, DefinitionTag_sv) ? 3 :
-            SO::StartsWith(start_tag_sv, IncludeTag_sv)    ? 3 :
-                                                             0;
+            start_tag_sv.starts_with(DefineTag_sv)     ? 4 :
+            start_tag_sv.starts_with(DefinitionTag_sv) ? 3 :
+            start_tag_sv.starts_with(IncludeTag_sv)    ? 3 :
+                                                         0;
 
         if( expected_tag_components == 0 )
         {
@@ -756,7 +756,7 @@ void CSDocCompilerWorker::ProcessParagraph(std::string paragraph)
     // these should not be processed
     if( text.length() % NewLineMarker_sv.length() == 0 )
     {
-        for( std::string_view text_check_sv = text; SO::StartsWith(text_check_sv, NewLineMarker_sv); )
+        for( std::string_view text_check_sv = text; text_check_sv.starts_with(NewLineMarker_sv); )
         {
             text_check_sv.remove_prefix(NewLineMarker_sv.length());
 
@@ -816,7 +816,7 @@ std::string CSDocCompilerWorker::ProcessText(std::string& text)
         std::string before_tag_text = text.substr(0, tag_position.start);
 
         // process end tags...
-        if( !tag_components.empty() && SO::StartsWith(tag_components.front(), "/")  )
+        if( !tag_components.empty() && tag_components.front().starts_with('/')  )
         {
             if( m_tagStack.empty() )
                 throw CSProException("End tag without a start tag around: %s", text.substr(tag_position.start).c_str());
@@ -882,7 +882,7 @@ std::string CSDocCompilerWorker::ProcessText(std::string& text)
         const std::string* const first_real_tag_component = tag_components.data() + 1;
         const std::string* const last_real_tag_component = first_real_tag_component + tag_components.size() - 1 - ( tag_definition.paired ? 0 : 1 );
 
-        const cs::span<const std::string> real_tag_components(first_real_tag_component, last_real_tag_component - first_real_tag_component);
+        const std::span<const std::string> real_tag_components(first_real_tag_component, last_real_tag_component - first_real_tag_component);
 
         // a routine to confirm that the number of tag components is valid
         auto check_num_tag_components = [&](const size_t num_tag_components)
@@ -940,7 +940,7 @@ std::string CSDocCompilerWorker::ProcessText(std::string& text)
 }
 
 
-std::string CSDocCompilerWorker::StartTagV0(const TagDefinition& tag_definition, const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::StartTagV0(const TagDefinition& tag_definition, const std::span<const std::string> tag_components)
 {
     if( std::holds_alternative<std::monostate>(tag_definition.start_handler) )
     {
@@ -1115,7 +1115,7 @@ std::string CSDocCompilerWorker::EndTagWithContentsOfTextStack(const std::string
 }
 
 
-std::string CSDocCompilerWorker::TitleStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::TitleStartHandler(const std::span<const std::string> tag_components)
 {
     if( m_title.has_value() )
         throw CSProException("Only one title can be defined.");
@@ -1139,7 +1139,7 @@ std::string CSDocCompilerWorker::TitleStartHandler(const cs::span<const std::str
 }
 
 
-std::string CSDocCompilerWorker::ContextStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::ContextStartHandler(const std::span<const std::string> tag_components)
 {
     for( cs::cref_optional<std::string> tag_component : tag_components )
     {
@@ -1189,7 +1189,7 @@ std::string CSDocCompilerWorker::CreateTitleHtml(std::string raw_title, const st
 }
 
 
-std::string CSDocCompilerWorker::IndentStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::IndentStartHandler(const std::span<const std::string> tag_components)
 {
     int indents = 1;
 
@@ -1211,7 +1211,7 @@ std::string CSDocCompilerWorker::IndentStartHandler(const cs::span<const std::st
 }
 
 
-std::string CSDocCompilerWorker::FontStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::FontStartHandler(const std::span<const std::string> tag_components)
 {
     std::string classes;
     std::string styles;
@@ -1279,7 +1279,7 @@ std::string CSDocCompilerWorker::FontStartHandler(const cs::span<const std::stri
 }
 
 
-std::string CSDocCompilerWorker::ListStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::ListStartHandler(const std::span<const std::string> tag_components)
 {
     bool unordered_list = true;
 
@@ -1297,7 +1297,7 @@ std::string CSDocCompilerWorker::ListStartHandler(const cs::span<const std::stri
 }
 
 
-std::string CSDocCompilerWorker::ImageStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::ImageStartHandler(const std::span<const std::string> tag_components)
 {
     std::optional<int> width;
     std::optional<int> height;
@@ -1385,9 +1385,10 @@ std::string CSDocCompilerWorker::BarcodeStartHandler(const std::string& start_ta
     constexpr std::string_view LightColorAttribute_sv      = "lightColor";
 
     ValidateTagComponentsV8(start_tag, tag_components,
-                            { TextAttribute_sv },
-                            { ErrorCorrectionAttribute_sv, ScaleAttribute_sv, QuietZoneAttribute_sv, DarkColorAttribute_sv, LightColorAttribute_sv, ImageWidthAttribute_sv, ImageHeightAttribute_sv },
-                            { TextAttribute_sv });
+        std::span<const std::string_view>({ TextAttribute_sv }),
+        std::span<const std::string_view>({ ErrorCorrectionAttribute_sv, ScaleAttribute_sv, QuietZoneAttribute_sv, DarkColorAttribute_sv, LightColorAttribute_sv, ImageWidthAttribute_sv, ImageHeightAttribute_sv }),
+        std::span<const std::string_view>({ TextAttribute_sv })
+    );
 
     Multimedia::QRCode qr_code;
     const std::string text(tag_components.at(TextAttribute_sv));
@@ -1504,7 +1505,7 @@ std::string CSDocCompilerWorker::CreateHyperlinkStart(std::string_view CreateUrl
 }
 
 
-std::string CSDocCompilerWorker::TopicStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::TopicStartHandler(const std::span<const std::string> tag_components)
 {
     const PathAndProject path_and_project = GetPathAndProjectForTopicComponent(tag_components.front());
     std::string title = m_settings.GetTitle(path_and_project.path);
@@ -1515,7 +1516,7 @@ std::string CSDocCompilerWorker::TopicStartHandler(const cs::span<const std::str
 }
 
 
-std::string CSDocCompilerWorker::LinkStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::LinkStartHandler(const std::span<const std::string> tag_components)
 {
     return CreateLinkStartHtml(tag_components.front(), true);
 }
@@ -1525,7 +1526,7 @@ std::string CSDocCompilerWorker::CreateLinkStartHtml(std::string url, const bool
 {
     bool target_blank = false;
 
-    if( Encoders::IsDataOrHttpUrl(url) || SO::StartsWith(url, "mailto") )
+    if( Encoders::IsDataOrHttpUrl(url) || url.starts_with("mailto") )
     {
         target_blank = m_settings.OpenExternalLinksInSeparateWindow();
     }
@@ -1540,7 +1541,7 @@ std::string CSDocCompilerWorker::CreateLinkStartHtml(std::string url, const bool
 }
 
 
-std::string CSDocCompilerWorker::SeeAlsoStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::SeeAlsoStartHandler(const std::span<const std::string> tag_components)
 {
     std::vector<std::tuple<std::string, std::string>> urls_and_titles;
     bool ordered_list = false;
@@ -1587,7 +1588,7 @@ std::string CSDocCompilerWorker::SeeAlsoStartHandler(const cs::span<const std::s
 }
 
 
-std::string CSDocCompilerWorker::ResourceStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::ResourceStartHandler(const std::span<const std::string> tag_components)
 {
     return CreateHyperlinkStart(m_settings.CreateUrlForResource(tag_components.front()),
                                 m_settings.OpenExternalLinksInSeparateWindow());
@@ -1614,7 +1615,7 @@ CSDocCompilerWorker::TableSettings& CSDocCompilerWorker::GetCurrentTable()
 }
 
 
-std::string CSDocCompilerWorker::TableStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::TableStartHandler(const std::span<const std::string> tag_components)
 {
     auto table_settings = std::make_shared<TableSettings>();
 
@@ -1676,7 +1677,7 @@ std::string CSDocCompilerWorker::TableEndHandler(const std::string& inner_text)
 }
 
 
-std::string CSDocCompilerWorker::TableCellStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::TableCellStartHandler(const std::span<const std::string> tag_components)
 {
     TableSettings& table_settings = GetCurrentTable();
     const int cell_index = table_settings.cells % table_settings.columns;
@@ -1748,8 +1749,9 @@ std::string CSDocCompilerWorker::NoteStartHandler(const std::string& start_tag, 
     constexpr std::string_view TypeCommentValue_sv = "comment";
 
     ValidateTagComponentsV8(start_tag, tag_components,
-                            { TextAttribute_sv },
-                            { TypeAttribute_sv });
+        std::span<const std::string_view>({ TextAttribute_sv }),
+        std::span<const std::string_view>({ TypeAttribute_sv })
+    );
 
     std::string text;
     ExecuteWithTagValue(tag_components, TextAttribute_sv,
@@ -1798,7 +1800,7 @@ std::string CSDocCompilerWorker::MetadataStartHandler(const std::string& /*start
 }
 
 
-std::string CSDocCompilerWorker::BuildExtraStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::BuildExtraStartHandler(const std::span<const std::string> tag_components)
 {
     for( const std::string& tag_component : tag_components )
         m_settings.EvaluateBuildExtra(tag_component);

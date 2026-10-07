@@ -202,7 +202,7 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromFile(const std::string
 }
 
 
-std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<const std::byte> content)
+std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const std::span<const std::byte> content)
 {
     // stb_image-supported images
     {
@@ -232,7 +232,7 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<
 }
 
 
-std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(const cs::span<const std::byte> content)
+std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(const std::span<const std::byte> content)
 {
     ImageDetails details;
     LoadedImageType loaded_image_type;
@@ -256,7 +256,7 @@ std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(
 }
 
 
-bool Multimedia::Image::GetWebPDetailsFromBuffer(const cs::span<const std::byte> content, ImageDetails& details)
+bool Multimedia::Image::GetWebPDetailsFromBuffer(const std::span<const std::byte> content, ImageDetails& details)
 {
     WebPBitstreamFeatures webp_features;
 
@@ -272,7 +272,7 @@ bool Multimedia::Image::GetWebPDetailsFromBuffer(const cs::span<const std::byte>
 }
 
 
-std::unique_ptr<Multimedia::Image> Multimedia::Image::GetWebPImageFromBuffer(const cs::span<const std::byte> content)
+std::unique_ptr<Multimedia::Image> Multimedia::Image::GetWebPImageFromBuffer(const std::span<const std::byte> content)
 {
     ImageDetails details;
 

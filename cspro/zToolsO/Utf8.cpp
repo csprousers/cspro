@@ -140,7 +140,7 @@ RT TC::ToWide(const char* const utf8_text, const size_t utf8_length)
 
     else
     {
-        static_assert(constexpr(std::is_same_v<RT, CString>));
+        static_assert(std::is_same_v<RT, CString>);
         RT wide_text;
         MultiByteToWideChar(CP_UTF8, 0, utf8_text, static_cast<int>(utf8_length), wide_text.GetBufferSetLength(wide_length), wide_length);
         wide_text.ReleaseBuffer(wide_length);

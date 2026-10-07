@@ -272,7 +272,7 @@ Engine::Value LogicInterpreter::ex_syncconnect(const int program_index)
             {
                 std::string directory_path = Evaluate<std::string>(va_node.arguments[1]);
 
-                if( SO::StartsWith(directory_path, "file:/") )
+                if( directory_path.starts_with("file:/") )
                 {
                     sync_connection_string.emplace(directory_path);
                 }

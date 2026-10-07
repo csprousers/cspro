@@ -16,24 +16,17 @@ struct WindowsUserbarItem
     std::unique_ptr<CWnd> window;
     std::optional<COLORREF> color;
 
+    WindowsUserbarItem(Type type_, int id_, std::optional<Userbar::Action> action_);
     WindowsUserbarItem(WindowsUserbarItem&&) = default;
     WindowsUserbarItem& operator=(WindowsUserbarItem&&) = default;
-
-    ~WindowsUserbarItem()
-    {
-        if( window != nullptr )
-            window->DestroyWindow();
-    }
+    ~WindowsUserbarItem();
 };
 
 
 class WindowsUserbarWnd : public CWnd
 {
 public:
-    WindowsUserbarWnd(WindowsUserbar& userbar)
-        :   m_userbar(userbar)
-    {
-    }
+    WindowsUserbarWnd(WindowsUserbar& userbar);
 
 protected:
     LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
@@ -101,3 +94,29 @@ private:
     std::vector<WindowsUserbarItem> m_items;
     std::optional<int> m_lastActivatedItemId;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+inline WindowsUserbarItem::WindowsUserbarItem(const Type type_, const int id_, std::optional<Userbar::Action> action_)
+    :   type(type_),
+        id(id_),
+        action(std::move(action_))
+{
+}
+
+
+inline WindowsUserbarItem::~WindowsUserbarItem()
+{
+    if( window != nullptr )
+        window->DestroyWindow();
+}
+
+
+inline WindowsUserbarWnd::WindowsUserbarWnd(WindowsUserbar& userbar)
+    :   m_userbar(userbar)
+{
+}

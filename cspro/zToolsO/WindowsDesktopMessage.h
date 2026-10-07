@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 
@@ -103,7 +103,7 @@ BOOL WindowsDesktopMessage::Post(const UINT message, WT wparam_value/* = 0*/, LT
 }
 
 
-#ifdef WIN_DESKTOP
+#if defined(WIN_DESKTOP) && defined(_AFX)
 
 template<typename RT, typename WT, typename LT>
 RT WindowsDesktopMessage::Worker(CWnd* const wnd, UINT message, WT wparam_value, LT lparam_value)

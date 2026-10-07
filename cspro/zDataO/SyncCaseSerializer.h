@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
-#include <zToolsO/span.h>
+#include <span>
 
 class BinaryCaseItem;
 class Case;
@@ -52,11 +52,11 @@ public:
     std::string GetSyncableJson(const Case& data_case, bool wrap_single_case_in_array);
 
     // Returns the syncable case JSON array for the cases.
-    std::string GetSyncableJson(cs::span<const Case* const> cases);
+    std::string GetSyncableJson(std::span<const Case* const> cases);
 
     // Returns the syncable case data for the cases.
     // If sync_binary_data_upload_manager is non-null and contains binary data, the response will instead be written in the binary data format.
-    std::string GetSyncableCaseData(cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager);
+    std::string GetSyncableCaseData(std::span<const Case* const> cases, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager);
 
     // Parses the syncable case data, whether a JSON array of cases, or cases written in the binary data format.
     // Errors in construction are reported using a SyncLogCaseConstructionReporter.

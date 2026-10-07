@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SpecialDirectoryLister.h"
 #include "MimeType.h"
 #include "VirtualDirectoryLister.h"
@@ -102,7 +102,7 @@ std::string SpecialDirectoryLister::EvaluateFilter(const std::string_view filter
             const size_t expected_type_pos = 1 + file_type_sv.length() + 1;
 
             if( filter_component_sv.length() > expected_type_pos &&
-                SO::StartsWith(filter_component_sv.substr(1), file_type_sv) &&
+                filter_component_sv.substr(1).starts_with(file_type_sv) &&
                 filter_component_sv[expected_type_pos - 1] == '.' )
             {
                 const std::string_view type_sv = filter_component_sv.substr(expected_type_pos);
@@ -139,7 +139,7 @@ SpecialDirectoryLister::SpecialDirectory SpecialDirectoryLister::EvaluateSpecial
     const size_t expected_type_pos = media_sv.length() + 1;
 
     if( directory_sv.length() > expected_type_pos &&
-        SO::StartsWith(directory_sv, media_sv) &&
+        directory_sv.starts_with(media_sv) &&
         directory_sv[expected_type_pos - 1] == '.' )
     {
         // there might be a path as part of the directory; e.g.: |Media.Images/Safari Images

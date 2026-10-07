@@ -281,7 +281,7 @@ void CSWebConnection::HandleServerErrorResponse(const int error_message_number, 
         const std::string message = json_node.Get<std::string>(JK::message);
 
         if( http_response_code == HttpResponse::Status_404_NotFound &&
-            code == "fatal_error" && SO::StartsWith(message, "No route found for") )
+            code == "fatal_error" && message.starts_with("No route found for") )
         {
             throw SyncNotSupportedByServiceVersionError();
         }

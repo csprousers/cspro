@@ -111,7 +111,7 @@ void TagSyncerView::OnRefreshTags()
 
 std::string TagSyncerView::ExtractCommitSHAFromTagMessage(const std::string_view tag_message_sv)
 {
-    if( SO::StartsWith(tag_message_sv, MessagePrefix_sv) )
+    if( tag_message_sv.starts_with(MessagePrefix_sv) )
         return std::string(SO::Trim(tag_message_sv.substr(MessagePrefix_sv.size())));
 
     return std::string();

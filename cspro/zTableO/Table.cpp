@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: Table.cpp
 //
 //  Description:
@@ -6106,7 +6106,8 @@ void CTabSet::MakeNameMap(CTabVar* pTabVar, CMapStringToString& arrNames)
                 CString sAssocName;
                 m_varNameMap.GetNextAssoc(pos,pKeyVar,sAssocName);
                 if(sAssocName.CompareNoCase(sName) ==0){
-                    m_varNameMap.SetAt(pKeyVar, sName + _T("(1)"));
+                    CString sNewName = sName + _T("(1)");
+                    m_varNameMap.SetAt(pKeyVar, sNewName);
                     break;
                 }
             }

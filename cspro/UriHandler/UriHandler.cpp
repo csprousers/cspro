@@ -63,13 +63,13 @@ BOOL UriHandlerApp::InitInstance()
         // prior to CSPro 8.1, URIs looked like: cspro:///program= or cspro://program=
         const std::string_view pre81_path_sv = uri_sv.substr(CustomUri::CSProScheme_sv.length());
 
-        if( SO::StartsWith(pre81_path_sv, Pre81::ProgramProperty_sv) )
+        if( pre81_path_sv.starts_with(Pre81::ProgramProperty_sv) )
         {
             ProcessPre81Path(pre81_path_sv);
         }
 
         else if( !pre81_path_sv.empty() && pre81_path_sv.front() == '/' &&
-                 SO::StartsWith(pre81_path_sv.substr(1), Pre81::ProgramProperty_sv) )
+                 pre81_path_sv.substr(1).starts_with(Pre81::ProgramProperty_sv) )
         {
             ProcessPre81Path(pre81_path_sv.substr(1));
         }
@@ -118,7 +118,7 @@ void UriHandlerApp::ProcessPre81Path(const std::string_view pre81_path_sv)
     // pre-8.1 URLs looked like:
     // cspro:///program=TextViewer&file=file.csdb
     // cspro:///program=DataViewer&file=file.csdb&dcf=~QzpcVXNlcnNcSW5zZXRlXERlc2t0b3BcRGF0YU1hbmFnZXJcY29ubmVjdGlvbiBzdHJpbmcgLSBkYXRhXENlbnN1cyBEaWN0aW9uYXJ5LmRjZg==&key=010108800220740201
-    ASSERT(SO::StartsWith(pre81_path_sv, Pre81::ProgramProperty_sv));
+    ASSERT(pre81_path_sv.starts_with(Pre81::ProgramProperty_sv));
 
     // split the text by & and then map each property and value
     std::map<std::string, std::string> properties;

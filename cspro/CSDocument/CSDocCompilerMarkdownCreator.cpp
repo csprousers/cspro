@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocCompilerWorker.h"
 #include "HtmlTags.h"
 #include <zMarkdown/ParserCallback.h>
@@ -294,7 +294,7 @@ void CSDocCompilerWorker::MarkdownCreator::EnterBlockCode(const MD_BLOCK_CODE_DE
         language_name.clear();
 
     if( !language_name.empty() )
-        m_worker.ColorStartHandler(language_name);
+        m_worker.ColorStartHandler(std::span<const std::string>({ language_name }));
 
     m_html.append(HT::ParagraphDiv_sv[0]);
 }

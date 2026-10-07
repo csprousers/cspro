@@ -66,7 +66,7 @@ std::optional<double> SQLiteRepository::SyncStatusEvaluator::GetSyncTime(const S
             for( const SyncTimeData& sync_time_data : sync_time_data_itr->second )
             {
                 // skip syncs where the case would not have been synced due to the use of a universe
-                if( !SO::StartsWith(case_key.GetKey(), sync_time_data.universe) )
+                if( !case_key.GetKey().starts_with(sync_time_data.universe) )
                     continue;
 
                 // skip partial syncs in which this case was not synced
@@ -529,7 +529,7 @@ std::unique_ptr<SQLiteRepositoryCaseIterator> SQLiteRepository::SyncStatusEvalua
     if( last_sync_revision.has_value() )
     {
         // only use the previous revision number if the universe stayed the same or became more restrictive
-        if( !SO::StartsWith(universe, last_sync_revision->GetUniverse()) )
+        if( !universe.starts_with(last_sync_revision->GetUniverse()) )
         {
             last_sync_revision.reset();
         }

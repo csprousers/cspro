@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
-#include <zToolsO/span.h>
+#include <span>
 
 
 class CLASS_DECL_ZTOOLSO Encryptor
@@ -20,8 +20,8 @@ public:
 
     // encrypts or decrypts a buffer;
     // the length of the source buffer is added at the end encryption buffer
-    std::vector<std::byte> Encrypt(cs::span<const std::byte> buffer);
-    std::vector<std::byte> Decrypt(cs::span<const std::byte> encrypted_buffer);
+    std::vector<std::byte> Encrypt(std::span<const std::byte> buffer);
+    std::vector<std::byte> Decrypt(std::span<const std::byte> encrypted_buffer);
 
 private:
     std::unique_ptr<Impl> m_encryptor;

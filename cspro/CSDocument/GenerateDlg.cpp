@@ -83,8 +83,15 @@ void GenerateDlg::OnOutputsClick(NMHDR* const pNMHDR, LRESULT* const pResult)
 
     const std::string& path = std::get<1>(m_finalOutputs[pNMLink->item.iLink]);
 
-    control_pressed ? OpenContainingFolder(path) :
-                      OpenFileInAssociatedApplication<false>(path);
+    if( control_pressed )
+    {
+        OpenContainingFolder(path);
+    }
+
+    else
+    {
+        OpenFileInAssociatedApplication<false>(path);
+    }
 
     *pResult = 0;
 }
@@ -215,7 +222,7 @@ void GenerateDlg::OnCreatedOutput(std::string output_title, std::string path)
 
 void GenerateDlg::OnException(const CSProException& exception)
 {
-    Interface::LogText(u8"\n⚠ %s", exception.what());
+    Interface::LogText("\n⚠ %s", exception.what());
 
     SetOutputText("Error!");
     UpdateProgress(HideProgressBarCode);

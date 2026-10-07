@@ -181,7 +181,7 @@ bool CRunTab::ExecPrep()
         }
     }
     if ( !tfMgr.Open(sTabFileName, false) ) {
-        std::cerr << _T("File <") << sTabFileName.GetString() << _T("> not found.\n");
+        std::cerr << "File <" << UTF8_TODO::GetUtf8(sTabFileName).c_str() << "> not found.\n";
         return false;
     }
 
@@ -628,7 +628,7 @@ bool CRunTab::BuildTables(CTbdFile* ptFile)
 
         }
 
-        std::cout << csMsg.GetString() << _T("\n");
+        std::cout << UTF8_TODO::GetUtf8(csMsg).c_str() << "\n";
 
         pAcum = pSlice->GetAcum();
         byte*   pDefaultValue = pAcum->GetDefaultValue();
@@ -691,8 +691,8 @@ bool CRunTab::BuildTables(CTbdFile* ptFile)
         }
         wc.Restore();
     }
-    std::cout << _T("       END SHOW SLICE\n");
-    std::cout << _T("END TBD FILE INFO\n");
+    std::cout << "       END SHOW SLICE\n";
+    std::cout << "END TBD FILE INFO\n";
     SetAreaLabels4AllTables();
     return true;
 }

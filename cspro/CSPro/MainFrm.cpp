@@ -887,10 +887,10 @@ void CMainFrame::OnChangeDictionaryLanguage()
 LRESULT CMainFrame::SelectTab(WPARAM wParam, LPARAM /*lParam*/)
 {
     FrameType frame_type = static_cast<FrameType>(wParam);
-    CString tab_name = ( frame_type == FrameType::Dictionary ) ? DICT_TAB_LABEL :
-                       ( frame_type == FrameType::Form )       ? FORM_TAB_LABEL :
-                       ( frame_type == FrameType::Order )      ? ORDER_TAB_LABEL :
-                       ( frame_type == FrameType::Table )      ? TABLE_TAB_LABEL :
+    CString tab_name = ( frame_type == FrameType::Dictionary ) ? CString(DICT_TAB_LABEL) :
+                       ( frame_type == FrameType::Form )       ? CString(FORM_TAB_LABEL) :
+                       ( frame_type == FrameType::Order )      ? CString(ORDER_TAB_LABEL) :
+                       ( frame_type == FrameType::Table )      ? CString(TABLE_TAB_LABEL) :
                                                                  CString();
     ASSERT(!tab_name.IsEmpty());
 
@@ -1443,8 +1443,8 @@ CAplDoc* CMainFrame::ProcessFOForSrcCode(CDocument& document)
 template<typename T>
 T* CMainFrame::GetNodeIdForSourceCode(T* pNodeId/* = nullptr*/)
 {
-    const CTreeCtrl& tree = constexpr(std::is_same_v<T, CFormID>) ? static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_FormTree) :
-                                                                    static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_OrderTree);
+    const CTreeCtrl& tree = std::is_same_v<T, CFormID> ? static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_FormTree) :
+                                                         static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_OrderTree);
 
     auto get_node_id = [&](HTREEITEM hItem)
     {

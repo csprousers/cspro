@@ -1626,7 +1626,7 @@ int SQLiteRepository::SyncCasesFromRemote(const std::vector<std::shared_ptr<Case
 }
 
 
-void SQLiteRepository::MarkCasesSentToRemote(const cs::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* const sync_binary_data_upload_manager,
+void SQLiteRepository::MarkCasesSentToRemote(const std::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* const sync_binary_data_upload_manager,
                                              const std::string& server_revision, const int client_revision)
 {
     m_currentSyncParams.current_client_revision = client_revision;

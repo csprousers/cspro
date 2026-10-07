@@ -640,7 +640,7 @@ template<typename T>
 T GitRepository::LookupTagWorker(const std::string_view tag_name_sv) const
 {
     static_assert(std::is_same_v<T, GitTag> || std::is_same_v<T, bool>);
-    ASSERT(!SO::StartsWith(tag_name_sv, GitTag::RefsTagPrefix_sv));
+    ASSERT(!tag_name_sv.starts_with(GitTag::RefsTagPrefix_sv));
 
     EnsureRepositoryIsOpen();
 

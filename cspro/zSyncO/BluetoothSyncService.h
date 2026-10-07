@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/BluetoothDeviceInfo.h>
 #include <zSyncO/ISyncService.h>
@@ -31,7 +31,7 @@ public:
                              const std::string& last_case_uuid, const std::vector<std::string>& excluded_revisions) override;
 
     SyncPutResponse PutCases(std::shared_ptr<const CaseAccess> case_access,
-                             cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
+                             std::span<const Case* const> cases, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
                              const DeviceId& device_id, const std::string& universe, const std::string& last_server_revision) override;
 
     IDataChunk& GetChunk() override;

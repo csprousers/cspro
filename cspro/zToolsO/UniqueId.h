@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 
@@ -13,22 +13,22 @@
 class UniqueId
 {
 public:
-    UniqueId()
+    UniqueId() noexcept
         :   m_id(CreateInt())
     {
     }
 
-    bool operator==(const UniqueId& rhs)
+    bool operator==(const UniqueId& rhs) const noexcept
     {
         return ( m_id == rhs.m_id );
     }
 
-    bool operator!=(const UniqueId& rhs)
+    bool operator!=(const UniqueId& rhs) const noexcept
     {
         return ( m_id != rhs.m_id );
     }
 
-    static int CreateInt()
+    static int CreateInt() noexcept
     {
         return m_nextId++;
     }

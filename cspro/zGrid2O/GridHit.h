@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGrid2O/zGrid2O.h>
 
@@ -35,7 +35,7 @@ public:
         m_iTxt = h.GetText();
         return *this;
     }
-    bool operator==(const CHitOb& h)  {
+    bool operator==(const CHitOb& h) const {
         return (m_ptCell==h.GetCell() && m_iField==h.GetField() && m_iBox==h.GetBox() && m_iTxt==h.GetText());
     }
 

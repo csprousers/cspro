@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/Special.h>
 #include <zLogicO/Token.h>
@@ -105,7 +105,7 @@ bool FloatingPointMath::Evaluate(const double lhs, const double rhs)
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 }
 
@@ -150,7 +150,7 @@ bool FloatingPointMath::Evaluate(const double lhs, const double rhs)
 
         else
         {
-            static_assert_false();
+            static_assert(false);
         }
     }
 }

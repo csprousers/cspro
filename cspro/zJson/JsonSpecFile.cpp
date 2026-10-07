@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonSpecFile.h"
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Versioning.h>
@@ -69,7 +69,7 @@ std::string JsonSpecFile::ReaderMessageLogger::GetErrorText(std::string initial_
 
         for( const std::string& message : messages )
         {
-            combined_message_text.append(u8"\n  • ")
+            combined_message_text.append("\n  • ")
                                  .append(message);
         }
     }
@@ -87,7 +87,7 @@ void JsonSpecFile::ReaderMessageLogger::DisplayWarnings(const bool silent/* = fa
 
 void JsonSpecFile::ReaderMessageLogger::RethrowException(const InterfaceString file_path, const CSProException& exception) const
 {
-    std::string message = FormatText(u8"There was an error reading '%s':\n\n  ⚠️ %s",
+    std::string message = FormatText("There was an error reading '%s':\n\n  ⚠️ %s",
                                      PortableFunctions::PathGetFilename(file_path.GetString<std::string>()).c_str(), exception.what());
 
     if( !m_messageSets.empty() )

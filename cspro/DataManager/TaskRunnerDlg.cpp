@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TaskRunnerDlg.h"
 #include "WindowsMessageCaseConstructionReporter.h"
 #include <zUtilO/WindowHelpers.h>
@@ -147,7 +147,7 @@ LRESULT TaskRunnerDlg::OnCaseConstructionReporterMessage(const WPARAM wParam, LP
     ASSERT(message != nullptr);
 
     LogText();
-    LogText(u8"⚠ " + *message);
+    LogText("⚠ " + *message);
     LogText();
 
     return 1;
@@ -223,7 +223,7 @@ void TaskRunnerDlg::RunTask()
     catch( const std::exception& exception )
     {
         result = Task::Result::Exception;
-        LogText(SO::Concatenate(u8"\n⚠ There was an error running the task:\n    ", exception.what()));
+        LogText(SO::Concatenate("\n⚠ There was an error running the task:\n    ", exception.what()));
     }
 
     try
@@ -234,7 +234,7 @@ void TaskRunnerDlg::RunTask()
     catch( const std::exception& exception )
     {
         result = Task::Result::Exception;
-        LogText(SO::Concatenate(u8"\n⚠ There was an error finalizing the task:\n    ", exception.what()));
+        LogText(SO::Concatenate("\n⚠ There was an error finalizing the task:\n    ", exception.what()));
     }
 
     m_taskResult = result;

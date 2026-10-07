@@ -1043,7 +1043,7 @@ ObexResponseCode SyncObexHandler::handleSyncApp(const std::string& package_name,
         {
             std::string& path_in_zip = PortableFunctions::MakePathToForwardSlash(files_to_include.emplace_back(package_file.path));
 
-            if( SO::StartsWith(path_in_zip, "./") )
+            if( path_in_zip.starts_with("./") )
                 path_in_zip = path_in_zip.substr(2);
         }
     }

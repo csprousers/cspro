@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "BasicTokenCompiler.h"
 #include "ProcDirectory.h"
 #include <zUtilO/StdioFileUnicode.h>
@@ -164,14 +164,16 @@ bool BasicTokenCompiler::SkipBasicTokensUntil(const std::string_view token_text_
 }
 
 
-cs::span<const BasicToken> BasicTokenCompiler::GetBasicTokensSpanFromCurrentToken() const
+std::span<const BasicToken> BasicTokenCompiler::GetBasicTokensSpanFromCurrentToken() const
 {
     ASSERT(m_nextBasicTokenIndex >= 1);
 
     const size_t start_token_index = m_nextBasicTokenIndex - 1;
 
-    return cs::span<const BasicToken>(m_basicTokens.data() + start_token_index,
-                                      m_basicTokens.size() - start_token_index);
+    return std::span<const BasicToken>(
+        m_basicTokens.data() + start_token_index,
+        m_basicTokens.size() - start_token_index
+    );
 }
 
 

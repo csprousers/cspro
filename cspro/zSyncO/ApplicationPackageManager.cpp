@@ -227,7 +227,7 @@ void ApplicationPackageManager::InstallApplication(const std::string& package_na
                         path_in_zip = PortableFunctions::PathReplaceFileExtension(path_in_zip, FileExtensions::BinaryEntryPen);
 
                     // remove the leading ./ from the path
-                    if( SO::StartsWith(path_in_zip, "./") )
+                    if( path_in_zip.starts_with("./") )
                         path_in_zip = path_in_zip.substr(2);
 
                     const std::string destination_file_path = Path::Combine(package_directory, PortableFunctions::PathToNativeSlash(path_in_zip));

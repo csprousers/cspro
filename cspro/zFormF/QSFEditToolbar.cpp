@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "QSFEditToolbar.h"
 #include "QSFEditToolBarComboBoxButtons.h"
 #include "TableToolbarButton.h"
@@ -104,7 +104,7 @@ struct ColourTableEntry
     BYTE red;
     BYTE green;
     BYTE blue;
-    wchar_t* szName;
+    const wchar_t* szName;
 };
 
 

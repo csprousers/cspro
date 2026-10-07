@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 namespace EngineStringComparer
@@ -178,7 +178,7 @@ bool EngineStringComparer::V8::Evaluate(const std::string& lhs, const std::strin
 
         else
         {
-            static_assert_false();
+            static_assert(false);
         }
     }
 }

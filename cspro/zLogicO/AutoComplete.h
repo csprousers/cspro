@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zLogicO/Symbol.h>
-#include <zToolsO/span.h>
+#include <span>
 
 
 namespace Logic { class AutoComplete;
@@ -19,7 +19,7 @@ public:
     void UpdateWithCompiledSymbols(const SymbolTable& symbol_table, bool update_all);
 
     std::tuple<std::string, bool> GetSuggestedWordString(const std::string& name) const;
-    std::string GetSuggestedWordString(cs::span<const std::string> dot_notation_entries, std::string_view name_sv) const;
+    std::string GetSuggestedWordString(std::span<const std::string> dot_notation_entries, std::string_view name_sv) const;
 
 private:
     struct SymbolTypes

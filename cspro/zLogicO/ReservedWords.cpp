@@ -112,10 +112,7 @@ const std::vector<std::string>& ReservedWords::GetAllReservedWords()
 const ReservedWordsTable<AdditionalReservedWordDetails>& ReservedWords::GetAdditionalReservedWords()
 {
     static const ReservedWordsTable<AdditionalReservedWordDetails> additional_reserved_words(
-        cs::span<const AdditionalReservedWordDetails>(
-            AdditionalReservedWords,
-            AdditionalReservedWords + _countof(AdditionalReservedWords)
-        )
+        std::span(AdditionalReservedWords, _countof(AdditionalReservedWords))
     );
 
     return additional_reserved_words;

@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "gov_census_cspro_bridge_CNPifFile.h"
 #include "JNIHelpers.h"
 #include <zPlatformO/PlatformInterface.h>
@@ -205,7 +205,7 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_bridge_CNPifFile_CreatePffFromDe
     {
         constexpr std::string_view PathPrefix_sv = "/pff/";
 
-        if( !SO::StartsWith(parsed_uri.path, PathPrefix_sv) )
+        if( !parsed_uri.path.starts_with(PathPrefix_sv) )
             throw ProgrammingErrorException();
 
         std::vector<std::string> path_segments = SO::SplitString(std::string_view(parsed_uri.path).substr(PathPrefix_sv.length()), '/', true, true);

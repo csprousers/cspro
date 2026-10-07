@@ -2,11 +2,11 @@
 
 This repository contains the code for the [Census and Survey Processing System](https://www.census.gov/data/software/cspro.html) (CSPro) and [CSEntry Android](https://play.google.com/store/apps/details?id=gov.census.cspro.csentry).
 
-The CSPro suite of programs that runs on Windows is coded in C++17 using the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework, with a few tools coded in C#. This code is built using [Microsoft Visual Studio](https://visualstudio.microsoft.com).
+The CSPro suite of programs that runs on Windows is coded in C++20 using the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework, with a few tools coded in C#. This code is built using [Microsoft Visual Studio](https://visualstudio.microsoft.com).
 
 CSEntry, the Android application, is coded in Java and Kotlin and built using [Android Studio](https://developer.android.com/studio).
 
-The shared runtime is coded in C++17, with the [NDK](https://developer.android.com/ndk) toolset building this for Android.
+The shared runtime is coded in C++20, with the [NDK](https://developer.android.com/ndk) toolset building this for Android.
 
 Details about building CSPro, as well as information about the codebase and programming principles, are available in [BUILD.md](https://github.com/csprousers/cspro/blob/dev/BUILD.md).
 

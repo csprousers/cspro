@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <rxcpp/rx-lite.hpp>
 #include <zDataO/SyncCaseSerializer.h>
@@ -38,13 +38,15 @@ void SetPartialSave(const CaseAccess& case_access, Case& data_case, PartialSaveM
                     size_t record_occurrence = 0, size_t item_occurrence = 0, size_t subitem_occurrence = 0);
 
 std::unique_ptr<SyncBinaryDataUploadManager> CreateSyncBinaryDataUploadManager(std::shared_ptr<const CaseAccess> case_access,
-                                                                               cs::span<const Case* const> cases_to_analyze = cs::span<const Case* const>());
+                                                                               std::span<const Case* const> cases_to_analyze = std::span<const Case* const>());
 
-std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, cs::span<const Case* const> cases, SyncCaseSerializer& sync_case_serializer);
-std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, cs::span<const Case* const> cases, SyncCaseSerializer::Version version);
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, std::span<const Case* const> cases, SyncCaseSerializer& sync_case_serializer);
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, const Case& data_case, SyncCaseSerializer& sync_case_serializer);
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, std::span<const Case* const> cases, SyncCaseSerializer::Version version);
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, const Case& data_case, SyncCaseSerializer::Version version);
 
 enum class CompareCasesType { Counts, CountsAndBinaryData, CountsAndFullCase };
-void CompareCases(cs::span<const Case* const> expected_cases, cs::span<const Case* const> actual_cases, CompareCasesType compare_cases_type);
+void CompareCases(std::span<const Case* const> expected_cases, std::span<const Case* const> actual_cases, CompareCasesType compare_cases_type);
 
 void MergeCaseList(std::vector<std::shared_ptr<Case>>& cases, const std::vector<std::shared_ptr<Case>>& cases_to_merge);
 

@@ -1,8 +1,11 @@
-﻿#pragma once
+#pragma once
 
+#include <DataManager/Settings.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
 #include <zDataO/DataRepository.h>
+
+class CMainFrame;
 
 
 class CaseHoldingDoc : public CDocument
@@ -75,5 +78,5 @@ std::shared_ptr<T> CaseHoldingDoc::GetSettings()
 
     // a unique copy of settings will be created for case-only documents as multiple
     // cases belonging to a single data source may be open with different settings
-    return settings.GetSettings<T>(m_connectionString, IsDocumentCaseOnly());
+    return settings.template GetSettings<T>(m_connectionString, IsDocumentCaseOnly());
 }

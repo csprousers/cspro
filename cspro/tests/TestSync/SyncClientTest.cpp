@@ -394,17 +394,17 @@ namespace SyncUnitTest
             const std::string serverRev2 = "2";
             When(Method(mockServer, PutCases)).
                 Do([serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                const std::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                 const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev1);
             }).Do([serverRev1](std::shared_ptr<const CaseAccess> /*case_access*/,
-                               const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const std::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 Assert::AreEqual(serverRev1, last_server_revision, L"Second sync doesn't have revision from first sync");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::RevisionNotFound);
             }).Do([serverRev2](std::shared_ptr<const CaseAccess> /*case_access*/,
-                               const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const std::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 Assert::IsTrue(last_server_revision.empty(), L"Sync after revision not found doesn't have empty server revision");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev2);
@@ -581,7 +581,7 @@ namespace SyncUnitTest
             const std::string serverRev3 = "3";
             When(Method(mockServer, PutCases)).
                 Do([&clientCases, chunkSize, this](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                                   const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                   const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                                    const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) -> SyncPutResponse {
                 // First sync first chunk
                 Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
@@ -589,7 +589,7 @@ namespace SyncUnitTest
                 Assert::AreEqual(clientCases[0]->GetUuid(), cases.front()->GetUuid());
                 throw SyncError(100111, "some network error");
             }).Do([&clientCases, this, serverRev1, chunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                                              const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                              const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Second sync first chunk retry
                 Assert::AreEqual(chunkSize, cases.size());
@@ -597,7 +597,7 @@ namespace SyncUnitTest
                 Assert::IsTrue(last_server_revision.empty(), L"First sync doesn't have empty server revision");
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev1);
             }).Do([&clientCases, this, serverRev1, chunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                                              const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                              const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                                               const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) -> SyncPutResponse {
                 // Second sync second chunk
                 Assert::AreEqual(serverRev1, last_server_revision);
@@ -605,7 +605,7 @@ namespace SyncUnitTest
                 Assert::AreEqual(clientCases[chunkSize]->GetUuid(), cases.front()->GetUuid());
                 throw SyncError(100111, "some network error");
             }).Do([&clientCases, this, serverRev1, serverRev2, chunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                                                          const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                                          const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                                                           const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Third sync second chunk retry
                 Assert::AreEqual(serverRev1, last_server_revision);
@@ -613,7 +613,7 @@ namespace SyncUnitTest
                 Assert::AreEqual(clientCases[chunkSize]->GetUuid(), cases.front()->GetUuid());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev2);
             }).Do([&clientCases, this, serverRev2, serverRev3, chunkSize, lastChunkSize](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                                                                         const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                                                         const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                                                                          const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Third sync third chunk
                 Assert::AreEqual(serverRev2, last_server_revision);
@@ -621,7 +621,7 @@ namespace SyncUnitTest
                 Assert::AreEqual(clientCases[2 * chunkSize]->GetUuid(), cases.front()->GetUuid());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, serverRev3);
             }).Do([&clientCases, this, serverRev3](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                                   const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                                   const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                                    const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) {
                 // Fourth sync
                 Assert::AreEqual(serverRev3, last_server_revision);
@@ -712,29 +712,29 @@ namespace SyncUnitTest
 
             When(Method(mockServer, PutCases)).
                 Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
-                                const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                                const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                 const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // First sync should put no cases
                 Assert::AreEqual(size_t(0), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
             }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
-                               const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // Second sync should put 2 cases that were added/modified on client
                 Assert::AreEqual(size_t(2), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
             }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
-                               const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // Third sync should put nothing
                 Assert::AreEqual(size_t(0), cases.size());
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, IntToString(++serverRev));
             }).Do([](std::shared_ptr<const CaseAccess> /*case_access*/,
-                     const cs::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                     const std::span<const Case* const> /*cases*/, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                      const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 return SyncPutResponse(SyncPutResponse::SyncPutResult::RevisionNotFound);
             }).Do([&serverRev](std::shared_ptr<const CaseAccess> /*case_access*/,
-                               const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                               const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                                const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& /*last_server_revision*/) {
                 // Third sync should upload everything
                 Assert::AreEqual(size_t(12), cases.size());

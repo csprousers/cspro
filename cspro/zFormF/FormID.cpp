@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: FormID.cpp
 //
 //  Description:
@@ -63,7 +63,7 @@ std::optional<CString> FormExternalCodeID::GetName() const
 {
     // the heading for the external code nodes will simply be "Logic" because clicking on it will show the main application logic
     return m_codeFile.has_value() ? UTF8_TODO::GetCString(Path::GetFilenameWithoutExtension(m_codeFile->GetFilePath())) :
-                                    _T("Logic");
+                                    CString(_T("Logic"));
 }
 
 
@@ -96,14 +96,14 @@ FormReportID::FormReportID(CFormDoc* pDoc, std::optional<ReportFile> report_file
 std::optional<CString> FormReportID::GetName() const
 {
     return m_reportFile.has_value() ? UTF8_TODO::GetCString(m_reportFile->GetName()) :
-                                      L"Reports"; // the heading
+                                      CString(L"Reports"); // the heading
 }
 
 
 std::optional<CString> FormReportID::GetLabel() const
 {
     return m_reportFile.has_value() ? UTF8_TODO::GetCString(Path::GetFilenameWithoutExtension(m_reportFile->GetFilePath())) :
-                                      L"Reports"; // the heading
+                                      CString(L"Reports"); // the heading
 }
 
 

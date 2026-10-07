@@ -1179,7 +1179,7 @@ void CRunAplEntry::SetOperatorId(const CString& operator_id)
 
 CString CRunAplEntry::GetOperatorId() const
 {
-    return ( m_pEntryIFaz == NULL ) ? _T("") : m_pEntryIFaz->C_GetOperatorId();
+    return ( m_pEntryIFaz == NULL ) ? CString() : m_pEntryIFaz->C_GetOperatorId();
 }
 
 

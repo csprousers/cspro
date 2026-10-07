@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Utf8Convert.h"
 #include "TextConverter.h"
 
@@ -25,7 +25,7 @@ T UTF8Convert::UTF8ToWideWorker(const char* const utf8_text, const int utf8_leng
 
     else
     {
-        static_assert(constexpr(std::is_same_v<T, CString>));
+        static_assert(std::is_same_v<T, CString>);
         T wide_string;
         MultiByteToWideChar(CP_UTF8, 0, utf8_text, utf8_length, wide_string.GetBufferSetLength(wide_length), wide_length);
         wide_string.ReleaseBuffer(wide_length);

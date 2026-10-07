@@ -56,7 +56,7 @@ namespace
 #elif defined(WASM)
         throw CSProException("WASM_TODO: create an ApplicationInterface");
 #else
-        static_assert_false();
+        static_assert(false);
 #endif
     }
 }

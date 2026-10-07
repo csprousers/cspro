@@ -3755,8 +3755,10 @@ bool operator==(const std::variant<SymbolType, FunctionNamespace>& symbol_type_o
 
 const MultipleReservedWordsTable<FunctionNamespaceDetails>& FunctionTable::GetFunctionNamespaces()
 {
-    static MultipleReservedWordsTable<FunctionNamespaceDetails> function_namespace_table(cs::span<const FunctionNamespaceDetails>(FunctionNamespaces,
-                                                                                                                                  FunctionNamespaces + _countof(FunctionNamespaces)));
+    static MultipleReservedWordsTable<FunctionNamespaceDetails> function_namespace_table(
+        std::span(FunctionNamespaces, _countof(FunctionNamespaces))
+    );
+
     return function_namespace_table;
 }
 
@@ -3815,7 +3817,7 @@ const MultipleReservedWordsTable<FunctionDetails>& FunctionTable::GetFunctionsTa
         []()
         {
             // creation of the span is done in a lambda to avoid a "static functions with block scope are illegal" error
-            cs::span<const FunctionDetails* const> functions_span(GetFunctions());
+            const std::span<const FunctionDetails* const> functions_span(GetFunctions());
             return MultipleReservedWordsTable<FunctionDetails>(functions_span);
         }();
 

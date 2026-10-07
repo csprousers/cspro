@@ -1,4 +1,4 @@
-﻿/***************************************************
+/***************************************************
 ****************************************************
 Skeleton Class for a Derived CPifGrid v3.5
 ****************************************************
@@ -1048,7 +1048,8 @@ bool CPifGrid::ChooseFile(PIFINFO* pPifInfo, int col, long row)
         GetDialogTitleAndFilter(pPifInfo, sTitle, sFilter);
         bool allowCSProExtensions = ( ( pPifInfo->uOptions & PIF_DISALLOW_CSPRO_EXTENSIONS ) == 0 );
 
-        CDatFDlg fileDlg(allowCSProExtensions, TRUE, pPifInfo->sDefaultFileExtension, usingProperName ? sDatFileName : _T(""), dwFlags, sFilter);
+        CDatFDlg fileDlg(allowCSProExtensions, TRUE, pPifInfo->sDefaultFileExtension,
+                         usingProperName ? sDatFileName.GetString() : _T(""), dwFlags, sFilter);
 
         if (!sStartDir.IsEmpty()) {
             fileDlg.m_ofn.lpstrInitialDir = sStartDir;

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "AutoComplete.h"
 #include "ChildSymbolNames.h"
 #include "FunctionTable.h"
@@ -215,7 +215,7 @@ std::tuple<std::string, bool> AutoComplete::GetSuggestedWordString(const std::st
 }
 
 
-std::string AutoComplete::GetSuggestedWordString(const cs::span<const std::string> dot_notation_entries, const std::string_view name_sv) const
+std::string AutoComplete::GetSuggestedWordString(const std::span<const std::string> dot_notation_entries, const std::string_view name_sv) const
 {
     // a routine for dot notation words
     ASSERT(!dot_notation_entries.empty());

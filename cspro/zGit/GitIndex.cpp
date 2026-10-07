@@ -11,7 +11,7 @@ GitIndex::GitIndex(git_index& index) noexcept
 GitIndex::GitIndex(GitIndex&& rhs) noexcept
     :   m_index(rhs.m_index)
 {
-    rhs.m_index = false;
+    rhs.m_index = nullptr;
 }
 
 

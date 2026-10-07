@@ -272,7 +272,7 @@ void HtmlFrequencyPrinter::PrintStatistics(const FrequencyTable& frequency_table
             }
 
             *m_htmlWriter << "<table id='statistics'>\n"
-                          << u8"<tr><td class='width-10 left bold'>• Statistics" << "</td><td class='left'>" << category_text << "</td></tr>\n";
+                          << "<tr><td class='width-10 left bold'>• Statistics" << "</td><td class='left'>" << category_text << "</td></tr>\n";
 
             // min / max
             if( table_statistics.min_value.has_value() )
@@ -372,7 +372,7 @@ void HtmlFrequencyPrinter::PrintStatistics(const FrequencyTable& frequency_table
         const std::string category_text = get_category_text(table_statistics);
 
         *m_htmlWriter << "<table id='statistics'>\n"
-                      << u8"<tr><td class='width-10 left bold'>• Statistics" << "</td><td class='left'>" << category_text << "</td></tr>\n"
+                      << "<tr><td class='width-10 left bold'>• Statistics" << "</td><td class='left'>" << category_text << "</td></tr>\n"
                          "</table>\n";
     }
 

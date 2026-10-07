@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FileExtensions.h"
 
 
@@ -63,7 +63,7 @@ bool FileExtensions::IsExtensionForbiddenForDataFiles(const std::string_view ext
         TableSpec
     };
 
-    ASSERT(!SO::StartsWith(extension_sv, "."));
+    ASSERT(!extension_sv.starts_with('.'));
 
     const auto& lookup = std::find_if(disallowed_extensions.cbegin(), disallowed_extensions.cend(),
                                       [&](const char* const this_extension) { return SO::EqualsNoCase(extension_sv, this_extension); });

@@ -122,7 +122,7 @@ void CItemGrid::OnSetup()
 
 void CItemGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = reset_widths ? L"-1" : AfxGetApp()->GetProfileString(L"Data Dictionary", L"ItemGridWidths", L"-1");
+    CIMSAString csWidths = reset_widths ? CString(L"-1") : AfxGetApp()->GetProfileString(L"Data Dictionary", L"ItemGridWidths", L"-1");
     std::vector<std::wstring> aWidths = SO::SplitString(csWidths, ',');
 
     if (aWidths.size() < ITEM_NUM_COLS) {

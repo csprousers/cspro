@@ -5,6 +5,7 @@
 #include <zAppO/LogicSettings.h>
 
 class Application;
+class FileExtensionAnalyzer;
 
 
 class Lexers

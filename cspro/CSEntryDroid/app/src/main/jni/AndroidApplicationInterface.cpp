@@ -750,7 +750,7 @@ OAuth2Token AndroidApplicationInterface::OAuth2Authorize_GoogleDrive(OAuth2Autho
     constexpr std::string_view TokenPrefix_sv     = "t:";
     constexpr std::string_view ExceptionPrefix_sv = "e:";
 
-    if( SO::StartsWith(result, TokenPrefix_sv) )
+    if( result.starts_with(TokenPrefix_sv) )
     {
         try
         {
@@ -759,7 +759,7 @@ OAuth2Token AndroidApplicationInterface::OAuth2Authorize_GoogleDrive(OAuth2Autho
         catch(...) { }
     }
 
-    else if( SO::StartsWith(result, ExceptionPrefix_sv) )
+    else if( result.starts_with(ExceptionPrefix_sv) )
     {
         throw SyncConnectionError("There was an error authenticating with Google Drive: %s", result.c_str() + ExceptionPrefix_sv.length());
     }

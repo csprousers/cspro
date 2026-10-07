@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "WinBluetoothAdapter.h"
 #include "IObexTransport.h"
 #include "WinBluetoothNameSetter.h"
@@ -142,7 +142,7 @@ namespace
             // Advertise service listening on the socket
             m_pQuerySet = new WSAQUERYSET{ 0 };
             m_pQuerySet->dwSize = sizeof(*m_pQuerySet);
-            m_pQuerySet->lpszServiceInstanceName = L"CSPro Bluetooth Peer to Peer Synchronization";
+            m_pQuerySet->lpszServiceInstanceName = const_cast<wchar_t*>(L"CSPro Bluetooth Peer to Peer Synchronization");
             m_pQuerySet->lpszComment = NULL;
             m_pQuerySet->lpServiceClassId = (LPGUID)&m_serviceId;
             m_pQuerySet->dwNameSpace = NS_BTH;

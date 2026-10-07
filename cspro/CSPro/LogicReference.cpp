@@ -1109,9 +1109,9 @@ namespace
                 bool parameter_is_optional = ( i >= user_function.GetNumberRequiredParameters() );
 
                 CString parameter_type_string =
-                    ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? L"Numeric" :
-                    ( parameter_symbol.IsA(SymbolType::WorkString) )   ? L"String" :
-                    ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? L"Function" :
+                    ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? CString(L"Numeric") :
+                    ( parameter_symbol.IsA(SymbolType::WorkString) )   ? CString(L"String") :
+                    ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? CString(L"Function") :
                                                                          UTF8_TODO::GetCString(ToString(parameter_symbol.GetType()));
 
                 if( parameter_symbol.GetSubType() == SymbolSubType::WorkAlpha )
@@ -1861,8 +1861,11 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
     else if( selected_words.size() >= 2 )
     {
         // pass all but the last word as the dot notation entries
-        help_topic_filename = Logic::ContextSensitiveHelp::GetTopicFilename(cs::span<const std::string>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
-                                                                            selected_words.back(), &function_details);
+        help_topic_filename = Logic::ContextSensitiveHelp::GetTopicFilename(
+            std::span<const std::string>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
+            selected_words.back(),
+            &function_details
+        );
     }
 
     else if( activated_by_f1 && selected_words.empty() )
@@ -2337,8 +2340,11 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     else
     {
         // pass all but the last word as the dot notation entries
-        suggested_words = LogicReferenceAutoCompleter.GetSuggestedWordString(cs::span<const std::string>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
-                                                                             word_to_complete);
+        suggested_words = LogicReferenceAutoCompleter.GetSuggestedWordString(
+            std::span<const std::string>(selected_words.data(), selected_words.data() + selected_words.size() - 1),
+            word_to_complete
+        );
+
         word_comes_from_fuzzy_matching = false;
     }
 

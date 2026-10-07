@@ -1,4 +1,4 @@
-﻿// CRunAplE.cpp: implementation of the CCapiRunAplEntry class.
+// CRunAplE.cpp: implementation of the CCapiRunAplEntry class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -95,8 +95,8 @@ void CCapiRunAplEntry::GetVal( CDEField* pField, const int iOcc, CString& sData,
 
             int i = sData.Find(_T("."));
             if( i!=-1 ){
-                CString csIntPart = (i>0)                    ? sData.Left(i)  : _T("");
-                CString csDecPart = (i+1)< sData.GetLength() ? sData.Mid(i+1) : _T("");
+                CString csIntPart = (i>0)                    ? sData.Left(i)  : CString();
+                CString csDecPart = (i+1)< sData.GetLength() ? sData.Mid(i+1) : CString();
                 if( CCapiEUtils::StripValue(csIntPart,true).IsEmpty() && CCapiEUtils::StripValue(csDecPart,true).IsEmpty() ){
                     sData.Empty();
                 }

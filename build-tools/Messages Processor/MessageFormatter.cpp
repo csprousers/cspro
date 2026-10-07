@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Main.h"
 #include <zToolsO/FileIO.h>
 #include <zUtilO/ImsaStr.h>
@@ -24,7 +24,7 @@ void MessageFormatter::FormatMessageFiles()
             {
                 if( line_sv.empty() ||
                     line_sv.front() == '{' || line_sv.front() == '/' ||
-                    SO::StartsWith(line_sv, "Language=") )
+                    line_sv.starts_with("Language=") )
                 {
                     current_lines_before_message.emplace_back(line_sv);
                 }

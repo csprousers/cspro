@@ -482,7 +482,7 @@ bool BaseCompiler::NextKeywordIf(const TokenCode token_code)
 }
 
 
-bool BaseCompiler::IsNextToken(const cs::span<const TokenCode> token_codes) const
+bool BaseCompiler::IsNextToken(const std::span<const TokenCode> token_codes) const
 {
     const BasicToken* const next_basic_token = PeekNextBasicToken();
 

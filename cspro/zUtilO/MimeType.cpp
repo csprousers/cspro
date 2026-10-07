@@ -251,7 +251,7 @@ std::optional<std::string> MimeType::GetServerTypeFromFileExtension(const std::s
 
 bool MimeType::IsTextTypeOrTextBased(const std::string_view mime_type_text_sv)
 {
-    if( SO::StartsWith(mime_type_text_sv, "text/") )
+    if( mime_type_text_sv.starts_with("text/") )
         return true;
 
     const auto [type, subtype] = GetTypeSubtype(mime_type_text_sv);

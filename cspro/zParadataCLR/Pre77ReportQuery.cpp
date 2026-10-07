@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "Pre77ReportQuery.h"
 #include <zReportO/Pre77ReportException.h>
 #include <zReportO/Pre77ReportManager.h>
@@ -118,10 +118,10 @@ CSPro::ParadataViewer::ReportQuery::ReportQuery(Pre77Report::ReportQueryNode* co
 
         else
         {
-            const bool label = SO::StartsWith(attribute, Metadata::ColumnLabelPrefix_sv);
-            const bool format = ( !label && SO::StartsWith(attribute, Metadata::ColumnFormatPrefix_sv) );
+            const bool label = attribute.starts_with(Metadata::ColumnLabelPrefix_sv);
+            const bool format = ( !label && attribute.starts_with(Metadata::ColumnFormatPrefix_sv) );
 
-            if( label || format || SO::StartsWith(attribute, Metadata::ColumnTypePrefix_sv) )
+            if( label || format || attribute.starts_with(Metadata::ColumnTypePrefix_sv) )
             {
                 // calculate the column number
                 const size_t column_number_position = label  ? Metadata::ColumnLabelPrefix_sv.length() :

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PortableFileSystem.h"
 #include <zPlatformO/PlatformInterface.h>
 
@@ -13,7 +13,7 @@ namespace
 bool PortableFileSystem::IsSharableUri(const std::string_view uri_sv)
 {
 #ifdef ANDROID
-    return SO::StartsWith(uri_sv, AndroidContentUriPrefix_sv);
+    return uri_sv.starts_with(AndroidContentUriPrefix_sv);
 
 #else
     uri_sv; // UNREFERENCED_PARAMETER

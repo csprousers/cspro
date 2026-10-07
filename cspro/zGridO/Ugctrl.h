@@ -459,8 +459,8 @@ public:
     int GetCellFromPoint(int x,int y,int *ptcol,long *ptrow,RECT *rect);
     int GetAbsoluteCellFromPoint(int x,int y,int *ptcol,long *ptrow);
     //***GSF added
-    BOOL CUGCtrl::GetTopCellFromPoint(int px,int py,int *ptcol);
-    BOOL CUGCtrl::GetSideCellFromPoint(int px,int py,long *ptrow);
+    BOOL GetTopCellFromPoint(int px,int py,int *ptcol);
+    BOOL GetSideCellFromPoint(int px,int py,long *ptrow);
 
     int GetCellRect(int col,long row,RECT *rect);
     int GetCellRect(int *col,long *row,RECT *rect);

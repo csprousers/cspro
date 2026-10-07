@@ -20,10 +20,10 @@
 CLASS_DECL_ZTOOLSO short trimright(TCHAR* in);
 CLASS_DECL_ZTOOLSO short trimleft(TCHAR* in);
 CLASS_DECL_ZTOOLSO short trimall(TCHAR* in);
-CLASS_DECL_ZTOOLSO void memcpyright(csprochar *bufout, int lenout, csprochar *bufin, int lenin);
+CLASS_DECL_ZTOOLSO void memcpyright(csprochar *bufout, int lenout, const csprochar *bufin, int lenin);
 CLASS_DECL_ZTOOLSO void strcpymax(csprochar *pszOut, const csprochar *pszIn, int maxlen);
-CLASS_DECL_ZTOOLSO int strsizereplace(csprochar *buf, csprochar *in, csprochar *out);
-CLASS_DECL_ZTOOLSO short strreplace(csprochar *buf, csprochar *in, csprochar *out);
+CLASS_DECL_ZTOOLSO int strsizereplace(csprochar *buf, const csprochar *in, const csprochar *out);
+CLASS_DECL_ZTOOLSO short strreplace(csprochar *buf, const csprochar *in, const csprochar *out);
 
 #ifdef USING_CSTRING
 //FABN Jan 23, 2006
@@ -129,7 +129,7 @@ constexpr PT CreatePercent(NT&& numerator, DT&& denominator)
 template<typename T>
 constexpr double CreatePercentMultiplier(T number_values)
 {
-    return 100.0 / std::max(number_values, static_cast<T>(1));
+    return 100.0 / std::max<T>(number_values, 1);
 }
 
 

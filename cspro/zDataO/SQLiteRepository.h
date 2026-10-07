@@ -54,7 +54,7 @@ public:
     void StartSync(DeviceId server_device_id, std::string remote_device_name, std::string username, SyncDirection direction, std::string universe,
                    bool use_remote_case_on_conflict) override;
     int SyncCasesFromRemote(const std::vector<std::shared_ptr<Case>>& cases_received, const std::string& server_revision) override;
-    void MarkCasesSentToRemote(cs::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
+    void MarkCasesSentToRemote(std::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
                                const std::string& server_revision, int client_revision) override;
     void ClearBinarySyncHistory(const DeviceId& server_device_id, int client_revision = -1) override;
     void EndSync() override;

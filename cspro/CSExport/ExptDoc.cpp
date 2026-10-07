@@ -2548,7 +2548,7 @@ void CASE_ID(CString& rcsExportApp, const CString& rcsCaseId, int tabs){
 
 void EXPORT_TO( CString& rcsExportApp, const CString& rcsFileVar, int tabs ){
 
-    CString csExportTo = GetTabs(tabs) + ( !rcsFileVar.IsEmpty() ? _T("EXPORT TO ") + rcsFileVar : _T("EXPORT"));
+    CString csExportTo = GetTabs(tabs) + ( !rcsFileVar.IsEmpty() ? ( _T("EXPORT TO ") + rcsFileVar ) : CString(_T("EXPORT")) );
     if( !rcsExportApp.IsEmpty() )
         rcsExportApp += _T("\n");
     rcsExportApp += csExportTo;

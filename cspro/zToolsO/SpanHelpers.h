@@ -1,15 +1,15 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/PointerType.h>
-#include <zToolsO/span.h>
+#include <span>
 
 
 class SpanHelpers
 {
 public:
-    // returns an object, either a cs::span or a std::vector, that points to the objects in the vector, calculated using the GetPointer function;
+    // returns an object, either a std::span or a std::vector, that points to the objects in the vector, calculated using the GetPointer function;
     // because the returned value may be a std::vector, the input values vector must outlive the returned object,
-    // and the value should not be directly assigned to a cs::span object (unless as a function argument)
+    // and the value should not be directly assigned to a std::span object (unless as a function argument)
     template<typename T> static auto CreatePointersSpan(std::vector<T>& values)       { return CreatePointersSpanWorker<T>(values, values.size()); }
     template<typename T> static auto CreatePointersSpan(const std::vector<T>& values) { return CreatePointersSpanWorker<T>(values, values.size()); }
 
@@ -57,7 +57,7 @@ auto SpanHelpers::CreatePointersSpanWorker(VT& values, const size_t count)
     // raw pointers
     if constexpr(std::is_pointer_v<T>)
     {
-        return cs::span<T>(values.data(), count);
+        return std::span<T>(values.data(), count);
     }
 
     // smart pointers

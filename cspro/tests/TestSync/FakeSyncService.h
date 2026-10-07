@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/TemporaryFile.h>
 #include <zNetwork/ConnectResponse.h>
@@ -55,7 +55,7 @@ public:
     // Send request to upload cases to sync service
     // Throws SyncException.
     SyncPutResponse PutCases(std::shared_ptr<const CaseAccess> /*case_access*/,
-                             const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
+                             const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* /*sync_binary_data_upload_manager*/,
                              const DeviceId& /*device_id*/, const std::string& /*universe*/, const std::string& last_server_revision) override
     {
         m_lastServerRevision = last_server_revision;

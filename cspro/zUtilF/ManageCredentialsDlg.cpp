@@ -115,22 +115,22 @@ void ManageCredentialsDlg::GetCredentials()
                     CredentialStore::ParseCredentialBlob(*win_credential)
                 });
 
-                if( SO::StartsWith(credential->target_name, CredentialPrefixSync_sv) )
+                if( credential->target_name.starts_with(CredentialPrefixSync_sv) )
                 {
                     SetUpCredentialSync(*credential);
                 }
 
-                else if( SO::StartsWith(credential->target_name, CredentialPrefixData_sv) )
+                else if( credential->target_name.starts_with(CredentialPrefixData_sv) )
                 {
                     SetUpCredentialData(*credential);
                 }
 
-                else if( SO::StartsWith(credential->target_name, CredentialPrefixCSWebCache_sv) )
+                else if( credential->target_name.starts_with(CredentialPrefixCSWebCache_sv) )
                 {
                     SetUpCredentialCSWebCache(*credential);
                 }
 
-                else if( SO::StartsWith(credential->target_name, CredentialPrefixLocation_sv) )
+                else if( credential->target_name.starts_with(CredentialPrefixLocation_sv) )
                 {
                     SetUpCredentialLocation(*credential);
                 }

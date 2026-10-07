@@ -54,7 +54,7 @@ int LogicCompiler::CompileSyncFunctions()
     auto read_direction = [&](const bool allow_both)
     {
         constexpr const char* directions[] = { "put", "get", "both" };
-        const cs::span<const char* const> valid_directions(directions, directions + _countof(directions) + ( allow_both ? 0 : -1 ));
+        const std::span<const char* const> valid_directions(directions, directions + _countof(directions) + ( allow_both ? 0 : -1 ));
 
         int direction = static_cast<int>(NextKeyword(valid_directions));
         NextToken();
@@ -71,13 +71,15 @@ int LogicCompiler::CompileSyncFunctions()
                 direction = -1 * CompileStringExpressionWithStringLiteralCheck(
                     [&](const std::string& text)
                     {
-                        const auto& lookup = std::find_if(valid_directions.cbegin(), valid_directions.cend(),
-                                                          [&](const char* const direction_text) { return SO::EqualsNoCase(direction_text, text); });
+                        const auto& lookup = std::find_if(
+                            valid_directions.begin(), valid_directions.end(),
+                            [&](const char* const direction_text) { return SO::EqualsNoCase(direction_text, text); }
+                        );
 
-                        if( lookup == valid_directions.cend() )
+                        if( lookup == valid_directions.end() )
                             issue_error();
 
-                        direction_override = 1 + std::distance(valid_directions.cbegin(), lookup);
+                        direction_override = 1 + int32_cast(std::distance(valid_directions.begin(), lookup));
                     });
 
                 if( direction_override.has_value() )
@@ -93,7 +95,7 @@ int LogicCompiler::CompileSyncFunctions()
         return direction;
     };
 
-    auto finalize_compilation = [&](const cs::span<const int> arguments)
+    auto finalize_compilation = [&](const std::initializer_list<int> arguments)
     {
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
@@ -136,7 +138,7 @@ int LogicCompiler::CompileSyncFunctions()
             }
 
             if( !sync_connection_string_specified )
-                IssueError(94001, SO::CreateSingleString(tcb::make_span(service_types)).c_str());
+                IssueError(94001, SO::CreateSingleString(std::span { service_types }).c_str());
 
             host_or_server_device_name = CompileStringExpression();
         }

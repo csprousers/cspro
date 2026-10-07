@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Tools.h"
 
 
@@ -57,7 +57,7 @@ short trimall(TCHAR* in)
 
 
 // Copia bufin en bufout alineado a la derecha. Trunca por la izquierda si no cabe
-void memcpyright( csprochar *bufout, int lenout, csprochar* bufin, int lenin )
+void memcpyright( csprochar *bufout, int lenout, const csprochar* bufin, int lenin )
 {
     if( lenout >= lenin )
         _tmemcpy( bufout + lenout - lenin, bufin, lenin );
@@ -77,7 +77,7 @@ void strcpymax( csprochar *pszOut, const csprochar *pszIn, int iMaxLen )
 
 
 /* Retorna el largo que quedara buf despues del reemplazo. -1 si in es 0 */
-int strsizereplace( csprochar *buf, csprochar *in, csprochar *out )
+int strsizereplace( csprochar *buf, const csprochar *in, const csprochar *out )
   {
     csprochar    *p, *q;
     int     lenbuf, lenout, lenin, maxlenout=0, slotsin, desp;
@@ -119,7 +119,7 @@ int strsizereplace( csprochar *buf, csprochar *in, csprochar *out )
 
 /* Reemplaza el string in por out en buf. Si out es mas largo que in el buffer */
 /* crece de tamano (CUIDADO CON VIOLACIONES DE MEMORIA). */
-short strreplace( csprochar *buf, csprochar *in, csprochar *out )
+short strreplace( csprochar *buf, const csprochar *in, const csprochar *out )
   {
 #ifdef WIN_DESKTOP
     csprochar    *p, *q, *bufaux;

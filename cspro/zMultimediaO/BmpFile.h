@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zMultimediaO/zMultimediaO.h>
-#include <zToolsO/span.h>
+#include <span>
 
 namespace Multimedia { class BmpFile; class Image; }
 
@@ -13,7 +13,7 @@ class ZMULTIMEDIAO_API Multimedia::BmpFile
 public:
     // the buffer must contain RGB bytes for each pixel, with the pixel at bytes RGB(content[0], content[1], content[2])
     // corresponding to the image's bottom-left pixel
-    BmpFile(cs::span<const std::byte> content, int width, int height);
+    BmpFile(std::span<const std::byte> content, int width, int height);
 
 #ifdef WIN_DESKTOP
     // the bitmap handle must be valid
@@ -35,7 +35,7 @@ public:
 
 private:
     // called by the constructors ... the m_width and m_height values must be set
-    void ParseContent(cs::span<const std::byte> content, int content_bytes_per_pixel, std::tuple<int, int, int> rgb_index);
+    void ParseContent(std::span<const std::byte> content, int content_bytes_per_pixel, std::tuple<int, int, int> rgb_index);
 
 private:
     std::unique_ptr<std::byte[]> m_bmpData;

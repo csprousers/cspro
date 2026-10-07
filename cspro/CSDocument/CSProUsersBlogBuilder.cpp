@@ -138,7 +138,7 @@ std::string CSDocCompilerSettingsForCSProUsersBlog::CreateUrlForTopic(const std:
 
 std::string CSDocCompilerSettingsForCSProUsersBlog::CreateUrlForFile(const std::string& file_path, const char* const type) const
 {
-    if( !SO::StartsWith(file_path, m_blogDirectory) )
+    if( !file_path.starts_with(m_blogDirectory) )
         throw CSProException("You cannot link to %s not contained within the blog directory: %s", type, file_path.c_str());
 
     return Path::CombineForwardSlash("{{ site.baseurl }}/blog",

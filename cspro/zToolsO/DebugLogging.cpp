@@ -1,7 +1,9 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DebugLogging.h"
 #include "PortableFunctions.h"
 
+
+#ifdef _DEBUG
 
 namespace
 {
@@ -32,7 +34,7 @@ void CSLOG::LogTraceMessage(const char* const text) const
     else
     {
         LogMessage(LogPriorityForTrace, DefaultTag, text);
-    }    
+    }
 }
 
 
@@ -46,7 +48,6 @@ void CSLOG::LogTraceMessage(const CString& text) const
 
 void CSLOG::LogMessage(LogPriority /*log_priority*/, const char* const tag, const char* const text) const
 {
-#ifdef _DEBUG
     const ATL::CTraceFileAndLineInfo tracer(m_filePath, m_lineNumber);
 
     if( tag == DefaultTag )
@@ -59,7 +60,6 @@ void CSLOG::LogMessage(LogPriority /*log_priority*/, const char* const tag, cons
         ASSERT(strcmp(tag, "Sync") == 0);
         tracer(L"%s", TC::ToWide(FormatText("%s: %s\n", tag, text)).c_str());
     }
-#endif
 }
 
 
@@ -121,3 +121,6 @@ void CSLOG::LogMessage(LogPriority /*log_priority*/, const char* /*tag*/, const 
 
 
 #endif
+
+
+#endif // _DEBUG

@@ -37,7 +37,7 @@ public:
         else if constexpr(std::is_same_v<T, float>)        return m_float;
         else if constexpr(std::is_same_v<T, double>)       return m_double;
         else if constexpr(std::is_same_v<T, std::string>)  return m_string;
-        else                                               static_assert_false();
+        else                                               static_assert(false);
     }
 
 private:

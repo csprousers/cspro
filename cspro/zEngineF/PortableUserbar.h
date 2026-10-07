@@ -6,6 +6,7 @@
 
 struct PortableUserbarItem
 {
+    PortableUserbarItem(int id_, std::string text_, std::optional<Userbar::Action> action_);
     PortableUserbarItem(PortableUserbarItem&&) = default;
     PortableUserbarItem& operator=(PortableUserbarItem&&) = default;
 

@@ -92,10 +92,10 @@ int LogicCompiler::CompileTraceFunction()
 
 namespace
 {
-    std::string GetCompilerTextForTrace(const TokenCode token_code, const cs::span<const Logic::BasicToken> basic_tokens)
+    std::string GetCompilerTextForTrace(const TokenCode token_code, const std::span<const Logic::BasicToken> basic_tokens)
     {
-        const Logic::BasicToken* basic_tokens_itr = basic_tokens.begin();
-        const Logic::BasicToken* basic_tokens_end = basic_tokens.end();
+        const Logic::BasicToken* basic_tokens_itr = basic_tokens.data();
+        const Logic::BasicToken* const basic_tokens_end = basic_tokens_itr + basic_tokens.size();
 
         if( basic_tokens_itr == basic_tokens_end )
             return ReturnProgrammingError(std::string());

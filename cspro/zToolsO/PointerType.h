@@ -1,6 +1,5 @@
-﻿#pragma once
+#pragma once
 
-#include <zToolsO/StandardTemplatesCpp20.h>
 #include <memory>
 
 

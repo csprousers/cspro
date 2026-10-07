@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/SymbolTable.h>
 #include <zEngineO/AllSymbolDeclarations.h>
@@ -9,7 +9,7 @@ constexpr SymbolType ToSymbolType()
 {
          if constexpr(std::is_same_v<ST, RELT>)         return SymbolType::Relation;
     else if constexpr(std::is_same_v<ST, UserFunction>) return SymbolType::UserFunction;
-    else                                                static_assert_false();
+    else                                                static_assert(false);
 }
 
 

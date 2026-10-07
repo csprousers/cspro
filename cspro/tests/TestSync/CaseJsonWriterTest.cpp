@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/CaseConstructionHelpers.h>
@@ -59,9 +59,9 @@ void SyncUnitTest::CaseJsonWriterTest::ThreeLevelTest()
 
     data_case->SetPartialSaveStatus(PartialSaveMode::Modify, level2_case_item_reference);
 
-    data_case->GetNotes().emplace_back(u8"note --> 🐼 <-- text", level0_case_item_reference, u8"operator --> 天津 <-- id");
-    data_case->GetNotes().emplace_back(u8"note --> 🐼 <-- text", level1_case_item_reference, u8"operator --> 天津 <-- id");
-    data_case->GetNotes().emplace_back(u8"note --> 🐼 <-- text", level2_case_item_reference, u8"operator --> 天津 <-- id");
+    data_case->GetNotes().emplace_back("note --> 🐼 <-- text", level0_case_item_reference, "operator --> 天津 <-- id");
+    data_case->GetNotes().emplace_back("note --> 🐼 <-- text", level1_case_item_reference, "operator --> 天津 <-- id");
+    data_case->GetNotes().emplace_back("note --> 🐼 <-- text", level2_case_item_reference, "operator --> 天津 <-- id");
 
     data_case->GetVectorClock().increment(MakeUniqueDeviceId("CaseJsonWriterTest-"));
 
@@ -161,22 +161,22 @@ void SyncUnitTest::CaseJsonWriterTest::BinaryDataNoDuplicateTest()
     SyncCaseSerializer sync_case_serializer(case_access, SyncCaseSerializer::Version::V3);
 
     // test 1: without binary data, the syncable case data should equal the JSON
-    const std::string case_data_for_case_without_binary_data = GetSyncableCaseData(case_access, { case_without_binary_data.get() }, sync_case_serializer);
-    Assert::AreEqual(case_data_for_case_without_binary_data, sync_case_serializer.GetSyncableJson({ case_without_binary_data.get() }));
+    const std::string case_data_for_case_without_binary_data = GetSyncableCaseData(case_access, *case_without_binary_data, sync_case_serializer);
+    Assert::AreEqual(case_data_for_case_without_binary_data, sync_case_serializer.GetSyncableJson(*case_without_binary_data, true));
 
     // test 2: with binary data, the syncable case data should not equal the JSON
-    const std::string case_data_for_case_with_binary_data = GetSyncableCaseData(case_access, { case_with_binary_data.get() }, sync_case_serializer);
-    Assert::AreNotEqual(case_data_for_case_with_binary_data, sync_case_serializer.GetSyncableJson({ case_with_binary_data.get() }));
+    const std::string case_data_for_case_with_binary_data = GetSyncableCaseData(case_access, *case_with_binary_data, sync_case_serializer);
+    Assert::AreNotEqual(case_data_for_case_with_binary_data, sync_case_serializer.GetSyncableJson(*case_with_binary_data, true));
     Assert::IsTrue(case_data_for_case_with_binary_data.length() > size_binary_content1);
 
     // test 3: with repeated binary data, the syncable case data should not be much bigger
     constexpr size_t EstimatedLengthOfWrittenMetadataForBinaryData = 200;
-    const std::string case_data_for_case_with_repeated_binary_data = GetSyncableCaseData(case_access, { case_with_repeated_binary_data.get() }, sync_case_serializer);
+    const std::string case_data_for_case_with_repeated_binary_data = GetSyncableCaseData(case_access, *case_with_repeated_binary_data, sync_case_serializer);
     const size_t repeated_binary_length_difference = case_data_for_case_with_repeated_binary_data.length() - case_data_for_case_with_binary_data.length();
     Assert::IsTrue(repeated_binary_length_difference < EstimatedLengthOfWrittenMetadataForBinaryData);
 
     // test 4: with different binary data, the syncable case data should be bigger by roughly the size of the second binary content
-    const std::string case_data_for_case_with_different_binary_data = GetSyncableCaseData(case_access, { case_with_different_binary_data.get() }, sync_case_serializer);
+    const std::string case_data_for_case_with_different_binary_data = GetSyncableCaseData(case_access, *case_with_different_binary_data, sync_case_serializer);
     const size_t different_binary_length_difference = case_data_for_case_with_different_binary_data.length() - case_data_for_case_with_repeated_binary_data.length();
     Assert::IsTrue(different_binary_length_difference > size_binary_content2);
     Assert::IsTrue(different_binary_length_difference < ( size_binary_content2 + EstimatedLengthOfWrittenMetadataForBinaryData) );

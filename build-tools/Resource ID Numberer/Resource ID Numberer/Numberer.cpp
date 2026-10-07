@@ -200,7 +200,7 @@ namespace NamePrefixes
     int GetIndex(const std::string& name)
     {
         const auto& lookup = std::find_if(name_prefixes.cbegin(), name_prefixes.cend(),
-                                          [&](const char* name_prefix) { return SO::StartsWith(name, name_prefix); });
+                                          [&](const char* const name_prefix) { return name.starts_with(name_prefix); });
 
         return ( lookup != name_prefixes.cend() ) ? int32_cast(std::distance(name_prefixes.cbegin(), lookup)) :
                                                     -1;

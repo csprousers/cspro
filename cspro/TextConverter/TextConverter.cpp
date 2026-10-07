@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextConverter.h"
 #include "TextConverterDlg.h"
 
@@ -30,7 +30,7 @@ BOOL TextConverterApp::InitInstance()
         {
             const std::string argument = TC::ToUtf8(__targv[i]);
 
-            if( SO::StartsWith(argument, "/") ) // a flag
+            if( argument.starts_with('/') ) // a flag
             {
                 if( SO::EqualsNoCase(argument, "/utf8") )
                 {

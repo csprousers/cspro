@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SelectDocsDlg.h"
 
 
@@ -40,7 +40,7 @@ BOOL SelectDocsDlg::OnInitDialog()
             document->IsKindOf(RUNTIME_CLASS(FormFileBasedDoc)) ? assert_cast<const FormFileBasedDoc*>(document)->GetFormFile().GetName() :
             document->IsKindOf(RUNTIME_CLASS(CTabulateDoc))     ? assert_cast<const CTabulateDoc*>(document)->GetTableSpec()->GetName() :
             document->IsKindOf(RUNTIME_CLASS(CAplDoc))          ? UTF8_TODO::GetCString(assert_cast<const CAplDoc*>(document)->GetAppObject().GetLabel()) :
-                                                                  ReturnProgrammingError(_T("Unknown Document"));
+                                                                  ReturnProgrammingError(CString(_T("Unknown Document")));
 
         CString filename = document->GetPathName();
 

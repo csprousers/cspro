@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Comp.h"
 #include "Ctab.h"
 #include "CBorder.h"
@@ -3483,7 +3483,7 @@ void CTAB::MakeLinkTableTerms( int* pNodeBase, int iCtNode,
         CString sOcc;
 
         bool bHasOcc = CTAB::m_aExtraNodeInfo.Lookup(pCtNode->m_iCoordNumber,sOcc) != 0;
-        cLinkVar.SetOcc( bHasOcc ? sOcc : _T("") );
+        cLinkVar.SetOcc( bHasOcc ? sOcc : CString() );
 
         // Ranges
         int     iStartRange, iEndRange;

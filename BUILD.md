@@ -24,7 +24,7 @@ repository's directory.
 
 ## Windows
 
-The CSPro solution targets a 32-bit or 64-bit application that uses C++17 along with the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework and the [Win32 API](https://learn.microsoft.com/en-us/windows/win32/api), with a few tools coded in C#. This code is built using [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com). To successfully build CSPro, you must ensure that your Visual Studio installation includes the following components:
+The CSPro solution targets a 32-bit or 64-bit application that uses C++20 along with the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework and the [Win32 API](https://learn.microsoft.com/en-us/windows/win32/api), with a few tools coded in C#. This code is built using [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com). To successfully build CSPro, you must ensure that your Visual Studio installation includes the following components:
 
 - Microsoft.VisualStudio.Component.VC.ATL
 - Microsoft.VisualStudio.Component.VC.ATLMFC

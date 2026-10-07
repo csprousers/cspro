@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zMultimediaO/zMultimediaO.h>
-#include <zToolsO/span.h>
 #include <zUtilO/DataTypes.h>
+#include <span>
 
 
 namespace Multimedia
@@ -45,10 +45,10 @@ public:
 
     // Loads the image from a buffer, throwing exceptions on error.
     // Supported image types are: JPEG, PNG, BMP, and WebP.
-    static std::unique_ptr<Image> FromBuffer(cs::span<const std::byte> content);
+    static std::unique_ptr<Image> FromBuffer(std::span<const std::byte> content);
 
     // Returns std::nullopt if the details cannot be read.
-    static std::optional<ImageDetails> GetDetailsFromBuffer(cs::span<const std::byte> content);
+    static std::optional<ImageDetails> GetDetailsFromBuffer(std::span<const std::byte> content);
 
     // Saves the image to a file, throwing exceptions on error.
     // Supported image types are: JPEG, PNG, BMP, ICO, and WebP.
@@ -67,8 +67,8 @@ protected:
     const ImageDetails m_details;
 
 private:
-    static bool GetWebPDetailsFromBuffer(cs::span<const std::byte> content, ImageDetails& details);
-    static std::unique_ptr<Image> GetWebPImageFromBuffer(cs::span<const std::byte> content);
+    static bool GetWebPDetailsFromBuffer(std::span<const std::byte> content, ImageDetails& details);
+    static std::unique_ptr<Image> GetWebPImageFromBuffer(std::span<const std::byte> content);
 
     template<typename CF>
     void ToWebP(int lossy_quality, const CF& callback_function) const;

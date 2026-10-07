@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "MessageFile.h"
 #include "Messages.h"
 #include <zUtilO/TextSource.h>
@@ -258,7 +258,7 @@ bool MessageFile::Compiler::ProcessLineIfComment(const std::string_view line_sv)
     if( strchr(CommentStartChars, line_sv.front()) != nullptr )
     {
         // starting a single line comment
-        if( SO::StartsWith(line_sv, CommentStrings::SingleLine_sv) )
+        if( line_sv.starts_with(CommentStrings::SingleLine_sv) )
             return true;
 
         // multiline comment processing...
@@ -274,9 +274,9 @@ bool MessageFile::Compiler::ProcessLineIfComment(const std::string_view line_sv)
         };
 
         // starting a multiline comment, which must be ended on the same line or at the beginning of a subsequent line
-        bool multiline_comment_is_new_style = SO::StartsWith(line_sv, CommentStrings::MultilineNewStart_sv);
+        bool multiline_comment_is_new_style = line_sv.starts_with(CommentStrings::MultilineNewStart_sv);
 
-        if( multiline_comment_is_new_style || SO::StartsWith(line_sv, CommentStrings::MultilineOldStart_sv) )
+        if( multiline_comment_is_new_style || line_sv.starts_with(CommentStrings::MultilineOldStart_sv) )
         {
             const auto& [multiline_comment_start_sv, multiline_comment_end_sv] = CommentStrings::GetMultilineStartEnd(multiline_comment_is_new_style);
 
@@ -297,9 +297,9 @@ bool MessageFile::Compiler::ProcessLineIfComment(const std::string_view line_sv)
         }
 
         // ending a multiline comment
-        multiline_comment_is_new_style = SO::StartsWith(line_sv, CommentStrings::MultilineNewEnd_sv);
+        multiline_comment_is_new_style = line_sv.starts_with(CommentStrings::MultilineNewEnd_sv);
 
-        if( multiline_comment_is_new_style || SO::StartsWith(line_sv, CommentStrings::MultilineOldEnd_sv) )
+        if( multiline_comment_is_new_style || line_sv.starts_with(CommentStrings::MultilineOldEnd_sv) )
         {
             const auto& [multiline_comment_start_sv, multiline_comment_end_sv] = CommentStrings::GetMultilineStartEnd(multiline_comment_is_new_style);
 

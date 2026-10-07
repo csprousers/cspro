@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // ==========================================================================
 //                         Class Specification :
@@ -1183,14 +1183,14 @@ CScrollBar* COXTabViewPage<PARENTWND>::GetScrollBarCtrl(int nBar) const
         CScrollBar* pScrlBar=NULL;
         if(nBar==SB_HORZ)
         {
-            if((GetStyle()&WS_HSCROLL)!=WS_HSCROLL)
+            if((PARENTWND::GetStyle()&WS_HSCROLL)!=WS_HSCROLL)
             {
                 pScrlBar=pContainer->GetHorzScrollBar();
             }
         }
         else if(nBar==SB_VERT)
         {
-            if((GetStyle()&WS_VSCROLL)!=WS_VSCROLL)
+            if((PARENTWND::GetStyle()&WS_VSCROLL)!=WS_VSCROLL)
             {
                 pScrlBar=pContainer->GetVertScrollBar();
             }
@@ -1229,7 +1229,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
 
             if(m_bHasInternalScrollBars)
             {
-                m_nCheckScrollInfoTimer=SetTimer(IDT_CHECKSCROLLINFO_TIMER,
+                m_nCheckScrollInfoTimer=PARENTWND::SetTimer(IDT_CHECKSCROLLINFO_TIMER,
                     ID_CHECKSCROLLINFO_PERIOD,NULL);
                 if(m_nCheckScrollInfoTimer==-1)
                 {
@@ -1244,7 +1244,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
         {
             if(m_nCheckScrollInfoTimer!=-1)
             {
-                KillTimer(m_nCheckScrollInfoTimer);
+                PARENTWND::KillTimer(m_nCheckScrollInfoTimer);
                 m_nCheckScrollInfoTimer=-1;
             }
             break;
@@ -1254,7 +1254,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
         {
             if((int)wp==m_nCheckScrollInfoTimer)
             {
-                if(m_bCurrentlyScrolling || ::GetCapture()==GetSafeHwnd())
+                if(m_bCurrentlyScrolling || ::GetCapture()==PARENTWND::GetSafeHwnd())
                 {
                     return 0;
                 }
@@ -1288,8 +1288,8 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
             if(LOWORD(wp)==SB_ENDSCROLL)
             {
                 m_bCurrentlyScrolling=FALSE;
-                m_nLastHorzPos=GetScrollPos(SB_HORZ);
-                m_nLastVertPos=GetScrollPos(SB_VERT);
+                m_nLastHorzPos=PARENTWND::GetScrollPos(SB_HORZ);
+                m_nLastVertPos=PARENTWND::GetScrollPos(SB_VERT);
             }
             else
             {
@@ -1301,7 +1301,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
             {
                 // set current scroll info to the window
                 SCROLLINFO scrollInfo={ sizeof(SCROLLINFO) };
-                GetScrollInfo((msg==WM_HSCROLL ? SB_HORZ : SB_VERT),&scrollInfo);
+                PARENTWND::GetScrollInfo((msg==WM_HSCROLL ? SB_HORZ : SB_VERT),&scrollInfo);
 
                 BOOL bHandled=FALSE;
                 if(PARENTWND::IsKindOf(RUNTIME_CLASS(CListCtrl)) ||
@@ -1319,14 +1319,14 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
                             int nPos=HIWORD(wp);
                             if(msg==WM_HSCROLL && nPos!=m_nLastHorzPos)
                             {
-                                SendMessage(LVM_SCROLL,(nPos-m_nLastHorzPos),0);
-                                m_nLastHorzPos=GetScrollPos(SB_HORZ);
+                                PARENTWND::SendMessage(LVM_SCROLL,(nPos-m_nLastHorzPos),0);
+                                m_nLastHorzPos=PARENTWND::GetScrollPos(SB_HORZ);
                             }
                             else if(msg==WM_VSCROLL && nPos!=m_nLastVertPos)
                             {
-                                SendMessage(LVM_SCROLL,0,
+                                PARENTWND::SendMessage(LVM_SCROLL,0,
                                     (nPos-m_nLastVertPos)*rectItem.Height());
-                                m_nLastVertPos=GetScrollPos(SB_VERT);
+                                m_nLastVertPos=PARENTWND::GetScrollPos(SB_VERT);
                             }
                         }
                         break;
@@ -1380,7 +1380,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
                     return 0;
                 }
 
-                if((GetStyle()&WS_VISIBLE)!=WS_VISIBLE)
+                if((PARENTWND::GetStyle()&WS_VISIBLE)!=WS_VISIBLE)
                 {
                     PARENTWND::WindowProc(msg,wp,lp);
                 }
@@ -1392,12 +1392,12 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
                         g_bIgnoreResize=TRUE;
                         pContainer->UpdateScrollState();
                         pContainer->UpdateScrollInfo();
-                        ModifyStyle(WS_VISIBLE,NULL);
+                        PARENTWND::ModifyStyle(WS_VISIBLE,NULL);
                         PARENTWND::WindowProc(msg,wp,lp);
-                        ShowScrollBar(SB_HORZ,FALSE);
-                        ShowScrollBar(SB_VERT,FALSE);
-                        ModifyStyle(NULL,WS_VISIBLE);
-                        Invalidate();
+                        PARENTWND::ShowScrollBar(SB_HORZ,FALSE);
+                        PARENTWND::ShowScrollBar(SB_VERT,FALSE);
+                        PARENTWND::ModifyStyle(NULL,WS_VISIBLE);
+                        PARENTWND::Invalidate();
                         g_bIgnoreResize=FALSE;
                     }
                 }
@@ -1414,24 +1414,24 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
                     if(PARENTWND::IsKindOf(RUNTIME_CLASS(CListBox)))
                     {
                         if(((CListBox*)this)->GetTopIndex()!=nTopIndex)
-                            RedrawWindow();
+                            PARENTWND::RedrawWindow();
                     }
                 }
                 else if(!m_bHasInternalScrollBars)
                 {
-                    ModifyStyle(WS_VISIBLE,NULL);
+                    PARENTWND::ModifyStyle(WS_VISIBLE,NULL);
                     pContainer->GetHorzScrollBar()->
                         ModifyStyle(WS_VISIBLE,NULL);
                     pContainer->GetVertScrollBar()->
                         ModifyStyle(WS_VISIBLE,NULL);
                     PARENTWND::WindowProc(msg,wp,lp);
-                    ShowScrollBar(SB_HORZ,FALSE);
-                    ShowScrollBar(SB_VERT,FALSE);
+                    PARENTWND::ShowScrollBar(SB_HORZ,FALSE);
+                    PARENTWND::ShowScrollBar(SB_VERT,FALSE);
                     pContainer->GetHorzScrollBar()->
                         ModifyStyle(NULL,WS_VISIBLE);
                     pContainer->GetVertScrollBar()->
                         ModifyStyle(NULL,WS_VISIBLE);
-                    ModifyStyle(NULL,WS_VISIBLE);
+                    PARENTWND::ModifyStyle(NULL,WS_VISIBLE);
                 }
                 else
                 {
@@ -1447,12 +1447,12 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
                     g_bIgnoreResize=TRUE;
                     pContainer->UpdateScrollState();
                     pContainer->UpdateScrollInfo();
-                    ModifyStyle(WS_VISIBLE,NULL);
+                    PARENTWND::ModifyStyle(WS_VISIBLE,NULL);
                     PARENTWND::WindowProc(msg,wp,lp);
-                    ShowScrollBar(SB_HORZ,FALSE);
+                    PARENTWND::ShowScrollBar(SB_HORZ,FALSE);
                     g_bIgnoreResize=FALSE;
-                    ShowScrollBar(SB_VERT,FALSE);
-                    ModifyStyle(NULL,WS_VISIBLE);
+                    PARENTWND::ShowScrollBar(SB_VERT,FALSE);
+                    PARENTWND::ModifyStyle(NULL,WS_VISIBLE);
 
                     if(PARENTWND::IsKindOf(RUNTIME_CLASS(CTreeCtrl)))
                     {
@@ -1461,7 +1461,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
                             sizeScrollPos.cy!=pContainer->GetVertScrollBar()->
                             GetScrollPos())
                         {
-                            RedrawWindow();
+                            PARENTWND::RedrawWindow();
                         }
                     }
                 }
@@ -1495,7 +1495,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
 template<class PARENTWND>
 BOOL COXTabViewPage<PARENTWND>::PreTranslateMessage(MSG* pMsg)
 {
-    if(m_bHasInternalScrollBars && pMsg->hwnd!=GetSafeHwnd() &&
+    if(m_bHasInternalScrollBars && pMsg->hwnd!=PARENTWND::GetSafeHwnd() &&
         (pMsg->message==WM_SYSCOMMAND || pMsg->message==WM_SHOWWINDOW ||
         (pMsg->message>=WM_KEYFIRST && pMsg->message<=WM_KEYLAST) ||
         (pMsg->message>=WM_SYSKEYFIRST && pMsg->message<=WM_SYSKEYLAST) ||
@@ -1512,8 +1512,8 @@ BOOL COXTabViewPage<PARENTWND>::PreTranslateMessage(MSG* pMsg)
 template<class PARENTWND>
 void COXTabViewPage<PARENTWND>::CheckScrollInfo()
 {
-    ASSERT(::IsWindow(GetSafeHwnd()));
-    PostMessage(WM_TIMER,m_nCheckScrollInfoTimer);
+    ASSERT(::IsWindow(PARENTWND::GetSafeHwnd()));
+    PARENTWND::PostMessage(WM_TIMER,m_nCheckScrollInfoTimer);
 }
 
 ///////////////////////////////////////////////////////////////////////////

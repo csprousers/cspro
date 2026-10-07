@@ -351,7 +351,7 @@ size_t Builder::ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std:
     for( const std::string& file_path : directory_lister.GetPaths(directory_path) )
     {
         // exclusions paths are based off the output directory
-        ASSERT(SO::StartsWith(file_path, m_inputs.csprousers_output));
+        ASSERT(file_path.starts_with(m_inputs.csprousers_output));
         std::string repository_style_path = file_path.substr(output_path_prefix_to_clear);
         Path::MakeToForwardSlash(repository_style_path);
 
@@ -369,7 +369,7 @@ size_t Builder::ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std:
 void Builder::CreateWebsiteUpdaters(const std::string& last_processed_commit_sha)
 {
     // make sure that the built website is part of the repository
-    if( !SO::StartsWith(m_inputs.csprousers_output, m_inputs.csprousers_files_repository) )
+    if( !m_inputs.csprousers_output.starts_with(m_inputs.csprousers_files_repository) )
         throw CSProException("The built website directory cannot be outside the repository: " + m_inputs.csprousers_output);
 
     std::string website_repository_path =

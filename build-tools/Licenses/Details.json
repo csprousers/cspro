@@ -322,12 +322,6 @@
     "licenseFilename": "SortHeaderCtrl.h"
   },
   {
-    "projectName": "span",
-    "projectUrl": "https://github.com/tcbrindle/span",
-    "licenseFilename": "LICENSE_1_0.txt",
-    "licenseUrl": "https://raw.githubusercontent.com/tcbrindle/span/master/LICENSE_1_0.txt"
-  },
-  {
     "projectName": "sprintf-js",
     "projectUrl": "https://github.com/alexei/sprintf.js",
     "licenseFilename": "LICENSE",

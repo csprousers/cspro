@@ -611,12 +611,12 @@ std::string GetRelativePathForDisplay(const cs::string_view_sz relative_to_file_
     std::string relative_path = UTF8_TODO::GetUtf8(GetRelativeFName<std::wstring>(UTF8_TODO::GetWide(relative_to_file_path), UTF8_TODO::GetWide(filename)));
 
     // remove the initial relative path information (if starting in the same directory as the relative filename)
-    if( SO::StartsWith(relative_path, StartingInSameDirectoryPrefix) )
+    if( relative_path.starts_with(StartingInSameDirectoryPrefix) )
         return relative_path.substr(StartingInSameDirectoryPrefix.length());
 
     // if filename is the directory where relative_to_file_path resides, the relative filename
     // will be something like: ../dir_name, so in that case return ./ instead
-    if( SO::StartsWith(relative_path, RelativeToPreviousDirectoryPrefix) &&
+    if( relative_path.starts_with(RelativeToPreviousDirectoryPrefix) &&
         SO::EqualsNoCase(PortableFunctions::PathGetDirectory(relative_to_file_path), PortableFunctions::PathEnsureTrailingSlash(relative_path)) )
     {
         return StartingInSameDirectoryPrefix;
@@ -1039,7 +1039,7 @@ const OperatingSystemDetails& GetOperatingSystemDetails()
         details.version_number = "WASM_TODO";
 
 #else
-        static_assert_false();
+        static_assert(false);
 #endif
     }
 

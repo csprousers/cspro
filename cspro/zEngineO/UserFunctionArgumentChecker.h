@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/AllSymbolDeclarations.h>
@@ -26,7 +26,7 @@ public:
     void CheckSymbolArgument(size_t parameter_number, Symbol* argument_symbol);
 
     // returns the index of the first parameter that has a symbol type not in the list
-    std::optional<size_t> FindFirstInvalidParameter(cs::span<const SymbolType> valid_parameter_symbol_types,
+    std::optional<size_t> FindFirstInvalidParameter(std::span<const SymbolType> valid_parameter_symbol_types,
                                                     bool include_numeric_and_string_parameters) const noexcept;
 
     // routines to apply permissions to symbols to indicate that they will be

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <zDataO/DataRepository.h>
-#include <zToolsO/span.h>
 #include <zAppO/SyncTypes.h>
 #include <zSyncO/DataSyncStatistics.h>
+#include <span>
 
 class SyncBinaryDataUploadManager;
 class SyncHistoryEntry;
@@ -28,7 +28,7 @@ public:
 
     // Mark local cases sent to remote server as part of sync.
     // Must call StartSync first and EndSync after for proper bookkeeping of revision history.
-    virtual void MarkCasesSentToRemote(cs::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
+    virtual void MarkCasesSentToRemote(std::span<const Case* const> cases_sent, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
                                        const std::string& server_revision, int client_revision) = 0;
 
     // Finish sync started with StartSync.

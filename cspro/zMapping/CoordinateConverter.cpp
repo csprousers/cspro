@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CoordinateConverter.h"
 
 
@@ -30,7 +30,7 @@ std::string CoordinateConverter::ToDMSString(const double latitude, const double
 
         const double seconds = 60 * std::modf(minutes, &value);
 
-        return FormatText(u8"%d° %d′ %0.0f″ %c", static_cast<int>(degrees), static_cast<int>(minutes), seconds, cardinal_char);
+        return FormatText("%d° %d′ %0.0f″ %c", static_cast<int>(degrees), static_cast<int>(minutes), seconds, cardinal_char);
     };
 
     return SO::Concatenate(convert(latitude, 'N', 'S'), ", ", convert(longitude, 'E', 'W'));

@@ -4305,7 +4305,7 @@ bool CEngineCompFunc::ScanTables()
     // go through each of the basic tokens
     SetSourceBuffer(Appl.m_AppTknSource);
 
-    cs::span<const Logic::BasicToken> basic_tokens = GetBasicTokensSpan();
+    const std::span<const Logic::BasicToken> basic_tokens = GetBasicTokensSpan();
 
     std::shared_ptr<CTAB> last_compiled_crosstab;
     size_t token_index_of_crosstab_name = SIZE_MAX;

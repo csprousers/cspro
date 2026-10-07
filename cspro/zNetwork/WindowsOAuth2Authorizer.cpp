@@ -17,7 +17,7 @@ WindowsOAuth2Authorizer::WindowsOAuth2Authorizer(OAuth2Authorizer& oauth2_author
     m_redirectUri = Encoders::ToUriComponent(PortableFunctions::PathRemoveTrailingSlash(m_server.GetBaseUrl()));
 
     // create the authorization URL
-    ASSERT(SO::StartsWith(m_parameters.oauth2_endpoint, "https://"));
+    ASSERT(m_parameters.oauth2_endpoint.starts_with("https://"));
     ASSERT(m_parameters.oauth2_endpoint.back() != '?' && m_parameters.oauth2_endpoint.back() != '/');
 
     ASSERT(m_parameters.client_id == Encoders::ToUriComponent(m_parameters.client_id));

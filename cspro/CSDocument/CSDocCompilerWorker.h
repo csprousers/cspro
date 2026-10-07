@@ -1,9 +1,9 @@
 #pragma once
 
 #include <CSDocument/CSDocCompilerSettings.h>
-#include <zToolsO/span.h>
 #include <zLogicO/FunctionTable.h>
 #include <regex>
+#include <span>
 
 enum class HelpsHtmlProcessorMode;
 class PortableColor;
@@ -39,13 +39,13 @@ private:
     static std::vector<std::string> GetTagComponentsV8(std::string_view tag_name_sv, std::string_view rest_of_tag_sv);
 
     // Converts tag components into a map for version 8 processing.
-    std::map<std::string_view, std::string_view> ProcessTagComponentsV8(cs::span<const std::string> tag_components);
+    std::map<std::string_view, std::string_view> ProcessTagComponentsV8(std::span<const std::string> tag_components);
 
     // Validates the attribute names of version 8 tags.
     void ValidateTagComponentsV8(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components,
-                                 cs::span<const std::string_view> required_attribute_names,
-                                 cs::span<const std::string_view> optional_attribute_names = cs::span<const std::string_view>(),
-                                 cs::span<const std::string_view> attribute_names_where_value_can_be_blank = cs::span<const std::string_view>());
+                                 std::span<const std::string_view> required_attribute_names,
+                                 std::span<const std::string_view> optional_attribute_names = std::span<const std::string_view>(),
+                                 std::span<const std::string_view> attribute_names_where_value_can_be_blank = std::span<const std::string_view>());
 
     // Runs the callback if the attribute is defined.
     template<typename CF>
@@ -67,7 +67,7 @@ private:
     std::string ProcessText(std::string& text);
 
     // Starts and ends the processing of the components in a tag.
-    std::string StartTagV0(const TagDefinition& tag_definition, cs::span<const std::string> tag_components);
+    std::string StartTagV0(const TagDefinition& tag_definition, std::span<const std::string> tag_components);
     std::string EndTag(const TagDefinition& tag_definition, const std::string& inner_text);
 
 
@@ -105,18 +105,18 @@ private:
 
     std::string EndTagWithContentsOfTextStack(const std::string& inner_text);
 
-    std::string TitleStartHandler(cs::span<const std::string> tag_components);
+    std::string TitleStartHandler(std::span<const std::string> tag_components);
     std::string TitleEndHandler(const std::string& inner_text);
 
-    std::string ContextStartHandler(cs::span<const std::string> tag_components);
+    std::string ContextStartHandler(std::span<const std::string> tag_components);
 
-    std::string IndentStartHandler(cs::span<const std::string> tag_components);
+    std::string IndentStartHandler(std::span<const std::string> tag_components);
 
-    std::string FontStartHandler(cs::span<const std::string> tag_components);
+    std::string FontStartHandler(std::span<const std::string> tag_components);
 
-    std::string ListStartHandler(cs::span<const std::string> tag_components);
+    std::string ListStartHandler(std::span<const std::string> tag_components);
 
-    std::string ImageStartHandler(cs::span<const std::string> tag_components);
+    std::string ImageStartHandler(std::span<const std::string> tag_components);
 
     std::string BarcodeStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components);
 
@@ -124,22 +124,22 @@ private:
     static PathAndProject GetPathAndProjectForTopicComponent(CSDocCompilerSettings& settings, const std::string& topic_component);
     PathAndProject GetPathAndProjectForTopicComponent(const std::string& topic_component) { return GetPathAndProjectForTopicComponent(m_settings, topic_component); }
 
-    std::string TopicStartHandler(cs::span<const std::string> tag_components);
-    std::string LinkStartHandler(cs::span<const std::string> tag_components);
-    std::string SeeAlsoStartHandler(cs::span<const std::string> tag_components);
-    std::string ResourceStartHandler(cs::span<const std::string> tag_components);
+    std::string TopicStartHandler(std::span<const std::string> tag_components);
+    std::string LinkStartHandler(std::span<const std::string> tag_components);
+    std::string SeeAlsoStartHandler(std::span<const std::string> tag_components);
+    std::string ResourceStartHandler(std::span<const std::string> tag_components);
 
     TableSettings& GetCurrentTable();
-    std::string TableStartHandler(cs::span<const std::string> tag_components);
+    std::string TableStartHandler(std::span<const std::string> tag_components);
     std::string TableEndHandler(const std::string& inner_text);
-    std::string TableCellStartHandler(cs::span<const std::string> tag_components);
+    std::string TableCellStartHandler(std::span<const std::string> tag_components);
     std::string TableCellEndHandler(const std::string& inner_text);
 
     std::string NoteStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components);
 
     std::string MetadataStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components);
 
-    std::string BuildExtraStartHandler(cs::span<const std::string> tag_components);
+    std::string BuildExtraStartHandler(std::span<const std::string> tag_components);
 
 
     // --------------------------------------------------------------------------
@@ -148,24 +148,24 @@ private:
 
     static std::string TrimOnlyOneNewlineFromBothEnds(std::string text);
 
-    const std::string* ProcessHelpsHtmlProcessorModeOverride(cs::span<const std::string> tag_components);
+    const std::string* ProcessHelpsHtmlProcessorModeOverride(std::span<const std::string> tag_components);
 
-    std::string LogicObjectStartHandler(cs::span<const std::string> tag_components);
+    std::string LogicObjectStartHandler(std::span<const std::string> tag_components);
     std::string LogicEndHandler(const std::string& inner_text);
     std::string LogicSyntaxEndHandler(const std::string& inner_text);
     std::string LogicColorEndHandler(const std::string& inner_text);
     std::string LogicEndHandlerWorker(std::string text, HelpsHtmlProcessorMode mode);
-    std::string LogicDeclareStartHandler(cs::span<const std::string> tag_components);
-    std::string LogicTableStartHandler(cs::span<const std::string> tag_components);
+    std::string LogicDeclareStartHandler(std::span<const std::string> tag_components);
+    std::string LogicTableStartHandler(std::span<const std::string> tag_components);
 
     std::string ActionEndHandler(const std::string& inner_text);
 
     std::string MessageEndHandler(const std::string& inner_text);
 
-    std::string ReportStartHandler(cs::span<const std::string> tag_components);
+    std::string ReportStartHandler(std::span<const std::string> tag_components);
     std::string ReportEndHandler(const std::string& inner_text);
 
-    std::string ColorStartHandler(cs::span<const std::string> tag_components);
+    std::string ColorStartHandler(std::span<const std::string> tag_components);
     std::string ColorEndHandler(const std::string& inner_text);
     std::string ColorInlineEndHandler(const std::string& inner_text);
     std::string ColorTagEndHandler(const std::string& inner_text);
@@ -203,7 +203,7 @@ private:
 
     struct TagDefinition
     {
-        using StartHandlerFunctionV0 = std::string (CSDocCompilerWorker::*)(cs::span<const std::string>);
+        using StartHandlerFunctionV0 = std::string (CSDocCompilerWorker::*)(std::span<const std::string>);
         using StartHandlerFunctionV8 = std::string (CSDocCompilerWorker::*)(const std::string&, const std::map<std::string_view, std::string_view>&);
         using StartHandler = std::variant<std::monostate, std::string, StartHandlerFunctionV0, StartHandlerFunctionV8>;
         using EndHandlerFunction = std::string (CSDocCompilerWorker::*)(const std::string&);
