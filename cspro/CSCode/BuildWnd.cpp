@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "BuildWnd.h"
 
 
@@ -21,13 +21,13 @@ void CSCodeBuildWnd::Initialize(CodeView& code_view, std::string action)
 }
 
 
-CLogicCtrl* CSCodeBuildWnd::ActivateDocumentAndGetLogicCtrl(const std::variant<const CLogicCtrl*, const std::string*> source_logic_ctrl_or_file_path)
+LogicCtrl* CSCodeBuildWnd::ActivateDocumentAndGetLogicCtrl(const std::variant<const LogicCtrl*, const std::string*> source_logic_ctrl_or_file_path)
 {
-    ASSERT(std::holds_alternative<const CLogicCtrl*>(source_logic_ctrl_or_file_path));
+    ASSERT(std::holds_alternative<const LogicCtrl*>(source_logic_ctrl_or_file_path));
 
     if( assert_cast<CMainFrame*>(AfxGetMainWnd())->ActivateDocument(m_currentCodeView) )
     {
-        ASSERT(std::get<const CLogicCtrl*>(source_logic_ctrl_or_file_path) == m_currentCodeView->GetLogicCtrl());
+        ASSERT(std::get<const LogicCtrl*>(source_logic_ctrl_or_file_path) == m_currentCodeView->GetLogicCtrl());
         return m_currentCodeView->GetLogicCtrl();
     }
 

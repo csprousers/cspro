@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/LogicView.h>
 
 class CodeDoc;
 
 
-class CodeView : public CLogicView
+class CodeView : public LogicView
 {
     DECLARE_DYNCREATE(CodeView)
 

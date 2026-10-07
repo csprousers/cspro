@@ -1,8 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "EditCtrl.h"
 
 
-BEGIN_MESSAGE_MAP(EditCtrl, CLogicCtrl)
+BEGIN_MESSAGE_MAP(EditCtrl, LogicCtrl)
 
     ON_COMMAND(ID_EDIT_CUT, OnEditCut)
     ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateNeedSel)
@@ -58,19 +58,19 @@ BOOL EditCtrl::PreTranslateMessage(MSG* pMsg)
     if( m_hAccel != nullptr && TranslateAccelerator(m_hWnd, m_hAccel, pMsg) )
         return TRUE;
 
-    return CLogicCtrl::PreTranslateMessage(pMsg);
+    return LogicCtrl::PreTranslateMessage(pMsg);
 }
 
 
 void EditCtrl::OnEditCopy()
 {
-    CLogicCtrl::CopySelection();
+    LogicCtrl::CopySelection();
 }
 
 
 void EditCtrl::OnEditCut()
 {
-    CLogicCtrl::Cut();
+    LogicCtrl::Cut();
 }
 
 

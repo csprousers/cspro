@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TSourceEditView.cpp
 //
 //  Description:
@@ -23,7 +23,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CTSourceEditView
 
-IMPLEMENT_DYNCREATE(CTSourceEditView, CLogicView)
+IMPLEMENT_DYNCREATE(CTSourceEditView, LogicView)
 
 CTSourceEditView::CTSourceEditView()
 {
@@ -44,7 +44,7 @@ void CTSourceEditView::OnFinalRelease()
 }
 
 
-BEGIN_MESSAGE_MAP(CTSourceEditView, CLogicView)
+BEGIN_MESSAGE_MAP(CTSourceEditView, LogicView)
     //{{AFX_MSG_MAP(CTSourceEditView)
     ON_WM_CREATE()
     ON_WM_SIZE()
@@ -78,7 +78,7 @@ END_MESSAGE_MAP()
 void CTSourceEditView::OnDraw(CDC* pDC)
 {
 /*
-    BOOL b = GetEditCtrl()->IsIndicatorBarVisible();
+    BOOL b = GetLogicCtrl()->IsIndicatorBarVisible();
 
     CDocument* pDoc = GetDocument();
 
@@ -128,21 +128,21 @@ void CTSourceEditView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) {
 /////////////////////////////////////////////////////////////////////////////
 
 void CTSourceEditView::OnSize(UINT nType, int cx, int cy) {
-    CLogicView::OnSize(nType, cx, cy);
+    LogicView::OnSize(nType, cx, cy);
 }
 
 void CTSourceEditView::OnEditCopy()
 {
-    GetEditCtrl()->CopySelection();
+    GetLogicCtrl()->CopySelection();
 }
 
 void CTSourceEditView::OnUpdateEditCutOrCopy(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if (pWnd && GetLogicCtrl() == pWnd) {
-        if (GetEditCtrl() && GetEditCtrl()->GetSafeHwnd()) {
-            const Sci_Position nStartChar = GetEditCtrl()->GetSelectionStart();
-            const Sci_Position nEndChar = GetEditCtrl()->GetSelectionEnd();
+        if (GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()) {
+            const Sci_Position nStartChar = GetLogicCtrl()->GetSelectionStart();
+            const Sci_Position nEndChar = GetLogicCtrl()->GetSelectionEnd();
             pCmdUI->Enable(nStartChar != nEndChar);
         }
         else {
@@ -153,19 +153,19 @@ void CTSourceEditView::OnUpdateEditCutOrCopy(CCmdUI* pCmdUI)
 
 void CTSourceEditView::OnEditCut()
 {
-    GetEditCtrl()->Cut();
+    GetLogicCtrl()->Cut();
 }
 
 void CTSourceEditView::OnEditPaste()
 {
-    GetEditCtrl()->Paste();
+    GetLogicCtrl()->Paste();
 }
 
 void CTSourceEditView::OnUpdateEditPaste(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if (pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(!GetEditCtrl()->GetReadOnly() &&::IsClipboardFormatAvailable(CF_TEXT));
+        pCmdUI->Enable(!GetLogicCtrl()->GetReadOnly() &&::IsClipboardFormatAvailable(CF_TEXT));
     }
     else {
         pCmdUI->Enable(FALSE);
@@ -216,34 +216,34 @@ void CTSourceEditView::OnReplace()
 void CTSourceEditView::OnUpdateReplace(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl))){
+    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl))){
         pCmdUI->Enable(TRUE);
     }
 }
 
 void CTSourceEditView::OnEditUndo()
 {
-    GetEditCtrl()->Undo();
+    GetLogicCtrl()->Undo();
 }
 
 void CTSourceEditView::OnUpdateEditUndo(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if (pWnd && GetLogicCtrl() == pWnd) {
-        pCmdUI->Enable(GetEditCtrl()->CanUndo());
+        pCmdUI->Enable(GetLogicCtrl()->CanUndo());
     }
 }
 
 void CTSourceEditView::OnEditRedo()
 {
-    GetEditCtrl()->Redo();
+    GetLogicCtrl()->Redo();
 }
 
 void CTSourceEditView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(GetEditCtrl()->CanRedo());
+        pCmdUI->Enable(GetLogicCtrl()->CanRedo());
     }
 
 }
@@ -253,11 +253,11 @@ BOOL CTSourceEditView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 // TODO: Add your message handler code here and/or call default
     if (zDelta > 0) {
          //OnVScroll(SB_LINEUP, 0, NULL);
-         GetEditCtrl()->SendMessage( WM_VSCROLL, SB_LINEUP);
+         GetLogicCtrl()->SendMessage( WM_VSCROLL, SB_LINEUP);
     }
     else {
         //OnVScroll(SB_LINEDOWN, 0, NULL);
-        GetEditCtrl()->SendMessage( WM_VSCROLL, SB_LINEDOWN);
+        GetLogicCtrl()->SendMessage( WM_VSCROLL, SB_LINEDOWN);
     }
     return FALSE;
 }
@@ -267,7 +267,7 @@ void CTSourceEditView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
     CMenu popup;
     popup.CreatePopupMenu();
-    CLogicCtrl* pEdit = GetEditCtrl();
+    LogicCtrl* pEdit = GetLogicCtrl();
 
     const bool writable = !pEdit->GetReadOnly();
 

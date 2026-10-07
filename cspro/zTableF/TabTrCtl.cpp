@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TabTrCtl.h"
 #include "TabDoc.h"
 #include "TabView.h"
@@ -1739,7 +1739,7 @@ void CTabTreeCtrl::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
         UNREFERENCED_PARAMETER(pViewtp);
         CTSourceEditView* pView2 = DYNAMIC_DOWNCAST(CTSourceEditView, pTabDoc->GetNextView(pos));
         if (pView2 != nullptr) {
-            pView2->GetEditCtrl()->EmptyUndoBuffer();
+            pView2->GetLogicCtrl()->EmptyUndoBuffer();
         }
     }
     if(m_bOkToRedraw)

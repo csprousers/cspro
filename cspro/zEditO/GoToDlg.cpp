@@ -1,11 +1,11 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "GoToDlg.h"
 
 
 IMPLEMENT_DYNAMIC(GoToDlg, CDialog)
 
 
-GoToDlg::GoToDlg(CLogicCtrl& logic_ctrl, CWnd* pParent/* = nullptr*/)
+GoToDlg::GoToDlg(LogicCtrl& logic_ctrl, CWnd* pParent/* = nullptr*/)
     :   CDialog(GoToDlg::IDD, pParent),
         m_logicCtrl(logic_ctrl)
 {

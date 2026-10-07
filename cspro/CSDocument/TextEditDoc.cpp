@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TextEditDoc.h"
 #include "CSDocDoc.h"
 
@@ -70,7 +70,7 @@ BOOL TextEditDoc::OnSaveDocument(LPCTSTR lpszPathName)
     try
     {
         ASSERT(m_textEditView != nullptr);
-        CLogicCtrl* const logic_ctrl = m_textEditView->GetLogicCtrl();
+        LogicCtrl* const logic_ctrl = m_textEditView->GetLogicCtrl();
 
         // if saving to the same file, use the existing text source
         if( GetPathName() == lpszPathName )

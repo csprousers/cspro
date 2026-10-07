@@ -9,7 +9,7 @@
 // QuestionTextTextEditor::CustomLogicCtrl
 // --------------------------------------------------------------------------
 
-class QuestionTextTextEditor::CustomLogicCtrl : public CLogicCtrl
+class QuestionTextTextEditor::CustomLogicCtrl : public LogicCtrl
 {
 public:
     void ClearSelectionOnSetFocus() { m_clearSelectionOnSetFocus = true; }
@@ -28,7 +28,7 @@ private:
 };
 
 
-BEGIN_MESSAGE_MAP(QuestionTextTextEditor::CustomLogicCtrl, CLogicCtrl)
+BEGIN_MESSAGE_MAP(QuestionTextTextEditor::CustomLogicCtrl, LogicCtrl)
     ON_WM_SETFOCUS()
     ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()

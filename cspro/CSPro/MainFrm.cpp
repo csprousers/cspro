@@ -1618,7 +1618,7 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
             pBase = pFormID->GetItemPtr();
         }
 
-        pView->GetEditCtrl()->ClearErrorAndWarningMarkers();
+        pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
         pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
 
         if(pFormDoc && !pBase) { // if it is a form file show entire source code
@@ -1712,16 +1712,16 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
 
     ASSERT(source_code.IsSet());
 
-    bool prevModifiedState = pView->GetEditCtrl()->IsModified(); // 20100708 trying to get rid of superfluous modified statements
-    pView->GetEditCtrl()->SetText(source_code.GetString());
-    pView->GetEditCtrl()->SetModified(prevModifiedState);
+    bool prevModifiedState = pView->GetLogicCtrl()->IsModified(); // 20100708 trying to get rid of superfluous modified statements
+    pView->GetLogicCtrl()->SetText(source_code.GetString());
+    pView->GetLogicCtrl()->SetModified(prevModifiedState);
 
-    if( lexer_language != pView->GetEditCtrl()->GetLexer() )
-        pView->GetEditCtrl()->InitLogicControl(true, true, lexer_language);
+    if( lexer_language != pView->GetLogicCtrl()->GetLexer() )
+        pView->GetLogicCtrl()->InitLogicControl(true, true, lexer_language);
 
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
-        pView->GetEditCtrl()->SetFolding(bAppSrcCode);
+        pView->GetLogicCtrl()->SetFolding(bAppSrcCode);
 
     pWnd->GetLogicDialogBar().UpdateScrollState();
 }
@@ -1867,19 +1867,19 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
 
     // 20100316 nothing is changed by just loading or changing what proc is displayed
     bool modFlag1 = pOrderDoc->IsModified();
-    bool modFlag2 = pView->GetEditCtrl()->IsModified();
+    bool modFlag2 = pView->GetLogicCtrl()->IsModified();
 
-    pView->GetEditCtrl()->SetText(source_code.GetString());
+    pView->GetLogicCtrl()->SetText(source_code.GetString());
 
     pOrderDoc->SetModifiedFlag(modFlag1); // 20100316
-    pView->GetEditCtrl()->SetModified(modFlag2);
+    pView->GetLogicCtrl()->SetModified(modFlag2);
 
-    if( lexer_language != pView->GetEditCtrl()->GetLexer() )
-        pView->GetEditCtrl()->InitLogicControl(true, true, lexer_language);
+    if( lexer_language != pView->GetLogicCtrl()->GetLexer() )
+        pView->GetLogicCtrl()->InitLogicControl(true, true, lexer_language);
 
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
-        pView->GetEditCtrl()->SetFolding(bAppSrcCode);
+        pView->GetLogicCtrl()->SetFolding(bAppSrcCode);
 
     pWnd->GetLogicDialogBar().UpdateScrollState();
 }
@@ -1989,8 +1989,8 @@ namespace
             if( !processed_first_error && parser_message.type == Logic::ParserMessage::Type::Error )
             {
                 // 20120613 if the proc name existed in the main and external dictionaries, an invalid argument error occurred
-                if( line_number_for_bookmark < pView->GetEditCtrl()->GetLineCount() )
-                    pView->GetEditCtrl()->GotoLine(line_number_for_bookmark);
+                if( line_number_for_bookmark < pView->GetLogicCtrl()->GetLineCount() )
+                    pView->GetLogicCtrl()->GotoLine(line_number_for_bookmark);
 
                 processed_first_error = true;
             }
@@ -2077,7 +2077,7 @@ namespace
             auto add_error_or_warning = [&](const int line_number)
             {
                 const bool error = ( parser_message.type == Logic::ParserMessage::Type::Error );
-                pView->GetEditCtrl()->AddErrorOrWarningMarker(error, line_number);
+                pView->GetLogicCtrl()->AddErrorOrWarningMarker(error, line_number);
             };
 
             if( external_logic_or_report_text_source != nullptr )
@@ -2163,12 +2163,12 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
         external_logic_or_report_text_source = pFormID->GetTextSource();
         ASSERT(external_logic_or_report_text_source != nullptr);
 
-        if( pView->GetEditCtrl()->IsModified() )
+        if( pView->GetLogicCtrl()->IsModified() )
         {
             std::wstring source_code = UTF8_TODO::GetWide(pView->GetLogicCtrl()->GetText());
             external_logic_or_report_text_source->SetText(UTF8_TODO::GetUtf8(std::move(source_code)));
 
-            pView->GetEditCtrl()->SetModified(FALSE);
+            pView->GetLogicCtrl()->SetModified(FALSE);
         }
     }
 
@@ -2185,7 +2185,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
             pBase = pFormID->GetItemPtr();
         }
 
-        pView->GetEditCtrl()->ClearErrorAndWarningMarkers();
+        pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
         pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
 
         if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEFormFile))) {
@@ -2250,14 +2250,14 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
             pSourceCode->PutProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
         }
 
-        if(pView->GetEditCtrl()->IsModified()) {
+        if(pView->GetLogicCtrl()->IsModified()) {
             pSourceCode->SetModifiedFlag(true);
-            pView->GetEditCtrl()->SetModified(FALSE);
+            pView->GetLogicCtrl()->SetModified(FALSE);
         }
     }
 
 
-    pView->GetEditCtrl()->ClearErrorAndWarningMarkers();
+    pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
     pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
 
     if( !bForceCompile )
@@ -2415,12 +2415,12 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
         external_logic_or_report_text_source = app_tree_node->GetTextSource();
         ASSERT(external_logic_or_report_text_source != nullptr);
 
-        if( pView->GetEditCtrl()->IsModified() )
+        if( pView->GetLogicCtrl()->IsModified() )
         {
             std::wstring source_code = UTF8_TODO::GetWide(pView->GetLogicCtrl()->GetText());
             external_logic_or_report_text_source->SetText(UTF8_TODO::GetUtf8(std::move(source_code)));
 
-            pView->GetEditCtrl()->SetModified(FALSE);
+            pView->GetLogicCtrl()->SetModified(FALSE);
         }
     }
 
@@ -2490,14 +2490,14 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             pSourceCode->PutProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
         }
 
-        if(pView->GetEditCtrl()->IsModified()) {
+        if(pView->GetLogicCtrl()->IsModified()) {
             pSourceCode->SetModifiedFlag(true);
-            pView->GetEditCtrl()->SetModified(FALSE);
+            pView->GetLogicCtrl()->SetModified(FALSE);
         }
     }
 
 
-    pView->GetEditCtrl()->ClearErrorAndWarningMarkers();
+    pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
     pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
 
     if( !bForceCompile )
@@ -2706,7 +2706,7 @@ LRESULT CMainFrame::IsTabNameUnique(WPARAM wParam, LPARAM lParam)
 
 void CMainFrame::OnUpdateKeyOvr(CCmdUI* pCmdUI)
 {
-    CLogicCtrl* logic_ctrl = nullptr;
+    LogicCtrl* logic_ctrl = nullptr;
 
     //Get the active child window
     //if it is CFormChildWnd and the view is logic
@@ -2839,7 +2839,7 @@ LRESULT CMainFrame::OnSelChange(WPARAM wParam, LPARAM /*lParam*/)
                 if(!pID || pID->GetFormDoc() != pFormDoc )
                     return 0;
 
-                if(pView->GetEditCtrl()->IsModified())
+                if(pView->GetLogicCtrl()->IsModified())
                     mark_modified(pID, pAplDoc);
             }
         }
@@ -2860,7 +2860,7 @@ LRESULT CMainFrame::OnSelChange(WPARAM wParam, LPARAM /*lParam*/)
                 if(app_tree_node == nullptr || app_tree_node->GetOrderDocument() != pOrderDoc )
                     return 0;
 
-                if(pView->GetEditCtrl()->IsModified())
+                if(pView->GetLogicCtrl()->IsModified())
                     mark_modified(app_tree_node, pAplDoc);
             }
         }
@@ -4373,14 +4373,14 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
             pSourceCode->PutProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
         }
 
-        if(true){ //Tabsource can get modified from the interface as well without the edit control mod//(pView->GetEditCtrl()->IsModified()) {
+        if(true){ //Tabsource can get modified from the interface as well without the edit control mod//(pView->GetLogicCtrl()->IsModified()) {
             pSourceCode->SetModifiedFlag(true);
-            pView->GetEditCtrl()->SetModified(FALSE);
+            pView->GetLogicCtrl()->SetModified(FALSE);
         }
 
         //arrProcLines.RemoveAll(); SAVY 09/27/00 Optimize;
         //pSourceCode->GetProc(arrProcLines,sSymbolName); SAVY 09/27/00 Optimize
-        pView->GetEditCtrl()->ClearErrorAndWarningMarkers();
+        pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
         pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
 
         if(!bForceCompile)
@@ -4699,11 +4699,11 @@ void CMainFrame::SetTblSourceCode(CAplDoc* pAplDoc)
 
         // 20100316 nothing is changed by just loading or changing what proc is displayed
         bool modFlag1 = pTabDoc->IsModified();
-        bool modFlag2 = pView->GetEditCtrl()->IsModified();
-        pView->GetEditCtrl()->SetText(UTF8_TODO::GetUtf8(sWindowText));
+        bool modFlag2 = pView->GetLogicCtrl()->IsModified();
+        pView->GetLogicCtrl()->SetText(UTF8_TODO::GetUtf8(sWindowText));
 
         pTabDoc->SetModifiedFlag(modFlag1); // 20100316
-        pView->GetEditCtrl()->SetModified(modFlag2);
+        pView->GetLogicCtrl()->SetModified(modFlag2);
 
         pWnd->GetLogicDialogBar().UpdateScrollState();
     }
@@ -5370,7 +5370,7 @@ void CMainFrame::OnOptionsProperties()
         pAplDoc->SetModifiedFlag();
 
         // refresh the Scintilla lexers in case the logic version changed
-        auto refresh_lexer = [&](CLogicCtrl* const logic_ctrl)
+        auto refresh_lexer = [&](LogicCtrl* const logic_ctrl)
         {
             if( logic_ctrl != nullptr )
                 logic_ctrl->PostMessage(UWM::Edit::RefreshLexer);
@@ -5692,7 +5692,7 @@ namespace
 }
 
 
-void CMainFrame::GotoExternalLogicOrReportNode(const CDocument* pDoc, CLogicCtrl* logic_control, NullTerminatedString filename,
+void CMainFrame::GotoExternalLogicOrReportNode(const CDocument* pDoc, LogicCtrl* logic_control, NullTerminatedString filename,
                                                bool using_line_number, int line_number_or_position_in_buffer)
 {
     bool success = false;
@@ -5736,7 +5736,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
     {
         ASSERT(logic_error_location.adjusted_line_number_for_bookmark.has_value());
 
-        CLogicCtrl* source_logic_ctrl = application_child_wnd->GetSourceLogicCtrl();
+        LogicCtrl* source_logic_ctrl = application_child_wnd->GetSourceLogicCtrl();
         source_logic_ctrl->SetFocus();
         source_logic_ctrl->GotoLine(*logic_error_location.adjusted_line_number_for_bookmark);
     }
@@ -5823,7 +5823,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 
 LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
 {
-    const CLogicCtrl* const logic_ctrl = reinterpret_cast<const CLogicCtrl*>(wParam);
+    const LogicCtrl* const logic_ctrl = reinterpret_cast<const LogicCtrl*>(wParam);
     int& lexer_language = *reinterpret_cast<int*>(lParam);
 
     CMDIChildWnd* const pWnd = this->MDIGetActive();

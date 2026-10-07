@@ -1,11 +1,11 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TextEditView.h"
 #include <zToolsO/WinSettings.h>
 
 
-IMPLEMENT_DYNCREATE(TextEditView, CLogicView)
+IMPLEMENT_DYNCREATE(TextEditView, LogicView)
 
-BEGIN_MESSAGE_MAP(TextEditView, CLogicView)
+BEGIN_MESSAGE_MAP(TextEditView, LogicView)
     ON_COMMAND(ID_EDIT_FIND_NEXT, OnFindNext)
     ON_COMMAND(ID_EDIT_WORD_WRAP, OnWordWrap)
     ON_UPDATE_COMMAND_UI(ID_EDIT_WORD_WRAP, OnUpdateWordWrap)
@@ -17,7 +17,7 @@ void TextEditView::OnInitialUpdate()
     __super::OnInitialUpdate();
 
     TextEditDoc& text_edit_doc = GetTextEditDoc();
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetLogicCtrl();
 
     const std::string initial_text = text_edit_doc.OnViewInitialUpdate(*this);
 
@@ -77,7 +77,7 @@ void TextEditView::OnFindNext()
 
 void TextEditView::OnWordWrap()
 {
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetLogicCtrl();
     const bool turn_on_word_wrap = ( logic_ctrl->GetWrapMode() == Scintilla::Wrap::None );
 
     logic_ctrl->SetWrapMode(turn_on_word_wrap ? Scintilla::Wrap::WhiteSpace : Scintilla::Wrap::None);

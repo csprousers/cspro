@@ -138,7 +138,7 @@ struct COSourceEditViewFocusSwitcher : public CViewFocusSwitcher
         ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(COSourceEditView)));
         CViewFocusSwitcher::SetFocus(pWnd);
         COSourceEditView* pView = DYNAMIC_DOWNCAST(COSourceEditView, pWnd);
-        pView->GetEditCtrl()->SetFocus();
+        pView->GetLogicCtrl()->SetFocus();
     }
 };
 
@@ -156,7 +156,7 @@ struct CTSourceEditViewFocusSwitcher : public CViewFocusSwitcher
         ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTSourceEditView)));
         CViewFocusSwitcher::SetFocus(pWnd);
         CTSourceEditView* pView = DYNAMIC_DOWNCAST(CTSourceEditView, pWnd);
-        pView->GetEditCtrl()->SetFocus();
+        pView->GetLogicCtrl()->SetFocus();
     }
 };
 
@@ -220,8 +220,8 @@ struct CTabViewContainerFocusSwitcher : public CWindowFocusSwitcher
 
     virtual bool MatchWindow(CWnd* pWnd) const
     {
-        return (pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(COXTabViewContainer)) &&
-             pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl)));
+        return ( pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(COXTabViewContainer)) &&
+                 pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) );
     }
 
     virtual void SetFocus(CWnd* pWnd)

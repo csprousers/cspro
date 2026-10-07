@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "BuildWnd.h"
 #include <zToolsO/Utf8.h>
 #include <zJson/JsonNode.h>
@@ -101,7 +101,7 @@ void BuildWnd::OnSize(const UINT nType, const int cx, const int cy)
 }
 
 
-void BuildWnd::Initialize(CLogicCtrl* const source_logic_ctrl, const std::string& source_title, std::string action, const bool reset_flags/* = false*/)
+void BuildWnd::Initialize(LogicCtrl* const source_logic_ctrl, const std::string& source_title, std::string action, const bool reset_flags/* = false*/)
 {
     ASSERT(!action.empty());
 
@@ -135,7 +135,7 @@ void BuildWnd::Initialize(CLogicCtrl* const source_logic_ctrl, const std::string
 }
 
 
-void BuildWnd::Initialize(CLogicCtrl* const source_logic_ctrl, const CDocument* const source_doc, std::string action, const bool reset_flags/* = false*/)
+void BuildWnd::Initialize(LogicCtrl* const source_logic_ctrl, const CDocument* const source_doc, std::string action, const bool reset_flags/* = false*/)
 {
     ASSERT(source_doc != nullptr);
 
@@ -351,9 +351,9 @@ void BuildWnd::ProgressMessageClick(const int build_wnd_line_number_base0)
 
     // make sure that the document used for this compilation is the active document,
     // taking into account the fact that the message could have originated in a different file
-    CLogicCtrl* const found_logic_ctrl = ( !lookup->file_path.empty() )    ? ActivateDocumentAndGetLogicCtrl(&lookup->file_path) :
-                                         ( m_sourceLogicSource != nullptr) ? ActivateDocumentAndGetLogicCtrl(m_sourceLogicSource) :
-                                                                             nullptr;
+    LogicCtrl* const found_logic_ctrl = ( !lookup->file_path.empty() )    ? ActivateDocumentAndGetLogicCtrl(&lookup->file_path) :
+                                        ( m_sourceLogicSource != nullptr) ? ActivateDocumentAndGetLogicCtrl(m_sourceLogicSource) :
+                                                                            nullptr;
 
     if( found_logic_ctrl != nullptr )
     {

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ProcessorMessages.h"
 #include <zUtilO/TextSourceString.h>
 #include <zMessageO/MessageFile.h>
@@ -6,7 +6,7 @@
 
 void ProcessorMessages::Compile(CodeView& code_view)
 {
-    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_CSPRO_MESSAGE_V8_0);
 
     CMainFrame* const main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());

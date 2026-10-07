@@ -350,7 +350,7 @@ std::vector<LibraryManager::LibraryVersion> LibraryManager::ReadLibraryVersions(
 
     // use regular expressions to extract the library names and versions
     const std::regex library_name_regex(R"(^### (.+)$)");
-    const std::regex library_version_regex(R"(^\*Current version: (\d.*\d).*\*$)");
+    const std::regex library_version_regex(R"(^\*Current prebuilt version: (\d.*\d).*\*$)");
     std::smatch matches;
 
     std::vector<LibraryVersion> library_versions;

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: OrdChWnd.cpp
 //
 //  Description:
@@ -254,7 +254,7 @@ void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDe
                // BOOL bSendMsg = pOrderTree->GetSndMsgFlg(); SAVY&& check this
                 if(app_tree_node != nullptr && app_tree_node->GetDocument() == pDoc /*&& bSendMsg*/)
                 {
-                    if(GetOSourceView()->GetEditCtrl()->IsModified())
+                    if(GetOSourceView()->GetLogicCtrl()->IsModified())
                         (AfxGetMainWnd()->SendMessage(UWM::Order::PutSourceCode, 0, reinterpret_cast<LPARAM>(app_tree_node)) == -1);
 
                 }
@@ -334,13 +334,13 @@ COSourceEditView* COrderChildWnd::GetOSourceView()
 }
 
 
-CLogicView* COrderChildWnd::GetSourceLogicView()
+LogicView* COrderChildWnd::GetSourceLogicView()
 {
     return GetOSourceView();
 }
 
 
-CLogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
+LogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
 {
     COSourceEditView* pView = GetOSourceView();
     ASSERT(pView != nullptr);
@@ -366,19 +366,19 @@ void COrderChildWnd::OnCompile()
         {
             //wParam 1 implies force compile
             AfxGetMainWnd()->SendMessage(UWM::Order::PutSourceCode, 1, reinterpret_cast<LPARAM>(app_tree_node));
-            ((COSourceEditView*)pView)->GetEditCtrl()->SetFocus();
+            ((COSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
         }
     }
 }
 
 void COrderChildWnd::OnPeekLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, reinterpret_cast<LPARAM>(GetOSourceView()->GetEditCtrl()));
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, reinterpret_cast<LPARAM>(GetOSourceView()->GetLogicCtrl()));
 }
 
 void COrderChildWnd::OnGotoLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, reinterpret_cast<LPARAM>(GetOSourceView()->GetEditCtrl()));
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, reinterpret_cast<LPARAM>(GetOSourceView()->GetLogicCtrl()));
 }
 
 
@@ -394,7 +394,7 @@ void COrderChildWnd::ModifyDocumentAndDoWithLogicCtrl(CF callback_function)
         if( pOrderDoc != nullptr )
         {
             pOrderDoc->SetModifiedFlag();
-            callback_function(((COSourceEditView*)pView)->GetEditCtrl());
+            callback_function(((COSourceEditView*)pView)->GetLogicCtrl());
         }
     }
 }
@@ -403,7 +403,7 @@ void COrderChildWnd::ModifyDocumentAndDoWithLogicCtrl(CF callback_function)
 void COrderChildWnd::OnCommentCode()
 {
     ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* const logic_ctrl)
+        [](LogicCtrl* const logic_ctrl)
         {
             logic_ctrl->CommentCode();
         });
@@ -413,7 +413,7 @@ void COrderChildWnd::OnCommentCode()
 void COrderChildWnd::OnFormatLogic()
 {
     ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* const logic_ctrl)
+        [](LogicCtrl* const logic_ctrl)
         {
             logic_ctrl->FormatLogic();
         });
@@ -422,7 +422,7 @@ void COrderChildWnd::OnFormatLogic()
 
 void COrderChildWnd::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
 {
-    CLogicCtrl* const logic_ctrl = COrderChildWnd::GetSourceLogicCtrl();
+    LogicCtrl* const logic_ctrl = COrderChildWnd::GetSourceLogicCtrl();
 
     pCmdUI->Enable(( logic_ctrl != nullptr &&
                      Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));

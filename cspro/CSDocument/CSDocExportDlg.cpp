@@ -30,7 +30,7 @@ BEGIN_MESSAGE_MAP(CSDocExportDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-CSDocExportDlg::CSDocExportDlg(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, std::string csdoc_file_path, CLogicCtrl& logic_ctrl, CWnd* const pParent/* = nullptr*/)
+CSDocExportDlg::CSDocExportDlg(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, std::string csdoc_file_path, LogicCtrl& logic_ctrl, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_EXPORT_CSDOC, pParent),
         m_settingsDb(CSProExecutables::Program::CSDocument, ExportSettingsTableName, ExportSettingsExpirationSeconds, SettingsDb::KeyObfuscator::Hash),
         m_docSetSpec(std::move(doc_set_spec)),

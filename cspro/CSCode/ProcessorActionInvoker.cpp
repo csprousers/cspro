@@ -269,7 +269,7 @@ bool ProcessorActionInvoker::ValidateJson(CodeView& code_view, ActionInvoker::Js
     const bool run_mode = ( json_executor != nullptr );
     const bool make_build_window_visible_if_not = !run_mode;
 
-    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_JSON);
 
     CMainFrame* const main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());

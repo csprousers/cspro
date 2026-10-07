@@ -132,7 +132,7 @@ BOOL CodeDoc::OnSaveDocument(LPCTSTR lpszPathName)
         // get the text
         POSITION pos = GetFirstViewPosition();
         CodeView* const code_view = assert_cast<CodeView*>(GetNextView(pos));
-        CLogicCtrl* const logic_ctrl = code_view->GetLogicCtrl();
+        LogicCtrl* const logic_ctrl = code_view->GetLogicCtrl();
         std::string text = logic_ctrl->GetText();
 
         // if saving to the same file, use the existing text source

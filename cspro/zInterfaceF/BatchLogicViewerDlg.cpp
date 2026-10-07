@@ -23,7 +23,7 @@ BatchLogicViewerDlg::BatchLogicViewerDlg(const CDataDict& dictionary, const Logi
         m_dictionary(dictionary),
         m_logicSettings(logic_settings),
         m_logicText(std::move(logic_text)),
-        m_logicCtrl(std::make_unique<CLogicCtrl>())
+        m_logicCtrl(std::make_unique<LogicCtrl>())
 {
     ASSERT(PortableFunctions::FileIsRegular(m_dictionary.GetFilePath()));
 }

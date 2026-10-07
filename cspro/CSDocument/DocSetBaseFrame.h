@@ -39,7 +39,7 @@ protected:
     virtual const std::map<std::string, unsigned>& GetLastCompiledContextIds() = 0;
 
 private:
-    void SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text) const;
+    void SetLogicCtrlTextWithFormattedText(LogicCtrl& logic_ctrl, std::string formatted_text) const;
 
 private:
     std::string m_docSetPreviewUrl;

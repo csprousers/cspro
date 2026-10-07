@@ -92,7 +92,7 @@ void CSDocFrame::OnCompile(const bool manual_compile)
         return;
 
     CSDocDoc& csdoc_doc = GetCSDocDoc();
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
 
     build_wnd->Initialize(logic_ctrl, &csdoc_doc, "CSPro Document compilation");
 
@@ -154,7 +154,7 @@ void CSDocFrame::OnExport()
         return;
     }
 
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
 
     CSDocExportDlg csdoc_export_dlg(std::move(doc_set_spec), TC::ToUtf8(GetCSDocDoc().GetPathName()), *logic_ctrl, this);
 
@@ -175,7 +175,7 @@ void CSDocFrame::OnExport()
 void CSDocFrame::OnBuildToClipboard()
 {
     CSDocDoc& csdoc_doc = GetCSDocDoc();
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
 
     try
     {
@@ -280,7 +280,7 @@ void CSDocFrame::OnViewSyntax()
 
 void CSDocFrame::WrapSelectionInTags(const char* const start_tag, const char* const end_tag)
 {
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
 
     const Sci_Position start_pos = logic_ctrl->GetSelectionStart();
     const Sci_Position end_pos = logic_ctrl->GetSelectionEnd();
@@ -361,7 +361,7 @@ void CSDocFrame::OnFormatLink()
 
 void CSDocFrame::OnFormatListBuilder()
 {
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
     std::string html = "<list>\n";
 
     SO::ForeachLine(logic_ctrl->GetSelText(), false,

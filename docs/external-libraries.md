@@ -7,17 +7,18 @@ Prebuilt libraries, creating using CMake, are available to download as part of t
 [release assets](https://github.com/csprousers/cspro-libraries-third-party/releases).
 These libraries, located in *third_party/prebuilt*, are linked to as static or dynamic libraries.
 
-Other libraries, primarily located in *third_party/sources*, are built as part of the CSPro solution. Batch scripts to update many of these libraries are located here:
+Other libraries, primarily located in *third_party/sources*, are built as part of the CSPro solution.
+Batch scripts to update many of these libraries are located here:
 
 - *build-tools/Build External Libraries*
 
 
-## Libraries in the Third-Party Libraries Repository
+## Libraries in the Third-Party Libraries Repository (Prebuilt)
 
 
 ### bzip2
 
-*Current version: 1.0.8*
+*Current prebuilt version: 1.0.8*
 
 1. CSPro-specific code is located in a cloned repository: https://github.com/csprousers/cspro-libraries-fork-bzip2
 2. Incorporate any new code, if available, into the *cspro* branch: https://www.sourceware.org/bzip2/downloads.html
@@ -28,7 +29,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### CHMLib
 
-*Current version: 0.3 (this library no longer appears to be updated)*
+*Current prebuilt version: 0.3 (this library no longer appears to be updated)*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-CHMLib
 2. Confirm that there are no longer updates: https://github.com/jedwing/CHMLib
@@ -39,7 +40,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### curl
 
-*Current version: 8.22.0*
+*Current prebuilt version: 8.22.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-curl
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/curl/curl/releases/latest
@@ -51,7 +52,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### EditorConfig
 
-*Current version: 0.12.11*
+*Current prebuilt version: 0.12.11*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-editorconfig-core-c
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/editorconfig/editorconfig-core-c/releases/latest
@@ -63,7 +64,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### GPAC
 
-*Current version: 2.4.0*
+*Current prebuilt version: 2.4.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gpac
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/gpac/gpac/releases/latest
@@ -75,7 +76,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### gumbo-parser
 
-*Current version: 0.10.1 (this library is archived and no longer updated)*
+*Current prebuilt version: 0.10.1 (this library is archived and no longer updated)*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gumbo-parser
 2. Confirm that there are no longer updates: https://github.com/google/gumbo-parser
@@ -86,7 +87,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libexif
 
-*Current version: 0.6.26*
+*Current prebuilt version: 0.6.26*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libexif
 2. Merge the latest release into the *cspro* branch: https://github.com/libexif/libexif/releases/latest
@@ -99,7 +100,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libgit2
 
-*Current version: 1.9.7*
+*Current prebuilt version: 1.9.7*
 
 1. Set the Git submodule to the latest release: https://github.com/libgit2/libgit2/releases/latest
 2. Run the build script.
@@ -110,7 +111,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libwebm
 
-*Current version: 1.0.0.32*
+*Current prebuilt version: 1.0.0.32*
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebm/tags
 2. Run the build script.
@@ -121,7 +122,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libwebp
 
-*Current version: 1.6.0*
+*Current prebuilt version: 1.6.0*
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebp/tags
 2. Run the build script.
@@ -132,7 +133,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### libxlsxwriter
 
-*Current version: 1.2.4*
+*Current prebuilt version: 1.2.4*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libxlsxwriter
 2. Merge the latest release into the *cspro* branch: https://github.com/jmcnamara/libxlsxwriter/releases/latest
@@ -144,7 +145,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### md4c
 
-*Current version: 0.5.3*
+*Current prebuilt version: 0.5.3*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-md4c
 2. Merge the latest release into the *cspro* branch: https://github.com/mity/md4c/tags
@@ -155,7 +156,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### miniz
 
-*Current version: 3.1.2*
+*Current prebuilt version: 3.1.2*
 
 1. Set the Git submodule to the latest release: https://github.com/richgel999/miniz/releases/latest
 2. Run the build script.
@@ -166,7 +167,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### pugixml
 
-*Current version: 1.16*
+*Current prebuilt version: 1.16*
 
 1. Set the Git submodule to the latest release: https://github.com/zeux/pugixml/releases/latest
 2. Run the build script.
@@ -177,7 +178,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### yaml-cpp
 
-*Current version: 0.9.0*
+*Current prebuilt version: 0.9.0*
 
 1. Set the Git submodule to the latest release: https://github.com/jbeder/yaml-cpp/releases/latest
 2. Run the build script.
@@ -188,7 +189,7 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 
 ### zlib
 
-*Current version: 1.3.2*
+*Current prebuilt version: 1.3.2*
 
 1. Set the Git submodule to the latest release: https://github.com/madler/zlib/releases/latest
 2. Run the build script.
@@ -196,6 +197,50 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 4. Remove anything that is not already committed.
 5. Different build configurations may result in different versions of *zconf.h*. Commit the Windows version.
 6. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
+
+
+
+## Libraries in the Third-Party Libraries Repository (Built Into CSPro)
+
+
+### Lexilla
+
+*Current version: 5.5.4*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-lexilla
+2. Merge the latest release into the *cspro* branch: https://github.com/ScintillaOrg/lexilla/tags
+3. Run the *editor/copy-to-cspro.bat* batch script.
+4. This only copies files that are currently used by CSPro, so any new files will have to be copied manually.
+5. The library is built as part of the CSPro solution.
+6. This library should be updated at the same time as Scintilla and ScintillaCtrl / ScintillaView.
+
+
+### Scintilla
+
+*Current version: 5.6.7*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-scintilla
+2. Download the latest release: https://www.scintilla.org/ScintillaDownload.html
+3. Replace the contents of the *main* branch with the latest version.
+4. Merge the *main* branch into the *cspro* branch.
+5. Run the *editor/copy-to-cspro.bat* batch script.
+6. This only copies files that are currently used by CSPro, so any new files will have to be copied manually.
+7. The library is built as part of the CSPro solution.
+8. This library should be updated at the same time as Lexilla and ScintillaCtrl / ScintillaView.
+
+
+### ScintillaCtrl / ScintillaView
+
+*Current version: 1.97*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-scintilla-wrappers
+2. Download the latest release: http://www.naughter.com/scintilla.html
+3. Replace the four files in the *main* branch with the latest version.
+4. The license is at the top of *ScintillaCtrl.h*, so check if the *LICENSE* file should be updated.
+5. Merge the *main* branch into the *cspro* branch.
+6. Run the *editor/copy-to-cspro.bat* batch script.
+7. The library is built as part of the CSPro solution.
+8. This library should be updated at the same time as Lexilla and Scintilla.
 
 
 
@@ -366,18 +411,6 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 5. Run the batch script *Update Android HTML Assets*.
 
 
-### Lexilla
-
-1. Find the latest tag here: https://github.com/ScintillaOrg/lexilla/tags
-2. Edit the batch script, *lexilla.bat*, setting **lexilla_tag**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications made to many files that have to be restored.
-7. The library is built as part of the CSPro solution.
-8. This library should be updated at the same time as Scintilla and ScintillaCtrl / ScintillaView.
-
-
 ### librdata
 
 1. Run the batch script, *librdata.bat*.
@@ -458,29 +491,6 @@ Other libraries, primarily located in *third_party/sources*, are built as part o
 3. Run the batch script.
 4. This copies files into the CSPro solution.
 5. The library is built as part of the CSPro solution.
-
-
-### Scintilla
-
-1. Find the latest version number here: https://www.scintilla.org/ScintillaDownload.html
-2. Edit the batch script, *scintilla.bat*, setting **scintilla_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications that have to be restored in:
-    * win32\ScintillaWin.cxx
-7. The library is built as part of the CSPro solution.
-8. This library should be updated at the same time as Lexilla and ScintillaCtrl / ScintillaView.
-
-
-### ScintillaCtrl / ScintillaView
-
-1. Run the batch script, *scintilla-ctrl-view.bat*.
-2. This copies files into the CSPro solution.
-3. There are CSPro modifications that have to be restored.
-4. The license is at the top of *ScintillaCtrl.h*, so check if it should be updated.
-5. The library is built as part of the CSPro solution.
-6. This library should be updated at the same time as Lexilla and Scintilla.
 
 
 ### scrypt

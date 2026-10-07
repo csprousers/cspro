@@ -382,7 +382,7 @@ void CFormChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDea
                     BOOL bSendMsg = pFormTree->GetSndMsgFlg();
                     if(pID && pID->GetFormDoc() == pDoc && bSendMsg)
                     {
-                        if(GetSourceView()->GetEditCtrl()->IsModified())
+                        if(GetSourceView()->GetLogicCtrl()->IsModified())
                             AfxGetMainWnd()->SendMessage(UWM::Form::PutSourceCode, 0, (LPARAM)pID);
                     }
                 }
@@ -761,7 +761,7 @@ void CFormChildWnd::OnViewLogic()
         m_pSourceEditView->SendMessage(WM_INITIALUPDATE, 0, 0);
 
         //To work with large files
-        //m_pSourceEditView->GetEditCtrl()->LimitText(0xffffff);
+        //m_pSourceEditView->GetLogicCtrl()->LimitText(0xffffff);
     //    m_pSourceEditView->ShowWindow(SW_HIDE);
 
     }
@@ -786,7 +786,7 @@ void CFormChildWnd::OnViewLogic()
         pFScrollView->ShowWindow(SW_HIDE);
     }
     m_pSourceEditView->ShowWindow(SW_SHOW);
-    m_pSourceEditView->GetEditCtrl()->EmptyUndoBuffer();
+    m_pSourceEditView->GetLogicCtrl()->EmptyUndoBuffer();
     SetActiveView(m_pSourceEditView);
 
     this->m_wndFSplitter.SetActivePane(1,0);
@@ -802,7 +802,7 @@ void CFormChildWnd::OnViewLogic()
         return;
 
     AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
-    m_pSourceEditView->GetEditCtrl()->SetFocus();
+    m_pSourceEditView->GetLogicCtrl()->SetFocus();
 }
 
 // *************************************************************************************
@@ -919,7 +919,7 @@ void CFormChildWnd::OnViewForm()
         CFormDoc* pDoc2 = (CFormDoc*)m_pSourceEditView->GetDocument();
         m_pSourceEditView->ShowWindow(SW_HIDE);
         pFScrollView->SetDlgCtrlID(iID);
-        m_pSourceEditView->GetEditCtrl()->ShowWindow(SW_HIDE);
+        m_pSourceEditView->GetLogicCtrl()->ShowWindow(SW_HIDE);
         m_pSourceEditView->DestroyWindow();
         if(pDoc2) {
             SetActiveView(pDoc2->GetView());
@@ -955,13 +955,13 @@ CFSourceEditView* CFormChildWnd::GetSourceView()
 }
 
 
-CLogicView* CFormChildWnd::GetSourceLogicView()
+LogicView* CFormChildWnd::GetSourceLogicView()
 {
     return m_pSourceEditView;
 }
 
 
-CLogicCtrl* CFormChildWnd::GetSourceLogicCtrl()
+LogicCtrl* CFormChildWnd::GetSourceLogicCtrl()
 {
     return ( m_pSourceEditView != nullptr ) ? m_pSourceEditView->GetLogicCtrl() :
                                               nullptr;
@@ -1106,7 +1106,7 @@ void CFormChildWnd::OnCompile()
         {
             //wParam 1 implies force compile
             AfxGetMainWnd()->SendMessage(UWM::Form::PutSourceCode, (WPARAM)1, (LPARAM)pID);
-            ((CFSourceEditView*)pView)->GetEditCtrl()->SetFocus();
+            ((CFSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
         }
     }
 }

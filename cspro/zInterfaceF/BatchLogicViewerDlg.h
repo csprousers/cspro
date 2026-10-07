@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zInterfaceF/zInterfaceF.h>
 
-class CLogicCtrl;
+class LogicCtrl;
 class LogicSettings;
 
 
@@ -28,5 +28,5 @@ private:
     const LogicSettings& m_logicSettings;
     std::string m_logicText;
 
-    std::unique_ptr<CLogicCtrl> m_logicCtrl;
+    std::unique_ptr<LogicCtrl> m_logicCtrl;
 };

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //
@@ -14,7 +14,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // COSourceEditView view
 
-class CLASS_DECL_ZORDERF COSourceEditView : public CLogicView {
+class CLASS_DECL_ZORDERF COSourceEditView : public LogicView {
 
     DECLARE_DYNCREATE(COSourceEditView)
 
@@ -25,20 +25,10 @@ public:
     COSourceEditView();
     ~COSourceEditView();
 
-// Attributes
-public:
-
-// Operations
-public:
-    CLogicCtrl* GetEditCtrl(void) { return CLogicView::GetLogicCtrl(); }
-private:
-
 // Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(COSourceEditView)
-    public:
+public:
     virtual void OnFinalRelease();
-    protected:
+protected:
     virtual void OnDraw(CDC* pDC);      // overridden to draw this view
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
     //}}AFX_VIRTUAL

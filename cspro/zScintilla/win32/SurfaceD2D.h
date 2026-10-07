@@ -25,12 +25,12 @@ extern HRESULT CreateD3D(D3D11Device &device) noexcept;
 using WriteRenderingParams = ComPtr<IDWriteRenderingParams1>;
 
 struct RenderingParams {
-    WriteRenderingParams defaultRenderingParams;
-    WriteRenderingParams customRenderingParams;
+	WriteRenderingParams defaultRenderingParams;
+	WriteRenderingParams customRenderingParams;
 };
 
 struct ISetRenderingParams {
-    virtual void SetRenderingParams(std::shared_ptr<RenderingParams> renderingParams_) = 0;
+	virtual void SetRenderingParams(std::shared_ptr<RenderingParams> renderingParams_) = 0;
 };
 
 using BrushSolid = ComPtr<ID2D1SolidColorBrush>;

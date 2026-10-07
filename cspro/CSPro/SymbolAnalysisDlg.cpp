@@ -1,10 +1,10 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SymbolAnalysisDlg.h"
 #include <zUtilO/TextSource.h>
 
 
 // this class will send messages to the dialog when the caret changes
-class SymbolAnalysisLogicCtrl : public CLogicCtrl
+class SymbolAnalysisLogicCtrl : public LogicCtrl
 {
 public:
     SymbolAnalysisLogicCtrl(SymbolAnalysisDlg& symbol_Analysis_dlg)

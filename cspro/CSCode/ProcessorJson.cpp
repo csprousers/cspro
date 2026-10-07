@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ProcessorJson.h"
 #include <zJavaScript/Executor.h>
 #include <zJson/JsonSpecFile.h>
@@ -12,7 +12,7 @@
 
 void ProcessorJson::FormatJson(CodeView& code_view, const bool compress_mode)
 {
-    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     logic_ctrl->ClearErrorAndWarningMarkers();
 
     try
@@ -35,7 +35,7 @@ void ProcessorJson::FormatJson(CodeView& code_view, const bool compress_mode)
 
 void ProcessorJson::ValidateJson(CodeView& code_view)
 {
-    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_JSON);
 
     CSCodeBuildWnd* const build_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetBuildWnd();
@@ -61,7 +61,7 @@ void ProcessorJson::ValidateJson(CodeView& code_view)
 
 void ProcessorJson::ValidateSpecFile(CodeView& code_view) // JSON_TODO make sure that all spec files all handled here
 {
-    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_JSON &&
            code_view.GetLanguageSettings().GetLanguageType() == LanguageType::CSProSpecFileJson &&
            code_view.GetLanguageSettings().GetJsonSpecFileIndex().has_value());

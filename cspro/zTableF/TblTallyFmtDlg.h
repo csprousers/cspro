@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/LogicCtrl.h>
 
@@ -35,9 +35,9 @@ public:
     CIMSAString m_sTabLogic;
     CIMSAString m_sPostCalc;
     CStringArray m_arrPostCalc;//For saving
-    CLogicCtrl m_editUniv;
-    CLogicCtrl m_editTabLogic;
-    CLogicCtrl m_editPostCalc;
+    LogicCtrl m_editUniv;
+    LogicCtrl m_editTabLogic;
+    LogicCtrl m_editPostCalc;
     CIMSAString m_sCommonUnitName; //used for "Entire table" when subtables  > 1
 
     int  m_iCurSubTable;

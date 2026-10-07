@@ -8,6 +8,7 @@
 #include <cstdint>
 
 #include <stdexcept>
+#include <utility>
 #include <string_view>
 #include <vector>
 #include <optional>
@@ -25,63 +26,65 @@ using namespace Scintilla;
 using namespace Scintilla::Internal;
 
 bool FontSpecification::operator==(const FontSpecification &other) const noexcept {
-    return fontName == other.fontName &&
-           weight == other.weight &&
-           italic == other.italic &&
-           size == other.size &&
-           stretch == other.stretch &&
-           characterSet == other.characterSet &&
-           extraFontFlag == other.extraFontFlag &&
-           checkMonospaced == other.checkMonospaced;
+	return fontName == other.fontName &&
+	       weight == other.weight &&
+	       italic == other.italic &&
+	       size == other.size &&
+	       stretch == other.stretch &&
+	       characterSet == other.characterSet &&
+	       extraFontFlag == other.extraFontFlag &&
+	       checkMonospaced == other.checkMonospaced;
 }
 
 bool FontSpecification::operator<(const FontSpecification &other) const noexcept {
-    if (fontName != other.fontName)
-        return fontName < other.fontName;
-    if (weight != other.weight)
-        return weight < other.weight;
-    if (italic != other.italic)
-        return !italic;
-    if (size != other.size)
-        return size < other.size;
-    if (stretch != other.stretch)
-        return stretch < other.stretch;
-    if (characterSet != other.characterSet)
-        return characterSet < other.characterSet;
-    if (extraFontFlag != other.extraFontFlag)
-        return extraFontFlag < other.extraFontFlag;
-    if (checkMonospaced != other.checkMonospaced)
-        return checkMonospaced < other.checkMonospaced;
-    return false;
+	if (fontName != other.fontName)
+		return fontName < other.fontName;
+	if (weight != other.weight)
+		return weight < other.weight;
+	if (italic != other.italic)
+		return !italic;
+	if (size != other.size)
+		return size < other.size;
+	if (stretch != other.stretch)
+		return stretch < other.stretch;
+	if (characterSet != other.characterSet)
+		return characterSet < other.characterSet;
+	if (extraFontFlag != other.extraFontFlag)
+		return extraFontFlag < other.extraFontFlag;
+	if (checkMonospaced != other.checkMonospaced)
+		return checkMonospaced < other.checkMonospaced;
+	return false;
 }
 
 namespace {
 
 // noexcept Platform::DefaultFontSize
 int DefaultFontSize() noexcept {
-    try {
-        return Platform::DefaultFontSize();
-    } catch (...) {
-        return 10;
-    }
+	try {
+		return Platform::DefaultFontSize();
+	} catch (...) {
+		// Should never happen
+		constexpr int sensibleFontSize = 10;
+		return sensibleFontSize;
+	}
 }
 
 }
 
 Style::Style(const char *fontName_) noexcept :
-    FontSpecification(fontName_, DefaultFontSize() * FontSizeMultiplier),
-    fore(black),
-    back(white),
-    eolFilled(false),
-    underline(false),
-    caseForce(CaseForce::mixed),
-    visible(true),
-    changeable(true),
-    hotspot(false),
-    invisibleRepresentation{} {
+	FontSpecification(fontName_, DefaultFontSize() * FontSizeMultiplier),
+	fore(black),
+	back(white),
+	eolFilled(false),
+	underline(false),
+	caseForce(CaseForce::mixed),
+	visible(true),
+	changeable(true),
+	hotspot(false),
+	invisibleRepresentation{} {
 }
 
 void Style::Copy(std::shared_ptr<Font> font_, const FontMeasurements &fm_) noexcept {
-    font = std::move(font_);
-    (FontMeasurements &)(*this) = fm_;
+	font = std::move(font_);
+	static_cast<FontMeasurements &>(*this) = fm_;
 }

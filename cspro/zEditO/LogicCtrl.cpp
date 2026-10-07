@@ -13,9 +13,9 @@
 extern Scintilla::CScintillaEditState g_scintillaEditState;
 extern const UINT _ScintillaMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRING);
 
-IMPLEMENT_DYNCREATE(CLogicCtrl, CSProScintillaCtrl)
+IMPLEMENT_DYNCREATE(LogicCtrl, CSProScintillaCtrl)
 
-BEGIN_MESSAGE_MAP(CLogicCtrl, CSProScintillaCtrl)
+BEGIN_MESSAGE_MAP(LogicCtrl, CSProScintillaCtrl)
     ON_WM_KILLFOCUS()
     ON_WM_SETFOCUS()
     ON_WM_LBUTTONDOWN()
@@ -33,7 +33,7 @@ BEGIN_MESSAGE_MAP(CLogicCtrl, CSProScintillaCtrl)
 END_MESSAGE_MAP()
 
 
-CLogicCtrl::CLogicCtrl()
+LogicCtrl::LogicCtrl()
     :   m_bFirstSearch(TRUE),
         m_bChangeFindRange(FALSE),
         m_lInitialSearchPos(0),
@@ -46,12 +46,12 @@ CLogicCtrl::CLogicCtrl()
 }
 
 
-CLogicCtrl::~CLogicCtrl()
+LogicCtrl::~LogicCtrl()
 {
 }
 
 
-void CLogicCtrl::BaseInitControl(int lexer_language)
+void LogicCtrl::BaseInitControl(int lexer_language)
 {
     //SetStyles -For now styles are hard codes - TODO externalise?
     SetTabWidth(CSPRO_LOGIC_TAB_WIDTH);
@@ -72,7 +72,7 @@ void CLogicCtrl::BaseInitControl(int lexer_language)
 }
 
 
-bool CLogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_even_if_lexer_is_same)
+bool LogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_even_if_lexer_is_same)
 {
     if( !force_toggle_even_if_lexer_is_same && lexer_language == GetLexer() )
         return false;
@@ -109,7 +109,7 @@ bool CLogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_e
 }
 
 
-void CLogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers, std::optional<int> lexer_language/* = std::nullopt*/)
+void LogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers, std::optional<int> lexer_language/* = std::nullopt*/)
 {
     // if not specified, send a message to get the lexer language, using the default for logic if the message is not handled
     if( !lexer_language.has_value() )
@@ -152,14 +152,14 @@ void CLogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_marker
 }
 
 
-void CLogicCtrl::ColorizeEntireDocument()
+void LogicCtrl::ColorizeEntireDocument()
 {
     ClearDocumentStyle();
     Colourise(0, -1);
 }
 
 
-void CLogicCtrl::SetModified(bool modified/* = true*/)
+void LogicCtrl::SetModified(bool modified/* = true*/)
 {
     if( m_modified != modified )
     {
@@ -170,20 +170,20 @@ void CLogicCtrl::SetModified(bool modified/* = true*/)
     }
 
     // the entry/batch logic window's modified flag is set by this message;
-    // TODO: have that code use CLogicCtrl::IsModified
+    // TODO: have that code use LogicCtrl::IsModified
     if( modified )
         AfxGetMainWnd()->SendMessage(ZEDITO_SEL_CHANGE, reinterpret_cast<WPARAM>(this->GetParent()));
 }
 
 
-void CLogicCtrl::SetTextAndSetSavePoint(const cs::string_sz text)
+void LogicCtrl::SetTextAndSetSavePoint(const cs::string_sz text)
 {
     SetText(text);
     SetSavePoint();
 }
 
 
-std::string CLogicCtrl::ReturnWordAtCursorPos(const Sci_Position pos)
+std::string LogicCtrl::ReturnWordAtCursorPos(const Sci_Position pos)
 {
     Sci_Position sciCurrentPos = pos;
     const int wordStartPos = WordStartPosition(sciCurrentPos, true);
@@ -200,7 +200,7 @@ namespace
     class ReturnWordsAtCursorWithDotNotationWorker
     {
     public:
-        ReturnWordsAtCursorWithDotNotationWorker(CLogicCtrl& logic_ctrl, std::vector<std::string>& words);
+        ReturnWordsAtCursorWithDotNotationWorker(LogicCtrl& logic_ctrl, std::vector<std::string>& words);
 
         void GetNextWord(Sci_Position current_pos);
 
@@ -211,7 +211,7 @@ namespace
         bool SkipOverStringLiteral(Sci_Position& current_pos, int quotemark_ch);
 
     private:
-        CLogicCtrl& m_logicCtrl;
+        LogicCtrl& m_logicCtrl;
         std::vector<std::string>& m_words;
 
         enum class ExpectedType { Word, Dot, WordOrRightParenthesis };
@@ -219,7 +219,7 @@ namespace
     };
 
 
-    ReturnWordsAtCursorWithDotNotationWorker::ReturnWordsAtCursorWithDotNotationWorker(CLogicCtrl& logic_ctrl, std::vector<std::string>& words)
+    ReturnWordsAtCursorWithDotNotationWorker::ReturnWordsAtCursorWithDotNotationWorker(LogicCtrl& logic_ctrl, std::vector<std::string>& words)
         :   m_logicCtrl(logic_ctrl),
             m_words(words),
             m_nextExpectedType(ExpectedType::Word)
@@ -375,7 +375,7 @@ namespace
 }
 
 
-std::vector<std::string> CLogicCtrl::ReturnWordsAtCursorWithDotNotation(const std::optional<Sci_Position> pos/* = std::nullopt*/)
+std::vector<std::string> LogicCtrl::ReturnWordsAtCursorWithDotNotation(const std::optional<Sci_Position> pos/* = std::nullopt*/)
 {
     std::vector<std::string> words;
     ReturnWordsAtCursorWithDotNotationWorker worker(*this, words);
@@ -386,7 +386,7 @@ std::vector<std::string> CLogicCtrl::ReturnWordsAtCursorWithDotNotation(const st
 }
 
 
-void CLogicCtrl::DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_symbol, COLORREF fore, COLORREF back)
+void LogicCtrl::DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_symbol, COLORREF fore, COLORREF back)
 {
     MarkerDefine(marker_number, marker_symbol);
     MarkerSetFore(marker_number, fore);
@@ -394,7 +394,7 @@ void CLogicCtrl::DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_
 }
 
 
-void CLogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
+void LogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
     // for invoking the reference window with Ctrl+Alt+Click or Ctrl+Click
 
@@ -419,14 +419,14 @@ void CLogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 }
 
 
-void CLogicCtrl::OnRButtonDown(UINT nFlags, CPoint point)
+void LogicCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 {
     __super::OnRButtonDown(nFlags, point);
     OnUpdateStatusPaneCaretPos();
 }
 
 
-void CLogicCtrl::SetLineIndentation(_In_ int line, _In_ int indentation)
+void LogicCtrl::SetLineIndentation(_In_ int line, _In_ int indentation)
 {
     if (indentation < 0)
         return;
@@ -468,7 +468,7 @@ void CLogicCtrl::SetLineIndentation(_In_ int line, _In_ int indentation)
 }
 
 
-void CLogicCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+void LogicCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     __super::OnChar(nChar, nRepCnt, nFlags);
 
@@ -492,17 +492,17 @@ void CLogicCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         }
     }
 
-    else if ((char)nChar == CLogicCtrl::CSPRO_LOGIC_CALLTIP_START) {
+    else if ((char)nChar == LogicCtrl::CSPRO_LOGIC_CALLTIP_START) {
         ShowTooltip(GetCurrentPos() - 1, true);
     }
 
-    else if ((char)nChar == CLogicCtrl::CSPRO_LOGIC_CALLTIP_END) {
+    else if ((char)nChar == LogicCtrl::CSPRO_LOGIC_CALLTIP_END) {
         CallTipCancel();
     }
 }
 
 
-void CLogicCtrl::ShowTooltip(Sci_Position word_pos, const bool show_offset_by_function_name)
+void LogicCtrl::ShowTooltip(Sci_Position word_pos, const bool show_offset_by_function_name)
 {
     if( m_logicTooltips == nullptr )
         return;
@@ -535,13 +535,13 @@ void CLogicCtrl::ShowTooltip(Sci_Position word_pos, const bool show_offset_by_fu
 }
 
 
-void CLogicCtrl::OnUpdateNeedSel(CCmdUI* const pCmdUI)
+void LogicCtrl::OnUpdateNeedSel(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!GetSelectionEmpty());
 }
 
 
-void CLogicCtrl::CopySelection()
+void LogicCtrl::CopySelection()
 {
     Sci_Position start_pos = GetSelectionStart();
     Sci_Position end_pos = GetSelectionEnd();
@@ -551,7 +551,7 @@ void CLogicCtrl::CopySelection()
 }
 
 
-void CLogicCtrl::CopyAllText()
+void LogicCtrl::CopyAllText()
 {
     const int length = GetLength();
 
@@ -560,7 +560,7 @@ void CLogicCtrl::CopyAllText()
 }
 
 
-void CLogicCtrl::Copy(const Sci_Position start_pos, const Sci_Position end_pos, const std::string_view text_sv)
+void LogicCtrl::Copy(const Sci_Position start_pos, const Sci_Position end_pos, const std::string_view text_sv)
 {
     // put the text
     WinClipboard::PutText(this, text_sv, true);
@@ -571,7 +571,7 @@ void CLogicCtrl::Copy(const Sci_Position start_pos, const Sci_Position end_pos, 
 }
 
 
-void CLogicCtrl::CopyForCSProUsers(const bool for_forum)
+void LogicCtrl::CopyForCSProUsers(const bool for_forum)
 {
     const Sci_Position start_pos = GetSelectionStart();
     const Sci_Position end_pos = GetSelectionEnd();
@@ -589,7 +589,7 @@ void CLogicCtrl::CopyForCSProUsers(const bool for_forum)
 }
 
 
-void CLogicCtrl::Cut()
+void LogicCtrl::Cut()
 {
     CopySelection();
 
@@ -601,19 +601,19 @@ void CLogicCtrl::Cut()
 }
 
 
-void CLogicCtrl::OnEditFind()
+void LogicCtrl::OnEditFind()
 {
     OnEditFindReplace(TRUE);
 }
 
 
-void CLogicCtrl::OnEditReplace()
+void LogicCtrl::OnEditReplace()
 {
     OnEditFindReplace(FALSE);
 }
 
 
-void CLogicCtrl::OnEditFindReplace(_In_ BOOL bFindOnly)
+void LogicCtrl::OnEditFindReplace(_In_ BOOL bFindOnly)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -673,14 +673,14 @@ void CLogicCtrl::OnEditFindReplace(_In_ BOOL bFindOnly)
 }
 
 
-CSProScintillaFindReplaceDlg* CLogicCtrl::CreateFindReplaceDialog()
+CSProScintillaFindReplaceDlg* LogicCtrl::CreateFindReplaceDialog()
 {
 #pragma warning(suppress: 26409)
     return new CSProScintillaFindReplaceDlg;
 }
 
 
-void CLogicCtrl::OnReplaceSel(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_z_ LPCTSTR lpszReplace)
+void LogicCtrl::OnReplaceSel(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_z_ LPCTSTR lpszReplace)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -729,7 +729,7 @@ void CLogicCtrl::OnReplaceSel(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOO
 }
 
 
-void CLogicCtrl::OnReplaceAll(_In_z_ LPCTSTR lpszFind, _In_z_ LPCTSTR lpszReplace, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaceInSelection)
+void LogicCtrl::OnReplaceAll(_In_z_ LPCTSTR lpszFind, _In_z_ LPCTSTR lpszReplace, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaceInSelection)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -816,7 +816,7 @@ void CLogicCtrl::OnReplaceAll(_In_z_ LPCTSTR lpszFind, _In_z_ LPCTSTR lpszReplac
 }
 
 
-LRESULT CLogicCtrl::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT LogicCtrl::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -857,7 +857,7 @@ LRESULT CLogicCtrl::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
 }
 
 
-void CLogicCtrl::OnFindNext(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression)
+void LogicCtrl::OnFindNext(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -880,7 +880,7 @@ void CLogicCtrl::OnFindNext(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL 
 }
 
 
-void CLogicCtrl::TextNotFound(_In_z_ LPCTSTR /*lpszFind*/, _In_ BOOL /*bNext*/, _In_ BOOL /*bCase*/, _In_ BOOL /*bWord*/, _In_ BOOL /*bRegularExpression*/, _In_ BOOL /*bReplaced*/)
+void LogicCtrl::TextNotFound(_In_z_ LPCTSTR /*lpszFind*/, _In_ BOOL /*bNext*/, _In_ BOOL /*bCase*/, _In_ BOOL /*bWord*/, _In_ BOOL /*bRegularExpression*/, _In_ BOOL /*bReplaced*/)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -890,7 +890,7 @@ void CLogicCtrl::TextNotFound(_In_z_ LPCTSTR /*lpszFind*/, _In_ BOOL /*bNext*/, 
 }
 
 
-BOOL CLogicCtrl::SameAsSelected(_In_z_ LPCTSTR lpszCompare, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression)
+BOOL LogicCtrl::SameAsSelected(_In_z_ LPCTSTR lpszCompare, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression)
 {
     CScintillaCtrl& rCtrl = *this;
 
@@ -925,7 +925,7 @@ BOOL CLogicCtrl::SameAsSelected(_In_z_ LPCTSTR lpszCompare, _In_ BOOL bCase, _In
 }
 
 
-BOOL CLogicCtrl::FindText(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaceInSelection)
+BOOL LogicCtrl::FindText(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaceInSelection)
 {
     //Validate our parameters
     ASSERT_VALID(this);
@@ -935,7 +935,7 @@ BOOL CLogicCtrl::FindText(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bC
 }
 
 
-BOOL CLogicCtrl::FindTextSimple(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaceInSelection)
+BOOL LogicCtrl::FindTextSimple(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaceInSelection)
 {
     //Validate our parameters
     ASSERT(lpszFind != nullptr);
@@ -1059,7 +1059,7 @@ BOOL CLogicCtrl::FindTextSimple(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ B
 }
 
 
-Sci_Position CLogicCtrl::FindAndSelect(_In_ Scintilla::FindOption flags, _Inout_ Scintilla::TextToFindFull& ft)
+Sci_Position LogicCtrl::FindAndSelect(_In_ Scintilla::FindOption flags, _Inout_ Scintilla::TextToFindFull& ft)
 {
     CScintillaCtrl& rCtrl = *this;
     const Scintilla::Position index = rCtrl.FindTextFull(flags, &ft);
@@ -1069,14 +1069,14 @@ Sci_Position CLogicCtrl::FindAndSelect(_In_ Scintilla::FindOption flags, _Inout_
 }
 
 
-void CLogicCtrl::OnGoToLine()
+void LogicCtrl::OnGoToLine()
 {
     GoToDlg dlg(*this);
     dlg.DoModal();
 }
 
 
-void CLogicCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
+void LogicCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 {
     if (m_nCtxMenuId > 0) {
         if (point.x < 0 || point.y < 0) {
@@ -1099,7 +1099,7 @@ void CLogicCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
 }
 
 
-void CLogicCtrl::UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu)
+void LogicCtrl::UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu)
 {
     CCmdUI state;
     state.m_pMenu = pMenu;
@@ -1144,7 +1144,7 @@ void CLogicCtrl::UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu)
 }
 
 
-LRESULT CLogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT LogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
 {
     bool force_update = ( wParam != 0 );
 
@@ -1164,28 +1164,28 @@ LRESULT CLogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
 }
 
 
-void CLogicCtrl::OnKillFocus(CWnd* pNewWnd)
+void LogicCtrl::OnKillFocus(CWnd* pNewWnd)
 {
     __super::OnKillFocus(pNewWnd);
     OnUpdateStatusPaneCaretPos();
 }
 
 
-void CLogicCtrl::OnSetFocus(CWnd* pOldWnd)
+void LogicCtrl::OnSetFocus(CWnd* pOldWnd)
 {
     __super::OnSetFocus(pOldWnd);
     OnUpdateStatusPaneCaretPos();
 }
 
 
-void CLogicCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+void LogicCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     __super::OnKeyDown(nChar, nRepCnt, nFlags);
     OnUpdateStatusPaneCaretPos();
 }
 
 
-void CLogicCtrl::OnEditRepeat()
+void LogicCtrl::OnEditRepeat()
 {
     if (!FindText(g_scintillaEditState.strFind, g_scintillaEditState.bNext, g_scintillaEditState.bCase, g_scintillaEditState.bWord, g_scintillaEditState.bRegularExpression, FALSE))
         TextNotFound(g_scintillaEditState.strFind, g_scintillaEditState.bNext, g_scintillaEditState.bCase, g_scintillaEditState.bWord, g_scintillaEditState.bRegularExpression, FALSE);
@@ -1198,7 +1198,7 @@ void CLogicCtrl::OnEditRepeat()
 }
 
 
-void CLogicCtrl::DuplicateLineOrSelection()
+void LogicCtrl::DuplicateLineOrSelection()
 {
     GetSelectionEmpty() ? LineDuplicate() :
                           SelectionDuplicate();
@@ -1208,7 +1208,7 @@ void CLogicCtrl::DuplicateLineOrSelection()
 }
 
 
-void CLogicCtrl::DeleteLine()
+void LogicCtrl::DeleteLine()
 {
     LineDelete();
 
@@ -1217,7 +1217,7 @@ void CLogicCtrl::DeleteLine()
 }
 
 
-void CLogicCtrl::CommentCode() // 20101215
+void LogicCtrl::CommentCode() // 20101215
 {
     int selectionBufferLength = Scintilla::CScintillaCtrl::GetSelText(NULL);
     bool bResetSelection = true;
@@ -1354,7 +1354,7 @@ void CLogicCtrl::CommentCode() // 20101215
 }
 
 
-void CLogicCtrl::FormatLogic() // 20101208
+void LogicCtrl::FormatLogic() // 20101208
 {
     const std::wstring logic = UTF8_TODO::GetWide(GetText());
     CString formattedLogic;
@@ -1759,7 +1759,7 @@ void CLogicCtrl::FormatLogic() // 20101208
 }
 
 
-BOOL CLogicCtrl::PreTranslateMessage(MSG* pMsg)
+BOOL LogicCtrl::PreTranslateMessage(MSG* pMsg)
 {
     if (pMsg->message == WM_KEYDOWN) {
        bool bCtrl = ( ::GetKeyState(VK_CONTROL) < 0 );
@@ -1836,7 +1836,7 @@ BOOL CLogicCtrl::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void CLogicCtrl::SetFolding(std::optional<bool> fold_procs/* = std::nullopt*/)
+void LogicCtrl::SetFolding(std::optional<bool> fold_procs/* = std::nullopt*/)
 {
     const int FoldingMargin = 2;
     ASSERT(GetMargins() >= FoldingMargin);
@@ -1880,20 +1880,20 @@ void CLogicCtrl::SetFolding(std::optional<bool> fold_procs/* = std::nullopt*/)
 }
 
 
-void CLogicCtrl::ClearErrorAndWarningMarkers()
+void LogicCtrl::ClearErrorAndWarningMarkers()
 {
     MarkerDeleteAll(CSPRO_LOGIC_MARKER_ERROR);
     MarkerDeleteAll(CSPRO_LOGIC_MARKER_WARNING);
 }
 
 
-void CLogicCtrl::AddErrorOrWarningMarker(bool error, int line_number)
+void LogicCtrl::AddErrorOrWarningMarker(bool error, int line_number)
 {
     MarkerAdd(line_number, error ? CSPRO_LOGIC_MARKER_ERROR : CSPRO_LOGIC_MARKER_WARNING);
 }
 
 
-void CLogicCtrl::ReplaceCEdit(CWnd* pWnd, bool show_line_numbers, bool show_error_markers, std::optional<int> lexer_language/* = std::nullopt*/)
+void LogicCtrl::ReplaceCEdit(CWnd* pWnd, bool show_line_numbers, bool show_error_markers, std::optional<int> lexer_language/* = std::nullopt*/)
 {
     if( m_replacedCEdit )
     {
@@ -1924,7 +1924,7 @@ void CLogicCtrl::ReplaceCEdit(CWnd* pWnd, bool show_line_numbers, bool show_erro
 }
 
 
-LRESULT CLogicCtrl::OnRefreshLexer(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT LogicCtrl::OnRefreshLexer(WPARAM wParam, LPARAM /*lParam*/)
 {
     int lexer_language = static_cast<int>(wParam);
 

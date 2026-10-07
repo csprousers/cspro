@@ -3,54 +3,54 @@
 
 /*
 Module : ScintillaDocView.cpp
-Purpose: Defines the implementation for MFC CView and CDocument derived wrapper classes for the Scintilla
+Purpose: Defines the implementation for MFC CView and CDocument derived wrapper classes for the Scintilla 
          edit control (www.scintilla.org).
 Created: PJN / 19-03-2004
 History: PJN / 12-08-2004 1. Made all the remaining non virtual functions related to Find and Replace virtual.
-                          2. TextNotFound function is now passed the parameters used for the search. Thanks
+                          2. TextNotFound function is now passed the parameters used for the search. Thanks 
                           to Dmitry Naumov for this update.
                           3. Removed the OnTextNotFound function as all the work for it is achieved using the
                           TextNotFound function.
                           4. Creation of the find / replace dialog now takes place in a new virtual function
-                          "CreateFindReplaceDialog". Again thanks to Dmitry Naumov for this update.
+                          "CreateFindReplaceDialog". Again thanks to Dmitry Naumov for this update. 
          PJN / 04-03-2005 1. Fix in CScintillaView::PrintPage which now sorts out the issue of print preview
                           not working in the MFC doc / view wrappers for scintilla. Thanks to Frank Kiesel
                           for reporting this fix.
          PJN / 10-07-2005 1. Addition of a virtual function namely OnAutoCSelection which handles the
                           SCN_AUTOCSELECTION notification message which was introduced in Scintilla v1.63.
                           Thanks to Dan Petitt for suggesting this update.
-                          2. A new boolean variable called "m_bUseROFileAttributeDuringLoading" has been added
+                          2. A new boolean variable called "m_bUseROFileAttributeDuringLoading" has been added 
                           to CScintillaView. If this value is set then the code will check the read only file
-                          attribute of the file being loaded and if it is set, then the document is marked as
-                          read only by Scintilla. By doing this any attempts to modify the document will cause
-                          the OnModifyAttemptRO virtual function to be called. This allows you to prompt to
-                          make the file read write or to check out the file from a version control system.
+                          attribute of the file being loaded and if it is set, then the document is marked as 
+                          read only by Scintilla. By doing this any attempts to modify the document will cause 
+                          the OnModifyAttemptRO virtual function to be called. This allows you to prompt to 
+                          make the file read write or to check out the file from a version control system. 
                           Thanks to Dan Petitt for suggesting this update.
                           3. Demo app now demonstrates how to use the SCN_MODIFYATTEMPTRO notification.
                           4. Fixed a number of warnings when the code is compiled using Visual Studio .NET 2003.
                           5. SetSavePoint and SetReadOnly calls are now made in CScintillaDoc::OnSaveDocument
                           instead of CScintillaView::Serialize. This ensures that the control is only reset
                           upon a successful save.
-         PJN / 03-01-2006 1. Fixed a bug where the separator line in the header was not being drawn due to
-                          issues in the code which calculates the coordinates.
+         PJN / 03-01-2006 1. Fixed a bug where the separator line in the header was not being drawn due to 
+                          issues in the code which calculates the coordinates. 
                           2. Added two member variables which decide whether printer headers and footers should
                           be printed (CScintillaView::m_bPrintHeader and CScintillaView::m_bPrintFooter). You
-                          could of course achieve the same result by deriving a class from CScintillaView and
+                          could of course achieve the same result by deriving a class from CScintillaView and 
                           implementing empty PrintHeader and PrinterFooter methods!!!. Thanks to Jason Elliott
                           for suggesting this update.
                           3. Optimized the construction of member variables in CScintillaView::CScintillaView
                           and in CScintillaFindReplaceDlg::CScintillaFindReplaceDlg
-                          4. CScintillaView::OnReplaceAll sets the selection to 0,0 before doing text replacement.
-                          This ensures that all text in a document is replaced. Also this function now does not
-                          bother calling TextNotFound at the end of the function if replacements took place.
-                          Thanks to Jason Elliott for this nice update.
+                          4. CScintillaView::OnReplaceAll sets the selection to 0,0 before doing text replacement. 
+                          This ensures that all text in a document is replaced. Also this function now does not 
+                          bother calling TextNotFound at the end of the function if replacements took place. 
+                          Thanks to Jason Elliott for this nice update. 
                           5. A parameter which indicates whether text is being replaced or found is now sent to
                           CScintillaView::TextNotFound.
-         PJN / 06-01-2006 1. Removed some unnecessary code from CScintillaView::OnEndPrinting. Thanks to
+         PJN / 06-01-2006 1. Removed some unnecessary code from CScintillaView::OnEndPrinting. Thanks to 
                           Greg Smith for spotting this issue.
          PJN / 08-01-2006 1. Find / Replace dialog and associated state is now maintained outside of CScintillaView.
                           This means that if you have multiple CScintillaView's in your app, that they share the
-                          one find / replace dialog which is the standard type of UI you would normally expect for
+                          one find / replace dialog which is the standard type of UI you would normally expect for 
                           this. Thanks to Greg Smith for reporting this issue.
                           2. Find / replace dialog is now closed when the last CScintillaView is destroyed. Thanks
                           to Greg Smith for reporting this issue.
@@ -67,18 +67,18 @@ History: PJN / 12-08-2004 1. Made all the remaining non virtual functions relate
                           using the CProcessLocal template which it was using previously. This is no longer required
                           since it was used to provide Win32s support for MFC on older versions of MFC. Since Win32s
                           is no longer supported by MFC, there is no need to use this mechanism any more.
-         PJN / 02-02-2006 1. Minor update to CScintillaView to allow deletion of text when there is nothing selected.
-                          Thanks to Alexander Kirillov for reporting this bug.
-         PJN / 14-03-2006 1. Updated the internal function CScintillaView::SameAsSelected to support regular
+         PJN / 02-02-2006 1. Minor update to CScintillaView to allow deletion of text when there is nothing selected. 
+                          Thanks to Alexander Kirillov for reporting this bug. 
+         PJN / 14-03-2006 1. Updated the internal function CScintillaView::SameAsSelected to support regular 
                           expressions. Thanks to Greg Smith for this update.
-         PJN / 22-05-2006 1. Fixed a flicker issue when the view is resized. Thanks to Michael Gunlock for reporting
+         PJN / 22-05-2006 1. Fixed a flicker issue when the view is resized. Thanks to Michael Gunlock for reporting 
                           this issue.
-         PJN / 29-06-2005 1. Code now uses new C++ style casts rather than old style C casts where necessary.
+         PJN / 29-06-2005 1. Code now uses new C++ style casts rather than old style C casts where necessary. 
                           2. Code now supports persisting margin settings. Thanks to Krasimir Stoychev for this update
                           3. Updated the code to clean compile in VC 2005
-         PJN / 17-09-2006 1. Updated OnReplaceSel and OnReplaceAll implementations to use TargetFromSelection and
+         PJN / 17-09-2006 1. Updated OnReplaceSel and OnReplaceAll implementations to use TargetFromSelection and 
                           ReplaceTargetRE/ReplaceTarget. Thanks to Matt Spear for reporting this issue.
-         PJN / 11-06-2007 1. Addition of a SCINTILLADOCVIEW_EXT_CLASS preprocessor macro to allow the classes to be
+         PJN / 11-06-2007 1. Addition of a SCINTILLADOCVIEW_EXT_CLASS preprocessor macro to allow the classes to be 
                           more easily used in an extension DLL.
          PJN / 19-03-2008 1. Fixed a copy and paste bug in CScintillaView::PrintPage where the incorrect margin value
                           was being used in the calculation of "rfPrint.rc.left". Thanks to Steve Arnold for reporting
@@ -89,52 +89,52 @@ History: PJN / 12-08-2004 1. Made all the remaining non virtual functions relate
                           which would result in failures in the logic for multibyte encoded characters. This made it
                           impossible to replace multibyte character sequences in find / replace operations. Thanks to
                           Alexei Letov for reporting this bug.
-         PJN / 01-04-2011 1. Updated CScintillaFindReplaceDlg::Create to use AfxFindResourceHandle instead of
+         PJN / 01-04-2011 1. Updated CScintillaFindReplaceDlg::Create to use AfxFindResourceHandle instead of 
                           AfxGetResourceHandle. Thanks to Nißl Markus for reporting this nice addition.
          PJN / 18-01-2013 1. Updated copyright details.
-                          2. Added virtual methods for SCN_INDICATORCLICK, SCN_INDICATORRELEASE, SCN_AUTOCCHARDELETED,
-                          SCN_AUTOCCANCELLED & SCN_HOTSPOTRELEASECLICK notifications. Thanks to Markus Nißl for
+                          2. Added virtual methods for SCN_INDICATORCLICK, SCN_INDICATORRELEASE, SCN_AUTOCCHARDELETED, 
+                          SCN_AUTOCCANCELLED & SCN_HOTSPOTRELEASECLICK notifications. Thanks to Markus Nißl for 
                           prompting this update.
                           3. The classes are now encapsulated in a Scintilla namespace if the SCI_NAMESPACE define
-                          is defined. This is consistent with how the scintilla.h header file operates in the
+                          is defined. This is consistent with how the scintilla.h header file operates in the 
                           presence of this define. Thanks to Markus Nißl for prompting this update.
          PJN / 26-01-2015 1. Updated copyright details.
                           2. Added virtual methods for SCN_FOCUSIN & SCN_FOCUSOUT notifications.
          PJN / 19-09-2015 1. Added virtual methods for SCN_AUTOCCOMPLETED notification.
          PJN / 25-07-2016 1. Added SAL annotations to all the code
-         PJN / 20-11-2016 1. Addition of a new CScintillaView::CreateControl virtual method. This allows the
+         PJN / 20-11-2016 1. Addition of a new CScintillaView::CreateControl virtual method. This allows the 
                           customization of the creation of the CScintillaCtrl instance at runtime in the view class.
                           Thanks to Markus Nissl for providing this nice addition.
          PJN / 20-12-2016 1. Updated code to use Sci_RangeToFormat typedef instead of RangeToFormat
                           2. Updated code to use Sci_TextToFind typedef instead of TextToFind
                           3. Updated code to use Sci_TextRange typedef instead of TextRange
-                          4. Updated code to no longer use Scintilla namespace which has been removed from
+                          4. Updated code to no longer use Scintilla namespace which has been removed from 
                           Scintilla.h
                           5. Added a new member variable called "m_bCPP11Regex" which decides if Scintilla's support
                           for C++11 regex should be used in the find / replace functionality. Thanks to Markus Nissl
                           for suggesting this update.
-         PJN / 04-03-2017 1. Reworked the CScintillaView::OnActivateView to change the find / replace dialog owner
-                          to correctly handle cases where there are multiple top level scintilla views in your
+         PJN / 04-03-2017 1. Reworked the CScintillaView::OnActivateView to change the find / replace dialog owner 
+                          to correctly handle cases where there are multiple top level scintilla views in your 
                           application. Thanks to to Kenny Lau for reporting this issue.
-                          2. Refactored the logic in CScintillaView::OnDestroy which decides if the find / replace
+                          2. Refactored the logic in CScintillaView::OnDestroy which decides if the find / replace 
                           dialog should be destroyed into a new virtual ShouldDestroyFindReplaceDialog method.
-                          3. Implemented a WM_NCDESTROY message handler for the find / replace dialog. This helps
-                          avoid problems where you would sometimes get an ASSERT thrown from
-                          CScintillaView::AssertValid. The code to validate the find / replace dialog has also been
+                          3. Implemented a WM_NCDESTROY message handler for the find / replace dialog. This helps 
+                          avoid problems where you would sometimes get an ASSERT thrown from 
+                          CScintillaView::AssertValid. The code to validate the find / replace dialog has also been 
                           removed from CScintillaView::AssertValid. Thanks to Kenny Lau for reporting this issue.
-         PJN / 12-06-2017 1. Made _SCINTILLA_EDIT_STATE class available in ScintillaDocView.h and renamed it to
+         PJN / 12-06-2017 1. Made _SCINTILLA_EDIT_STATE class available in ScintillaDocView.h and renamed it to 
                           "CScintillaEditState". Thanks to Michael for requesting this addition.
-                          2. Updated CScintillaView::FindTextSimple to track the initial position and restart
-                          searches from the beginning (or end if searching backwards) until the original start
+                          2. Updated CScintillaView::FindTextSimple to track the initial position and restart 
+                          searches from the beginning (or end if searching backwards) until the original start 
                           position was located. Thanks to Michael Thompson for provided this nice addition.
                           3. Updated the demo app included in the download to show how CScintillaView::CreateControl
                           can be used. Thanks to Michael Thompson for prompting this update.
-         PJN / 28-01-2018 1. Added code to OnEditRepeat, OnFindNext and OnReplaceSel methods to ensure that the text
-                          just found or replaced is visible. This is necessary because sometimes the found text could
+         PJN / 28-01-2018 1. Added code to OnEditRepeat, OnFindNext and OnReplaceSel methods to ensure that the text 
+                          just found or replaced is visible. This is necessary because sometimes the found text could 
                           be hidden in folded text. Thanks to Michael Thompson for reporting this issue.
-                          2. The OnEditRepeat method now calls AdjustFindDialogPosition to ensure it is moved if
+                          2. The OnEditRepeat method now calls AdjustFindDialogPosition to ensure it is moved if 
                           necessary. Thanks to Michael Thompson for reporting this issue.
-         PJN / 03-05-2018 1. Added support for SCN_MARGINRIGHTCLICK notification. Thanks to Karagoez Yusuf for
+         PJN / 03-05-2018 1. Added support for SCN_MARGINRIGHTCLICK notification. Thanks to Karagoez Yusuf for 
                           reporting this issue.
          PJN / 14-07-2018 1. Renamed CreateControl method to CreateScintillaControl.
                           2. Renamed OnKillFocus method to OnScintillaKillFocus.
@@ -142,22 +142,22 @@ History: PJN / 12-08-2004 1. Made all the remaining non virtual functions relate
                           4. Reworked CScintillaView::m_aPageStart variable to now use std::vector
          PJN / 19-01-2019 1. Added support for SCN_AUTOCSELECTIONCHANGE notification.
          PJN / 23-02-2019 1. Fixed a number of compiler warnings when the code is compiled with VS 2019 Preview
-                          2. Optimized the code in CScintillaView::PrintHeader to use CTime instead of
+                          2. Optimized the code in CScintillaView::PrintHeader to use CTime instead of 
                           COleDateTime when getting the current date and time. Thanks to Markus Nissl for
                           reporting this issue.
          PJN / 28-12-2019 1. Fixed some further Clang-Tidy static code analysis warnings in the code.
          PJN / 16-12-2022 1. Changed virtual functions in CScintillaView to use Scintilla::NotificationData struct.
-         PJN / 19-12-2022 1. Removed unnecessary Scintilla namespace usage in ScintillaDocView.cpp. Thanks to
+         PJN / 19-12-2022 1. Removed unnecessary Scintilla namespace usage in ScintillaDocView.cpp. Thanks to 
                           Markus Nissl for reporting this issue.
          PJN / 27-04-2024 1. Reimplemented CScintillaView::Serialize to use CreateLoader interface and SetDocPointer
-                          function when loading a document. This change significantly improves the load time for
+                          function when loading a document. This change significantly improves the load time for 
                           large documents.
-                          2. Reimplemented CScintillaView::Serialize to use GetCharacterPointer function when
+                          2. Reimplemented CScintillaView::Serialize to use GetCharacterPointer function when 
                           saving a document. This change significantly improves the save time for large documents.
          PJN / 05-05-2024 1. Fixed a bug in CScintillaView::Serialize where SetUndoCollection was not being called
                           when a document was being loaded. This prevents the view from being marked as modified
                           as it is edited. Thanks to Andrew Truckle for reporting this issue.
-                          2. Updated CScintillaView::Serialize to correctly load Ascii, UTF8 with BOM, UTF8
+                          2. Updated CScintillaView::Serialize to correctly load Ascii, UTF8 with BOM, UTF8 
                           without BOM, UTF16LE with BOM, UTF16LE without BOM and UTF16BE with BOM documents.
                           3. Updated CScintillaView::Serialize to save documents with whatever BOM they were
                           initially loaded with.
@@ -167,16 +167,16 @@ History: PJN / 12-08-2004 1. Made all the remaining non virtual functions relate
          PJN / 19-11-2024 1. Updated CScintillaView::Serialize to better handle loading a non UTF encoded file.
                           Thanks to Jörg Hellenkamp for reporting this issue.
 
-Copyright (c) 2004 - 2025 by PJ Naughter (Web: www.naughter.com, Email: pjna@naughter.com)
+Copyright (c) 2004 - 2026 by PJ Naughter (Web: www.naughter.com, Email: pjna@naughter.com)
 
 All rights reserved.
 
 Copyright / Usage Details:
 
-You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise)
-when your product is released in binary form. You are allowed to modify the source code in any way you want
-except you cannot modify the copyright details at the top of each module. If you want to distribute source
-code with your application, then you are only allowed to distribute versions released by the author. This is
+You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise) 
+when your product is released in binary form. You are allowed to modify the source code in any way you want 
+except you cannot modify the copyright details at the top of each module. If you want to distribute source 
+code with your application, then you are only allowed to distribute versions released by the author. This is 
 to maintain a single distribution point for the source code.
 
 */
@@ -945,9 +945,8 @@ void CScintillaView::AdjustFindDialogPosition()
 
   auto& rCtrl{GetCtrl()};
   const Position nStart{rCtrl.GetSelectionStart()};
-  CPoint point;
-  point.x = rCtrl.PointXFromPosition(nStart);
-  point.y = rCtrl.PointYFromPosition(nStart);
+#pragma warning(suppress: 26472)
+  CPoint point{static_cast<LONG>(rCtrl.PointXFromPosition(nStart)), static_cast<LONG>(rCtrl.PointYFromPosition(nStart))};
   ClientToScreen(&point);
   CRect rectDlg;
   g_scintillaEditState.pFindReplaceDlg->GetWindowRect(&rectDlg);
@@ -1309,13 +1308,13 @@ BOOL CScintillaView::FindTextSimple(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _I
     if (bNext)
     {
       ft.chrg.cpMin = 0;
-      ft.chrg.cpMax = std::min<Position>(m_lInitialSearchPos + std::wstring_view(lpszFind).length(), rCtrl.GetLength());
+      ft.chrg.cpMax = std::min(m_lInitialSearchPos + CString(lpszFind).GetLength(), rCtrl.GetLength()); // CSPRO_SCINTILLA_MOD
       m_lInitialSearchPos = 0;
     }
     else
     {
       ft.chrg.cpMin = rCtrl.GetLength();
-      ft.chrg.cpMax = std::max<Position>(m_lInitialSearchPos - std::wstring_view(lpszFind).length(), 0);
+      ft.chrg.cpMax = std::max<Position>(m_lInitialSearchPos - CString(lpszFind).GetLength(), 0); // CSPRO_SCINTILLA_MOD
       m_lInitialSearchPos = ft.chrg.cpMin;
     }
 
@@ -1689,7 +1688,7 @@ void CScintillaView::OnFilePageSetup()
   //Allow the margin settings to be tweaked
   dlg.m_psd.Flags |= PSD_MARGINS;
 
-  //Are we using the metric or imperial system
+  //Are we using the metric or imperial system	
   if (m_bUsingMetric)
     dlg.m_psd.Flags |= PSD_INHUNDREDTHSOFMILLIMETERS;
   else

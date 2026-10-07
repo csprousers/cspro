@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 class DynamicLayoutControlResizer;
 
@@ -6,7 +6,7 @@ class DynamicLayoutControlResizer;
 class CSDocExportDlg : public CDialog
 {
 public:
-    CSDocExportDlg(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, std::string csdoc_file_path, CLogicCtrl& logic_ctrl, CWnd* pParent = nullptr);
+    CSDocExportDlg(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, std::string csdoc_file_path, LogicCtrl& logic_ctrl, CWnd* pParent = nullptr);
     ~CSDocExportDlg();
 
     std::unique_ptr<GenerateTask> ReleaseGenerateTask() { return std::move(m_generateTask); }
@@ -43,7 +43,7 @@ private:
 
     cs::non_null_shared_or_raw_ptr<DocSetSpec> m_docSetSpec;
     std::string m_csdocFilePath;
-    CLogicCtrl& m_logicCtrl;
+    LogicCtrl& m_logicCtrl;
 
     DocSetCompiler m_docSetCompiler;
     JsonReaderInterface m_jsonReaderInterface;
@@ -61,7 +61,7 @@ private:
     std::string m_buildSettingsSourceFilePath;
 
     std::string m_settingsText;
-    CLogicCtrl m_settingsLogicCtrl;
+    LogicCtrl m_settingsLogicCtrl;
 
     bool m_settingsTextIsBeingPrefilled;
     std::unique_ptr<DynamicLayoutControlResizer> m_dynamicLayoutControlResizer;

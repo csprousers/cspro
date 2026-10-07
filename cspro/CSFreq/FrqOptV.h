@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/LogicCtrl.h>
 
@@ -37,7 +37,7 @@ private:
     void UpdateControlVisibility();
 
 private:
-    CLogicCtrl m_cEditUniverse;
+    LogicCtrl m_cEditUniverse;
 
     int m_iUseVSet;
     int m_iNoStats;

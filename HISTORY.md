@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;10&#8209;07 | [scintilla-upgrade](https://github.com/CSProDevelopment/cspro/commit/ece947e3a556186226539374c9d23f7e174237a0) | upgraded Scintilla and Lexilla |
 | 2026&#8209;10&#8209;07 | [zDocument](https://github.com/CSProDevelopment/cspro/commit/e853d5331e54ffdea19c4324ddc59fce60ae7efd) | moved CSDocument's non-UI objects to a DLL, zDocument, and refactored the build tools to use this rather than invoke CSDocument |
 | 2026&#8209;10&#8209;07 | [dll-cleanup](https://github.com/CSProDevelopment/cspro/commit/119f5f733a79f0b0be91bcbfaa27731f7b0233a6) | removed MFC from DLLs that did not use it + cleaned up build settings + added precompiled headers to the Android build files |
 | 2026&#8209;10&#8209;07 | [c++20](https://github.com/CSProDevelopment/cspro/commit/b1236987999144fde1016b37d86de65635cb861d) | upgraded the codebase from C++17 to C++20 |
@@ -20,6 +21,13 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 | 2026&#8209;07&#8209;29 | [engine-to-dll+value-processor](https://github.com/CSProDevelopment/cspro/commit/8e120762c455c3ee401890753ebb25996f9dcbc8) | moved some engine functionality to zEngineO + refactored the value processors (and some other objects) to use non-wide strings |
 | 2026&#8209;07&#8209;14 | [android-cmake](https://github.com/CSProDevelopment/cspro/commit/652bb11960af3d73c326c8a2fbe5c1c4533c3a1c) | refactored the Android build to use CMake |
 | 2026&#8209;07&#8209;13 | [dictionary-analysis-dialog](https://github.com/CSProDevelopment/cspro/commit/627293268b40ea5506dca4de407f4e98bb8794bb) | reworked the dictionary analysis reports into a single dialog and added reports about linked value sets and special values |
+
+
+## CSPro 8.1.6
+
+**Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.6-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.6-windows-x86.exe)
+
+**Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.6-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.6-release-notes.txt)
 
 
 ## CSPro 8.1.5

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "StringEncoderDlg.h"
 #include <zToolsO/RaiiHelpers.h>
 #include <zJson/Json.h>
@@ -15,7 +15,7 @@
 class StringEncoderDlg::EncoderWorker
 {
 public:
-    EncoderWorker(CLogicCtrl& logic_ctrl, const int error_control_id)
+    EncoderWorker(LogicCtrl& logic_ctrl, const int error_control_id)
         :   m_logicCtrl(logic_ctrl),
             m_errorCtrlId(error_control_id),
             m_errorHWnd(nullptr)
@@ -24,7 +24,7 @@ public:
 
     virtual ~EncoderWorker() { }
 
-    CLogicCtrl& GetLogicCtrl() { return m_logicCtrl; }
+    LogicCtrl& GetLogicCtrl() { return m_logicCtrl; }
 
     int GetErrorControlId() const { return m_errorCtrlId; }
 
@@ -35,7 +35,7 @@ public:
     virtual std::string GetEncodedText(const std::string& plain_text) = 0;
 
 private:
-    CLogicCtrl& m_logicCtrl;
+    LogicCtrl& m_logicCtrl;
     int m_errorCtrlId;
     HWND m_errorHWnd;
 };
@@ -44,7 +44,7 @@ private:
 class TextEncoderWorker : public StringEncoderDlg::EncoderWorker
 {
 public:
-    TextEncoderWorker(CLogicCtrl& logic_ctrl);
+    TextEncoderWorker(LogicCtrl& logic_ctrl);
 
     std::string GetPlainText(std::string text) override;
     std::string GetEncodedText(const std::string& plain_text) override;
@@ -54,7 +54,7 @@ public:
 class LogicEncoderWorker : public StringEncoderDlg::EncoderWorker
 {
 public:
-    LogicEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg, const LogicSettings& logic_settings);
+    LogicEncoderWorker(LogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg, const LogicSettings& logic_settings);
     ~LogicEncoderWorker();
 
     std::string GetPlainText(std::string text) override;
@@ -72,7 +72,7 @@ private:
 class JsonEncoderWorker : public StringEncoderDlg::EncoderWorker
 {
 public:
-    JsonEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg);
+    JsonEncoderWorker(LogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg);
 
     std::string GetPlainText(std::string text) override;
     std::string GetEncodedText(const std::string& plain_text) override;
@@ -85,7 +85,7 @@ private:
 class PercentEncodingEncoderWorker : public StringEncoderDlg::EncoderWorker
 {
 public:
-    PercentEncodingEncoderWorker(CLogicCtrl& logic_ctrl);
+    PercentEncodingEncoderWorker(LogicCtrl& logic_ctrl);
 
     std::string GetPlainText(std::string text) override;
     std::string GetEncodedText(const std::string& plain_text) override;
@@ -328,7 +328,7 @@ void StringEncoderDlg::UpdateText()
 // TextEncoderWorker
 // --------------------------------------------------------------------------
 
-TextEncoderWorker::TextEncoderWorker(CLogicCtrl& logic_ctrl)
+TextEncoderWorker::TextEncoderWorker(LogicCtrl& logic_ctrl)
     :   EncoderWorker(logic_ctrl, 0)
 {
 }
@@ -413,7 +413,7 @@ private:
 };
 
 
-LogicEncoderWorker::LogicEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg, const LogicSettings& logic_settings)
+LogicEncoderWorker::LogicEncoderWorker(LogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg, const LogicSettings& logic_settings)
     :   EncoderWorker(logic_ctrl, IDC_ERROR_LOGIC),
         m_stringEncoderDlg(string_encoder_dlg),
         m_logicStringEscaper(logic_settings.EscapeStringLiterals()),
@@ -445,7 +445,7 @@ std::string LogicEncoderWorker::GetEncodedText(const std::string& plain_text)
 // JsonEncoderWorker
 // --------------------------------------------------------------------------
 
-JsonEncoderWorker::JsonEncoderWorker(CLogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg)
+JsonEncoderWorker::JsonEncoderWorker(LogicCtrl& logic_ctrl, StringEncoderDlg& string_encoder_dlg)
     :   EncoderWorker(logic_ctrl, IDC_ERROR_JSON),
         m_stringEncoderDlg(string_encoder_dlg)
 {
@@ -474,7 +474,7 @@ std::string JsonEncoderWorker::GetEncodedText(const std::string& plain_text)
 // PercentEncodingEncoderWorker
 // --------------------------------------------------------------------------
 
-PercentEncodingEncoderWorker::PercentEncodingEncoderWorker(CLogicCtrl& logic_ctrl)
+PercentEncodingEncoderWorker::PercentEncodingEncoderWorker(LogicCtrl& logic_ctrl)
     :   EncoderWorker(logic_ctrl, IDC_ERROR_PERCENT_ENCODING)
 {
 }

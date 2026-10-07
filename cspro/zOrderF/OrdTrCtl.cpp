@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: OrdTrCtl.cpp
 //
 //  Description:
@@ -115,7 +115,7 @@ void COrderTreeCtrl::OnSelchanged (NMHDR* pNMHDR, LRESULT* pResult)
     POSITION pos = pDoc->GetFirstViewPosition();
     ASSERT (pos != nullptr);
     COSourceEditView*   pView = (COSourceEditView*)pDoc->GetNextView(pos);
-    pView->GetEditCtrl()->EmptyUndoBuffer();
+    pView->GetLogicCtrl()->EmptyUndoBuffer();
 
     SetFocus();
     CMDIChildWnd* pActiveWnd = assert_cast<CMDIFrameWnd*>(AfxGetMainWnd())->MDIGetActive();

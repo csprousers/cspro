@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <zInterfaceF/zInterfaceF.h>
 #include <zInterfaceF/DictionaryTreeActionResponder.h>
 
 class CDataDict;
-class CLogicCtrl;
 class DictionaryTreeCtrl;
+class LogicCtrl;
 
 
 class CLASS_DECL_ZINTERFACEF UniverseDlg : public CDialog, public DictionaryTreeActionResponder
@@ -57,5 +57,5 @@ private:
     std::unique_ptr<DictionaryTreeCtrl> m_dictionaryTreeCtrl;
     CListBox m_itemValues;
     std::vector<std::string> m_logicForItemValues;
-    std::unique_ptr<CLogicCtrl> m_universeLogicCtrl;
+    std::unique_ptr<LogicCtrl> m_universeLogicCtrl;
 };

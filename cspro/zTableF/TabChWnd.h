@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zTableF/zTableF.h>
 #include <zTableF/PrtView.h>
@@ -25,8 +25,8 @@ public:
     virtual ~CTableChildWnd();
 
     // ApplicationChildWnd overrides
-    CLogicView* GetSourceLogicView() override;
-    CLogicCtrl* GetSourceLogicCtrl() override;
+    LogicView* GetSourceLogicView() override;
+    LogicCtrl* GetSourceLogicCtrl() override;
 
     LogicDialogBar& GetLogicDialogBar() override       { return m_logicDlgBar; }
     LogicReferenceWnd& GetLogicReferenceWnd() override { return m_logicReferenceWnd; }

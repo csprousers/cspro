@@ -15,22 +15,22 @@ namespace Scintilla {
 
 class ILoader {
 public:
-    virtual int SCI_METHOD Release() = 0;
-    // Returns a status code from SC_STATUS_*
-    virtual int SCI_METHOD AddData(const char *data, Sci_Position length) = 0;
-    virtual void * SCI_METHOD ConvertToDocument() = 0;
+	virtual int SCI_METHOD Release() = 0;
+	// Returns a status code from SC_STATUS_*
+	virtual int SCI_METHOD AddData(const char *data, Sci_Position length) = 0;
+	virtual void * SCI_METHOD ConvertToDocument() = 0;
 };
 
 static constexpr int deRelease0 = 0;
 
 class IDocumentEditable {
 public:
-    // Allow this interface to add methods over time and discover whether new methods available.
-    virtual int SCI_METHOD DEVersion() const noexcept = 0;
+	// Allow this interface to add methods over time and discover whether new methods available.
+	virtual int SCI_METHOD DEVersion() const noexcept = 0;
 
-    // Lifetime control
-    virtual int SCI_METHOD AddRef() noexcept = 0;
-    virtual int SCI_METHOD Release() = 0;
+	// Lifetime control
+	virtual int SCI_METHOD AddRef() noexcept = 0;
+	virtual int SCI_METHOD Release() = 0;
 };
 
 }
