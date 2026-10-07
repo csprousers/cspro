@@ -1,6 +1,4 @@
-﻿#pragma once
-
-#include <CSDocument/DocSetComponent.h>
+#pragma once
 
 class PFF;
 class ProductionSyncer;

@@ -1,8 +1,8 @@
 #include "StdAfx.h"
 #include "Builder.h"
-#include <zToolsO/TextFile.h>
+#include "CSProUsersBlogBuilder.h"
+#include "GooglePlayPrivacyPolicyGenerator.h"
 #include <zUtilO/Interapp.h>
-#include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
 #include <zGit/GitBlob.h>
 #include <zGit/GitBranch.h>
@@ -77,40 +77,6 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
 }
 
 
-void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::variant<const char*, BuildBlog> build_name_or_build_blog)
-{
-    const std::string csdocument_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\CSDocument.exe)");
-
-    if( !PortableFunctions::FileIsRegular(csdocument_exe) )
-        throw CSProException("CSDocument must exist at: " + csdocument_exe);
-
-    std::string command = EscapeCommandLineArgument(csdocument_exe);
-    const char* evaluated_build_name;
-
-    if( std::holds_alternative<const char*>(build_name_or_build_blog) )
-    {
-        evaluated_build_name = std::get<const char*>(build_name_or_build_blog);
-
-        command.append(" -build ").append(EscapeCommandLineArgument(evaluated_build_name))
-               .append(" -input ").append(EscapeCommandLineArgument(csdocset_file_path));
-    }
-
-    else
-    {
-        evaluated_build_name = "CSPro Users Blog";
-
-        command.append(" -csprousers-blog ")
-               .append(" -documentSet ").append(EscapeCommandLineArgument(csdocset_file_path))
-               .append(" -output ").append(EscapeCommandLineArgument(std::get<BuildBlog>(build_name_or_build_blog).posts_directory));
-    }
-
-    int return_code;
-
-    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) )
-        throw CSProException("Error running CSDocument (build '%s'): %s", evaluated_build_name, csdocset_file_path.c_str());
-}
-
-
 void Builder::BuildSite()
 {
     m_loggingListBox.AddText("Building the site for production using Jekyll...");
@@ -148,30 +114,35 @@ void Builder::BuildSite()
 }
 
 
-void Builder::UpdateBlog()
+void Builder::UpdateBlog(const BuildToolDocSetBuilder& build_tool_doc_set_builder)
 {
     m_loggingListBox.AddText("Building the blog...");
 
     const std::string posts_directory = Path::Combine(m_inputs.csprousers_input, "_posts");
     RecycleDirectory(posts_directory);
 
-    const std::string csdocset_file_path = Path::Combine(m_inputs.csprousers_input, "blog", "CSPro Users Blog.csdocset");
+    const std::string blog_doc_set_spec_file_path = Path::Combine(m_inputs.csprousers_input, "blog", "CSPro Users Blog.csdocset");
 
-    m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(csdocset_file_path).c_str());
-    BuildDocSet(csdocset_file_path, BuildBlog { posts_directory });
+    m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(blog_doc_set_spec_file_path).c_str());
 
-    const std::vector<std::string> post_file_paths = DirectoryLister().GetPaths(posts_directory);
+    CSProUsersBlogBuilder blog_builder;
 
-    if( !post_file_paths.empty() )
+    const std::vector<std::string> file_paths =  blog_builder.Build(
+        build_tool_doc_set_builder.GetGlobalSettings(),
+        blog_doc_set_spec_file_path,
+        posts_directory
+    );
+
+    if( !file_paths.empty() )
     {
-        m_loggingListBox.AddText("Successfully converted %d blog post%s, the last one being:\n    %s",
-                                 static_cast<int>(post_file_paths.size()), PluralizeWord(post_file_paths.size()),
-                                 Path::GetFilename(post_file_paths.back()).c_str());
+        m_loggingListBox.AddText("Successfully converted %zu blog post%s, the last one being:\n    %s",
+                                 static_cast<int>(file_paths.size()), PluralizeWord(file_paths.size()),
+                                 Path::GetFilename(file_paths.back()).c_str());
     }
 }
 
 
-void Builder::UpdateHelps()
+void Builder::UpdateHelps(BuildToolDocSetBuilder& build_tool_doc_set_builder)
 {
     m_loggingListBox.AddText("Building the helps...");
 
@@ -191,46 +162,55 @@ void Builder::UpdateHelps()
                  Path::Combine(helps_output_directory, "resources", Path::GetFilename(resource_file_path)));
     }
 
-    const std::string csdocument_outputs_directory = Path::Combine(m_inputs.helps, "Outputs");
-    RecycleDirectory(csdocument_outputs_directory);
-
     DirectoryLister directory_lister(true);
     directory_lister.SetNameFilter("*.csdocset");
 
-    for( const std::string& csdocset_file_path : directory_lister.GetPaths(m_inputs.helps) )
+    for( std::string csdocset_file_path : directory_lister.GetPaths(m_inputs.helps) )
     {
         // build the website
         m_loggingListBox.AddText("Building the website for %s...", Path::GetFilenameWithoutExtension(csdocset_file_path).c_str());
-        BuildDocSet(csdocset_file_path, "CSPro Users Help Website");
-    }
 
-    CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "Website"),
-                           helps_output_directory);
+        build_tool_doc_set_builder.BuildDocSet(
+            std::move(csdocset_file_path),
+            helps_output_directory,
+            "CSPro Users Help Website"
+        );
+    }
 }
 
 
-void Builder::UpdateMobileWorkshop()
+void Builder::UpdateMobileWorkshop(BuildToolDocSetBuilder& build_tool_doc_set_builder)
 {
     m_loggingListBox.AddText("Building the mobile workshop materials...");
 
     const std::string mobile_workshop_output_directory = Path::Combine(m_inputs.csprousers_output, MobileWorkshopDirectory_sv);
+    const std::string mobile_workshop_pdf_directory = Path::Combine(mobile_workshop_output_directory, "pdf");
+    const std::string mobile_workshop_materials_directory = Path::Combine(mobile_workshop_output_directory, "materials");
 
     const std::string csdocset_file_path = Path::Combine(m_inputs.mobile_workshop, "CSProMobileWorkshop", "CSProMobileWorkshop.csdocset");
 
-    const std::string csdocument_outputs_directory = Path::Combine(m_inputs.mobile_workshop, "Outputs");
-    RecycleDirectory(csdocument_outputs_directory);
-
     // build the website
     m_loggingListBox.AddText("Building the website...");
-    BuildDocSet(csdocset_file_path, "CSPro Users Workshop Website");
-    CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "mobile-workshop"),
-                           mobile_workshop_output_directory);
+
+    build_tool_doc_set_builder.BuildDocSet(
+        csdocset_file_path,
+        mobile_workshop_output_directory,
+        "CSPro Users Workshop Website"
+    );
 
     // build the PDF
     m_loggingListBox.AddText("Building the PDF...");
-    BuildDocSet(csdocset_file_path, "PDF Documentation");
-    CopyFile(Path::Combine(csdocument_outputs_directory, "CSProMobileWorkshop.pdf"),
-             Path::Combine(mobile_workshop_output_directory, "pdf", "cspro-mobile-workshop.pdf"));
+
+    build_tool_doc_set_builder.BuildDocSet(
+        csdocset_file_path,
+        mobile_workshop_pdf_directory,
+        "PDF Documentation"
+    );
+
+    PortableFunctions::FileRenameWithExceptions(
+        Path::Combine(mobile_workshop_pdf_directory, "CSProMobileWorkshop.pdf"),
+        Path::Combine(mobile_workshop_pdf_directory, "cspro-mobile-workshop.pdf")
+    );
 
     // create the materials ZIP file
     m_loggingListBox.AddText("Building the materials ZIP file...");
@@ -240,7 +220,7 @@ void Builder::UpdateMobileWorkshop()
     directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_inputs.mobile_workshop, "FilesForExercises"));
     directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_inputs.mobile_workshop, "Questionnaire"));
 
-    std::string zip_output_file_path = Path::Combine(mobile_workshop_output_directory, "materials", "cspro-mobile-workshop-materials.zip");
+    std::string zip_output_file_path = Path::Combine(mobile_workshop_materials_directory, "cspro-mobile-workshop-materials.zip");
     FileIO::CreateDirectoriesForFile(zip_output_file_path);
 
     ZipCreator zip_creator(std::move(zip_output_file_path));
@@ -253,32 +233,14 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
 {
     m_loggingListBox.AddText("Creating the Google Play privacy policy...");
 
-    const std::string gcl_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\Generate Combined License.exe)");
-
-    if( !PortableFunctions::FileIsRegular(gcl_exe) )
-        throw CSProException("The Generate Combined License program must exist at: " + gcl_exe);
-
     const std::string privacy_path_directory = Path::Combine(m_inputs.csprousers_input, "privacy");
-    const std::string privacy_path_template_file_path = Path::Combine(privacy_path_directory, "privacy-policy-template.html");
-    const std::string privacy_path_output_file_path = Path::Combine(privacy_path_directory, "privacy-policy.html");
 
-    // create the license as a temporary file
-    TemporaryFile privacy_path_output_temporary_file;
-    const int64_t privacy_path_output_initial_size = PortableFunctions::FileSize(privacy_path_output_temporary_file.GetPath());
+    GooglePlayPrivacyPolicyGenerator generator(
+        Path::Combine(privacy_path_directory, "privacy-policy-template.html"), // privacy_path_template_file_path
+        Path::Combine(privacy_path_directory, "privacy-policy.html")           // privacy_path_output_file_path
+    );
 
-    const std::string command = EscapeCommandLineArgument(gcl_exe)
-                                .append(" ").append(EscapeCommandLineArgument(privacy_path_template_file_path))
-                                .append(" ").append(EscapeCommandLineArgument(privacy_path_output_temporary_file.GetPath()));
-    int return_code;
-
-    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) ||
-        privacy_path_output_initial_size == PortableFunctions::FileSize(privacy_path_output_temporary_file.GetPath()) )
-    {
-        throw CSProException("Error running the Generate Combined License program.");
-    }
-
-    // copy the license to its destination
-    PortableFunctions::FileCopyWithExceptions(privacy_path_output_temporary_file.GetPath(), privacy_path_output_file_path, FileOverwriteFlag::Always);
+    generator.Generate();
 }
 
 

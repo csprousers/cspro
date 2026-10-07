@@ -141,9 +141,9 @@ LRESULT GenerateDlg::OnUpdateText(const WPARAM wParam, const LPARAM lParam)
 
 LRESULT GenerateDlg::OnGenerateTaskComplete(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    const GenerateTask::Status status = static_cast<GenerateTask::Status>(wParam);
+    const GenerateTaskStatus status = static_cast<GenerateTaskStatus>(wParam);
 
-    if( status == GenerateTask::Status::Canceled )
+    if( status == GenerateTaskStatus::Canceled )
     {
         __super::OnCancel();
     }
@@ -157,7 +157,7 @@ LRESULT GenerateDlg::OnGenerateTaskComplete(const WPARAM wParam, LPARAM /*lParam
         close_button->EnableWindow();
         close_button->SetFocus();
 
-        if( status == GenerateTask::Status::Complete )
+        if( status == GenerateTaskStatus::Complete )
         {
             UpdateData(TRUE);
 
@@ -222,7 +222,7 @@ void GenerateDlg::OnCreatedOutput(std::string output_title, std::string path)
 
 void GenerateDlg::OnException(const CSProException& exception)
 {
-    Interface::LogText("\n⚠ %s", exception.what());
+    GenerateTaskInterface::LogText("\n⚠ %s", exception.what());
 
     SetOutputText("Error!");
     UpdateProgress(HideProgressBarCode);
@@ -231,7 +231,7 @@ void GenerateDlg::OnException(const CSProException& exception)
 }
 
 
-void GenerateDlg::OnCompletion(const GenerateTask::Status status)
+void GenerateDlg::OnCompletion(const GenerateTaskStatus status)
 {
     PostMessage(UWM::CSDocument::GenerateDlgTaskComplete, static_cast<WPARAM>(status));
 }

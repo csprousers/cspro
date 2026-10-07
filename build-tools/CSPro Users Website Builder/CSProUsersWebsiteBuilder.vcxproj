@@ -14,16 +14,27 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\cspro\properties\project-settings.props" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <StackReserveSize>0x400000</StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Builder.h" />
+    <ClInclude Include="CSProUsersBlogBuilder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h" />
+    <ClInclude Include="GooglePlayPrivacyPolicyGenerator.h" />
     <ClInclude Include="Inputs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Builder.cpp" />
+    <ClCompile Include="CSProUsersBlogBuilder.cpp" />
     <ClCompile Include="CSProUsersWebsiteBuilder.cpp" />
     <ClCompile Include="CSProUsersWebsiteBuilderDlg.cpp" />
     <ClCompile Include="ReleaseProcessor.cpp" />
@@ -35,12 +46,20 @@
     <ResourceCompile Include="CSProUsersWebsiteBuilder.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zDocument\zDocument.vcxproj">
+      <Project>{c50fa4ad-7af7-408b-b798-e8f01925b0ca}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\cspro\zEditO\zEditO.vcxproj">
       <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zGit\zGit.vcxproj">
       <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zJson\zJson.vcxproj">
@@ -61,6 +80,10 @@
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zZip\zZip.vcxproj">
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zBuildTools\zBuildTools.vcxproj">
+      <Project>{9b27f2ae-4a93-4b31-a883-c9a6bd2336f0}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

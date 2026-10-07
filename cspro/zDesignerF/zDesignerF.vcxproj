@@ -71,6 +71,7 @@
     <ClInclude Include="BuildWndJsonReaderInterface.h" />
     <ClInclude Include="CodeFilePropertiesPageDlg.h" />
     <ClInclude Include="CodeMenu.h" />
+    <ClInclude Include="CompilerMessageType.h" />
     <ClInclude Include="CompilerOutputTabViewPage.h" />
     <ClInclude Include="DesignerObjectTransporter.h" />
     <ClInclude Include="DictionaryBasedDoc.h" />

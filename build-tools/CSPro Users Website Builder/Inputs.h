@@ -3,7 +3,6 @@
 
 struct Inputs
 {
-    std::string cspro_root;
     std::string helps;
     std::string mobile_workshop;
     std::string ruby;

@@ -18,10 +18,16 @@
     <ClInclude Include="Builder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSProUsersBlogBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSProUsersWebsiteBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GooglePlayPrivacyPolicyGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Inputs.h">
@@ -36,6 +42,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSProUsersBlogBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSProUsersWebsiteBuilder.cpp">

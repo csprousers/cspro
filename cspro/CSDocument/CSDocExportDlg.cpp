@@ -1,7 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocExportDlg.h"
-#include "CSDocCompiler.h"
 #include <zUtilO/DynamicLayoutControlResizer.h>
+#include <zDocument/CSDocCompiler.h>
 
 
 namespace

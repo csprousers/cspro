@@ -44,10 +44,5 @@ namespace CSPro_Installer_Generator
             var fi_release = new FileInfo(Path.Combine(CSProReleaseDirectory, filename));
             return ( fi_debug.LastWriteTime > fi_release.LastWriteTime ) ? fi_debug.FullName : fi_release.FullName;
         }
-
-        public string GetLatestCSDocument()
-        {
-            return GetLatestCSProBuildFile("CSDocument.exe");
-        }
     }
 }

@@ -1,9 +1,10 @@
 #include "StdAfx.h"
 #include "CSDocFrame.h"
-#include "CSDocCompiler.h"
+#include "CSDocCompilerSettingsForCSDocumentPreview.h"
 #include "CSDocExportDlg.h"
-#include "DocSetSpec.h"
 #include "GenerateDlg.h"
+#include <zDocument/CSDocCompiler.h>
+#include <zDocument/DocSetSpec.h>
 
 
 IMPLEMENT_DYNCREATE(CSDocFrame, DocSetBuildHandlerFrame)

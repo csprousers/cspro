@@ -53,9 +53,9 @@ private:
 inline bool LexerStyle::operator==(const LexerStyle& rhs) const
 {
     return ( foreground_color == rhs.foreground_color &&
-              background_color == rhs.background_color &&
-              bold == rhs.bold &&
-              italic == rhs.italic );
+             background_color == rhs.background_color &&
+             bold == rhs.bold &&
+             italic == rhs.italic );
 }
 
 

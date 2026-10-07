@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;10&#8209;07 | [zDocument](https://github.com/CSProDevelopment/cspro/commit/e853d5331e54ffdea19c4324ddc59fce60ae7efd) | moved CSDocument's non-UI objects to a DLL, zDocument, and refactored the build tools to use this rather than invoke CSDocument |
 | 2026&#8209;10&#8209;07 | [dll-cleanup](https://github.com/CSProDevelopment/cspro/commit/119f5f733a79f0b0be91bcbfaa27731f7b0233a6) | removed MFC from DLLs that did not use it + cleaned up build settings + added precompiled headers to the Android build files |
 | 2026&#8209;10&#8209;07 | [c++20](https://github.com/CSProDevelopment/cspro/commit/b1236987999144fde1016b37d86de65635cb861d) | upgraded the codebase from C++17 to C++20 |
 | 2026&#8209;10&#8209;07 | [display-function](https://github.com/CSProDevelopment/cspro/commit/354a988037c334c007c796ec325a456f993f7326) | reworked the display function to always show modal dialogs, added choices as a select alternative, and added the UI.showMessage action |

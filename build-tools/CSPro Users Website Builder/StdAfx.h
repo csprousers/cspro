@@ -6,8 +6,10 @@
 #include "resource.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
+#include <zToolsO/TextFile.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/Utf8.h>
 #include <zJson/Json.h>
 #include <zUtilO/SettingsDb.h>
 #include <zUtilF/LoggingListBox.h>
+#include <zDocument/BuildToolDocSetBuilder.h>

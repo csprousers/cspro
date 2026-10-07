@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilF/LoggingListBox.h>
+#include <zDocument/GenerateTask.h>
 
 
-class GenerateDlg : public CDialog, public GenerateTask::Interface
+class GenerateDlg : public CDialog, public GenerateTaskInterface
 {
 public:
     GenerateDlg(GenerateTask& generate_task, CWnd* pParent = nullptr);
@@ -23,7 +24,7 @@ protected:
     LRESULT OnUpdateText(WPARAM wParam, LPARAM lParam);
     LRESULT OnGenerateTaskComplete(WPARAM wParam, LPARAM lParam);
 
-    // GenerateTask::Interface overrides
+    // GenerateTaskInterface overrides
     // the methods will post messages to update values as they will be called from a non-UI thread
     void SetTitle(const std::string& title) override;
     void LogText(SharableString text) override;
@@ -31,7 +32,7 @@ protected:
     void SetOutputText(const std::string& text) override;
     void OnCreatedOutput(std::string output_title, std::string path) override;
     void OnException(const CSProException& exception) override;
-    void OnCompletion(GenerateTask::Status status) override;
+    void OnCompletion(GenerateTaskStatus status) override;
     const GlobalSettings& GetGlobalSettings() override;
 
 private:

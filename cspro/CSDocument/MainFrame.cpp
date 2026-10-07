@@ -5,6 +5,7 @@
 #include "GlobalSettingsDlg.h"
 #include <zUtilF/resource_shared.h>
 #include <zUtilF/WindowsMenuManager.h>
+#include <zDesignerF/UWM.h>
 
 
 BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)

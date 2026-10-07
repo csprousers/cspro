@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/DocSetComponent.h>
+#include <zDocument/DocSetComponent.h>
 
 
 class CSDocumentApp : public CWinAppEx

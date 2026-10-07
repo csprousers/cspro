@@ -1,7 +1,7 @@
 #pragma once
 
-#include <CSDocument/DocSetCompiler.h>
 #include <CSDocument/DocSetBuildHandlerFrame.h>
+#include <zDocument/DocSetCompiler.h>
 
 
 class DocSetBaseFrame : public DocSetBuildHandlerFrame

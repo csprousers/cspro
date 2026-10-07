@@ -182,6 +182,7 @@
     "zDictF.dll",
     "zDictO.dll",
     "zDiffO.dll",
+    "zDocument.dll",
     "zEditO.dll",
     "zEngineCLR.dll",
     "zEngineF.dll",

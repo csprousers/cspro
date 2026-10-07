@@ -4,40 +4,23 @@
 #include <StandardIncludes/strict_errors.h>
 
 #include <afxcontrolbars.h>
-#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zToolsO/CSProExecutables.h>
-#include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
-#include <zToolsO/Hash.h>
-#include <zToolsO/TextFile.h>
 #include <zToolsO/Utf8.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
-#include <zUtilO/MimeType.h>
 #include <zUtilO/TextSourceEditable.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zUtilF/DynamicMenuBuilder.h>
 #include <zHtml/HtmlWriter.h>
-#include <zScintilla/include/SciLexer.h>
+#include <zDocument/CacheableCalculator.h>
+#include <zDocument/GenerateTask.h>
 #include <zDesignerF/resource_shared.h>
-#include <zDesignerF/UWM.h>
-#include <CSDocument/CacheableCalculator.h>
-#include <CSDocument/GenerateTask.h>
-#include <CSDocument/GlobalSettings.h>
 #include <CSDocument/MainFrame.h>
 #include <CSDocument/resource.h>
 #include <CSDocument/TextEditView.h>
 #include <CSDocument/UWM.h>
-
-
-// some preprocessor definitions to perform stricter error checking:
-
-// CHECK_PATH_CASE: if defined, the path of documents/images/etc. must match the path as exists on the disk
-// #define CHECK_PATH_CASE
-
-// STRICT_CHECKING_FOR_DOT_NOTATION: if defined, dot-notation logic validity is checked more thoroughly (search for the use to see why it's disabled by default)
-// #define STRICT_CHECKING_FOR_DOT_NOTATION

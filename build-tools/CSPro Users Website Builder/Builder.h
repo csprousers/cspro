@@ -11,13 +11,13 @@ public:
 
     void BuildSite();
 
-    void UpdateBlog();
+    void UpdateBlog(const BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
     void UpdateReleases();
 
-    void UpdateHelps();
+    void UpdateHelps(BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
-    void UpdateMobileWorkshop();
+    void UpdateMobileWorkshop(BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
     void UpdateGooglePlayPrivacyPolicy();
 
@@ -32,9 +32,6 @@ private:
                   bool add_message_to_log = true);
 
     void CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory);
-
-    struct BuildBlog { const std::string& posts_directory; };
-    void BuildDocSet(const std::string& csdocset_file_path, std::variant<const char*, BuildBlog> build_name_or_build_blog);
 
     size_t ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std::string& directory_path, bool recursive);
 

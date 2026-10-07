@@ -1,9 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocument.h"
 #include "CommandLineBuilder.h"
 #include "CommandLineParser.h"
 #include "CSDocFrame.h"
-#include "CSProUsersBlogBuilder.h"
 #include "DocSetComponentDocTemplate.h"
 #include "DocSetComponentFrame.h"
 #include "DocSetSpecFrame.h"
@@ -73,22 +72,6 @@ BOOL CSDocumentApp::InitInstance()
         {
             CommandLineBuilder builder(global_settings);
             builder.Build(command_line_parser);
-            return FALSE;
-        }
-
-        else if( command_line_parser.CreateCSProUsersBlog() )
-        {
-            CSProUsersBlogBuilder builder(global_settings,
-                                          command_line_parser.GetDocSetFilePath(),
-                                          command_line_parser.GetOutputPath());
-            builder.Build();
-            return FALSE;
-        }
-
-        else if( command_line_parser.CreateNotepadPlusPlusColorizer() )
-        {
-            CommandLineBuilder builder(global_settings);
-            builder.CreateNotepadPlusPlusColorizer();
             return FALSE;
         }
     }

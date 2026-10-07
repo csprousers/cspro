@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using Ionic.Zip;
 using LibGit2Sharp;
 using RestSharp;
 
@@ -535,35 +534,40 @@ namespace CSPro_Installer_Generator
 
             if( build_helps )
             {
-                string command_line = "-build \"Compiled HTML Help\" -input";
+                var messages = new List<string>();
+
+                var help_builder = new CSPro.InstallerGenerator.HelpBuilder(
+                    textBoxHelps.Text,
+                    (string text) => { messages.Add(text); }
+                );
 
                 foreach( string program in inputs.Helps )
-                    command_line = command_line + $" \"{Path.Combine(textBoxHelps.Text, program, $"{program}.csdocset")}\"";
+                {
+                    AddToLog(LogType.Log, $"Building helps for {program}...", LogExtra.InSection);
 
-                AddToLog(LogType.Log, $"Building helps using CSDocument...", LogExtra.InSection);
+                    help_builder.Create(program);
 
-                var process = new Process();
-                process.StartInfo = new ProcessStartInfo(_commonPaths.GetLatestCSDocument(), command_line);
-                process.Start();
-                process.WaitForExit();
+                    // show the messages queued from the log text callback
+                    foreach( string message in messages )
+                        AddToLog(LogType.Log, message, LogExtra.InSection);
 
-                if( process.ExitCode != 0 )
-                    throw new Exception($"There was an error building the helps using the arguments: {command_line}");
+                    messages.Clear();
+                }
             }
 
             int number_helps = 0;
 
             foreach( string program in inputs.Helps )
             {
-                string chm_filename = Path.Combine(textBoxHelps.Text, @"Outputs\CHM", $"{program}.chm");
+                string chm_file_path = Path.Combine(textBoxHelps.Text, @"Outputs\CHM", $"{program}.chm");
 
-                if( !File.Exists(chm_filename) )
+                if( !File.Exists(chm_file_path) )
                     throw new Exception($"The {build_type} {program} was not created successfully.");
 
                 if( copy_helps )
-                    File.Copy(chm_filename, Path.Combine(_componentsHelpsDirectory, Path.GetFileName(chm_filename)));
+                    File.Copy(chm_file_path, Path.Combine(_componentsHelpsDirectory, Path.GetFileName(chm_file_path)));
 
-                AddBuildMessageToLog(BuildMessage.Build, $"{build_type} {Path.GetFileName(chm_filename)}", build_helps, copy_helps);
+                AddBuildMessageToLog(BuildMessage.Build, $"{build_type} {Path.GetFileName(chm_file_path)}", build_helps, copy_helps);
 
                 ++number_helps;
             }
@@ -709,18 +713,14 @@ namespace CSPro_Installer_Generator
             }
 
             // create the Notepad++ colorization file
-            string csdocument_exe = _commonPaths.GetLatestCSDocument();
-
             AddToLog(LogType.Log, "Creating the Notepad++ colorization file...", LogExtra.InSection);
 
-            var process = new Process();
-            process.StartInfo = new ProcessStartInfo(csdocument_exe, "/Notepad++");
-            process.Start();
-            process.WaitForExit();
+            string notepad_pp_udl = CSPro.InstallerGenerator.NotepadPlusPlusColorizer.Create(_commonPaths.InstallerDirectory);
 
-            string colorization_file = Path.Combine(Path.GetDirectoryName(csdocument_exe), "userDefineLang.xml");
-            File.Move(colorization_file, Path.Combine(_componentsMiscellaneousDirectory, Path.GetFileName(colorization_file)));
-            AddToLog(LogType.Log, $"Copied miscellaneous file {colorization_file}", LogExtra.InSection);
+            const string udl_filename = "userDefineLang.xml";
+            File.WriteAllText(Path.Combine(_componentsMiscellaneousDirectory, udl_filename), notepad_pp_udl);
+
+            AddToLog(LogType.Log, $"Created miscellaneous file {udl_filename}", LogExtra.InSection);
             ++files;
 
             AddToLog(LogType.Log, $"Successfully copied miscellaneous {files} files.", LogExtra.EndSection);
@@ -894,8 +894,8 @@ namespace CSPro_Installer_Generator
 
                 CleanComponents();
 
-                string zip_exe = Path.Combine(Path.GetDirectoryName(_installerExe), Path.GetFileNameWithoutExtension(_installerExe) + ".zip");
-                File.Delete(zip_exe);
+                string zip_file_path = Path.Combine(Path.GetDirectoryName(_installerExe), Path.GetFileNameWithoutExtension(_installerExe) + ".zip");
+                File.Delete(zip_file_path);
 
                 BuildCSPro(inputs, build_programs, true, rebuild_programs, true);
 
@@ -912,14 +912,13 @@ namespace CSPro_Installer_Generator
                 CopyRedistributables();
 
                 // create the zip file
-                using( ZipFile zip = new ZipFile() )
-                {
-                    AddFilesToZip(zip, new DirectoryInfo(_componentsDirectory), 0);
-                    zip.Save(zip_exe);
-                }
+                var file_paths_on_disk = new List<string>();
+                var file_paths_in_zip = new List<string>();
+                AddFilesToZipList(file_paths_on_disk, file_paths_in_zip, new DirectoryInfo(_componentsDirectory), 0);
+                CSPro.InstallerGenerator.ZipCreator.Create(zip_file_path, file_paths_on_disk, file_paths_in_zip);
 
                 // go to the zip file in Windows Explorer
-                Process.Start("explorer.exe", $"/select,\"{zip_exe}\"");
+                Process.Start("explorer.exe", $"/select,\"{zip_file_path}\"");
             }
 
             catch( Exception exception )
@@ -930,10 +929,10 @@ namespace CSPro_Installer_Generator
             comboBoxZipActions.SelectedIndex = -1;
         }
 
-        private void AddFilesToZip(ZipFile zip, DirectoryInfo di, int subdirectory_depth)
+        private void AddFilesToZipList(List<string> file_paths_on_disk, List<string> file_paths_in_zip, DirectoryInfo di, int subdirectory_depth)
         {
             foreach( var sub_di in di.GetDirectories() )
-                AddFilesToZip(zip, sub_di, subdirectory_depth + 1);
+                AddFilesToZipList(file_paths_on_disk, file_paths_in_zip, sub_di, subdirectory_depth + 1);
 
             foreach( var fi in di.GetFiles() )
             {
@@ -945,7 +944,8 @@ namespace CSPro_Installer_Generator
                     zip_directory = di.FullName.Substring(slash_pos + 1);
                 }
 
-                zip.AddFile(fi.FullName, zip_directory);
+                file_paths_on_disk.Add(fi.FullName);
+                file_paths_in_zip.Add(Path.Combine(zip_directory, fi.Name));
             }
         }
 
