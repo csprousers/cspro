@@ -338,7 +338,7 @@ void CTableChildWnd::OnViewLogic()
             return;
         }
         //To work with large files
-        //m_pSourceEditView->GetEditCtrl()->LimitText(0xffffff);
+        //m_pSourceEditView->GetLogicCtrl()->LimitText(0xffffff);
         m_pSourceEditView->ShowWindow(SW_HIDE);
     }
 
@@ -350,7 +350,7 @@ void CTableChildWnd::OnViewLogic()
     }
     m_pSourceEditView->ShowWindow(SW_SHOW);
     m_logicDlgBar.ShowWindow(SW_SHOW);
-    m_pSourceEditView->GetEditCtrl()->EmptyUndoBuffer();
+    m_pSourceEditView->GetLogicCtrl()->EmptyUndoBuffer();
     SetActiveView(m_pSourceEditView);
 
     if(pTableView) {
@@ -507,10 +507,10 @@ void CTableChildWnd::OnTblCompile()
         if(table_element_tree_node != nullptr && table_element_tree_node->GetTabDoc() == pDoc){
             //wParam 1 implies force compile
             if(AfxGetMainWnd()->SendMessage(UWM::Table::PutSourceCode, 1, reinterpret_cast<LPARAM>(table_element_tree_node)) == -1) {
-                ((CTSourceEditView*)pView)->GetEditCtrl()->SetFocus();
+                ((CTSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
                 return;
             }
-            ((CTSourceEditView*)pView)->GetEditCtrl()->SetFocus();
+            ((CTSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
 
         }
     }

@@ -21,10 +21,6 @@ class CLASS_DECL_ZFORMF CFSourceEditView : public LogicView
 {
     DECLARE_DYNCREATE(CFSourceEditView)
 
-// Operations
-public:
-    LogicCtrl* GetEditCtrl() { return LogicView::GetLogicCtrl(); }
-
 protected:
     virtual void OnDraw(CDC* pDC);      // overridden to draw this view
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);

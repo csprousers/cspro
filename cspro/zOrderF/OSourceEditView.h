@@ -25,20 +25,10 @@ public:
     COSourceEditView();
     ~COSourceEditView();
 
-// Attributes
-public:
-
-// Operations
-public:
-    LogicCtrl* GetEditCtrl(void) { return LogicView::GetLogicCtrl(); }
-private:
-
 // Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(COSourceEditView)
-    public:
+public:
     virtual void OnFinalRelease();
-    protected:
+protected:
     virtual void OnDraw(CDC* pDC);      // overridden to draw this view
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
     //}}AFX_VIRTUAL

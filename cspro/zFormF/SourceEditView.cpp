@@ -81,7 +81,7 @@ void CFSourceEditView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /
 
 void CFSourceEditView::OnEditCopy()
 {
-    GetEditCtrl()->CopySelection();
+    GetLogicCtrl()->CopySelection();
 }
 
 
@@ -89,9 +89,9 @@ void CFSourceEditView::OnUpdateEditCutOrCopy(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if (pWnd && GetLogicCtrl() == pWnd) {
-        if (GetEditCtrl() && GetEditCtrl()->GetSafeHwnd()) {
-            const Sci_Position nStartChar = GetEditCtrl()->GetSelectionStart();
-            const Sci_Position nEndChar = GetEditCtrl()->GetSelectionEnd();
+        if (GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()) {
+            const Sci_Position nStartChar = GetLogicCtrl()->GetSelectionStart();
+            const Sci_Position nEndChar = GetLogicCtrl()->GetSelectionEnd();
             pCmdUI->Enable(nStartChar != nEndChar);
         }
         else {
@@ -103,13 +103,13 @@ void CFSourceEditView::OnUpdateEditCutOrCopy(CCmdUI* pCmdUI)
 
 void CFSourceEditView::OnEditCut()
 {
-    GetEditCtrl()->Cut();
+    GetLogicCtrl()->Cut();
 }
 
 
 void CFSourceEditView::OnEditPaste()
 {
-    GetEditCtrl()->Paste();
+    GetLogicCtrl()->Paste();
 }
 
 
@@ -117,7 +117,7 @@ void CFSourceEditView::OnUpdateEditPaste(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if (pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(!GetEditCtrl()->GetReadOnly() &&::IsClipboardFormatAvailable(CF_TEXT));
+        pCmdUI->Enable(!GetLogicCtrl()->GetReadOnly() &&::IsClipboardFormatAvailable(CF_TEXT));
     }
     else {
         pCmdUI->Enable(FALSE);
@@ -181,7 +181,7 @@ void CFSourceEditView::OnUpdateReplace(CCmdUI* pCmdUI)
 
 void CFSourceEditView::OnEditUndo()
 {
-    GetEditCtrl()->Undo();
+    GetLogicCtrl()->Undo();
 }
 
 
@@ -189,14 +189,14 @@ void CFSourceEditView::OnUpdateEditUndo(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if (pWnd && GetLogicCtrl() == pWnd) {
-        pCmdUI->Enable(GetEditCtrl()->CanUndo());
+        pCmdUI->Enable(GetLogicCtrl()->CanUndo());
     }
 }
 
 
 void CFSourceEditView::OnEditRedo()
 {
-    GetEditCtrl()->Redo();
+    GetLogicCtrl()->Redo();
 }
 
 
@@ -204,7 +204,7 @@ void CFSourceEditView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
     if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(GetEditCtrl()->CanRedo());
+        pCmdUI->Enable(GetLogicCtrl()->CanRedo());
     }
 
 }
@@ -226,7 +226,7 @@ void CFSourceEditView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
     BCMenu popMenu;
     popMenu.CreatePopupMenu();
 
-    LogicCtrl* pEdit = GetEditCtrl();
+    LogicCtrl* pEdit = GetLogicCtrl();
 
     const bool writable = !pEdit->GetReadOnly();
 
@@ -272,8 +272,8 @@ void CFSourceEditView::OnQsfEditor()
 void CFSourceEditView::OnSetFocus(CWnd* pOldWnd)
 {
     CView::OnSetFocus(pOldWnd);
-    if(GetEditCtrl() && GetEditCtrl()->GetSafeHwnd()){
-        GetEditCtrl()->SetFocus();
+    if(GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()){
+        GetLogicCtrl()->SetFocus();
     }
 }
 
@@ -283,11 +283,11 @@ BOOL CFSourceEditView::OnMouseWheel(UINT /*nFlags*/, short zDelta, CPoint /*pt*/
 // TODO: Add your message handler code here and/or call default
     if (zDelta > 0) {
          //OnVScroll(SB_LINEUP, 0, NULL);
-         GetEditCtrl()->SendMessage( WM_VSCROLL, SB_LINEUP);
+         GetLogicCtrl()->SendMessage( WM_VSCROLL, SB_LINEUP);
     }
     else {
         //OnVScroll(SB_LINEDOWN, 0, NULL);
-        GetEditCtrl()->SendMessage( WM_VSCROLL, SB_LINEDOWN);
+        GetLogicCtrl()->SendMessage( WM_VSCROLL, SB_LINEDOWN);
     }
     return FALSE;
 }
@@ -305,7 +305,7 @@ void CFSourceEditView::OnShiftF10()
         CRect rect = RECT();
         pWnd->GetWindowRect(&rect);
         LPARAM lParam = MAKELONG(point.x - rect.left, point.y - rect.top);
-        GetEditCtrl()->PostMessage(WM_RBUTTONDOWN, 0, lParam);
+        GetLogicCtrl()->PostMessage(WM_RBUTTONDOWN, 0, lParam);
     }
 }
 
@@ -313,7 +313,7 @@ void CFSourceEditView::OnShiftF10()
 void CFSourceEditView::OnFormatLogic()
 {
     GetDocument()->SetModifiedFlag(true);
-    GetEditCtrl()->FormatLogic();
+    GetLogicCtrl()->FormatLogic();
 }
 
 
@@ -328,18 +328,18 @@ void CFSourceEditView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
 
 void CFSourceEditView::OnPeekLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, (LPARAM)GetEditCtrl());
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, (LPARAM)GetLogicCtrl());
 }
 
 
 void CFSourceEditView::OnGotoLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, (LPARAM)GetEditCtrl());
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, (LPARAM)GetLogicCtrl());
 }
 
 
 void CFSourceEditView::OnCommentCode() // 20101215
 {
     GetDocument()->SetModifiedFlag(true);
-    GetEditCtrl()->CommentCode();
+    GetLogicCtrl()->CommentCode();
 }

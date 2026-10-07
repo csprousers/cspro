@@ -31,18 +31,7 @@ public:
     CTSourceEditView();
     ~CTSourceEditView();
 
-    // Attributes
-public:
-
-    // Operations
-public:
-    LogicCtrl* GetEditCtrl(void) { return LogicView::GetLogicCtrl(); }
-
-private:
-
     // Overrides
-        // ClassWizard generated virtual function overrides
-        //{{AFX_VIRTUAL(CTSourceEditView)
 public:
     virtual void OnFinalRelease();
 protected:

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: FrmTrCtl.cpp
 //
 //  Description:
@@ -161,7 +161,7 @@ void CFormTreeCtrl::OnSelchanging(NMHDR* pNMHDR, LRESULT* pResult)
           if (pView && !pView->IsWindowVisible()){
 
 
-            if(pFrame && pFrame->GetSourceView() && pFrame->GetSourceView()->GetEditCtrl()->IsModified())
+            if(pFrame && pFrame->GetSourceView() && pFrame->GetSourceView()->GetLogicCtrl()->IsModified())
                 if(AfxGetMainWnd()->SendMessage(UWM::Form::PutSourceCode, 0, (LPARAM) pOldID) == -1){
                     *pResult = 1;
                     return;
@@ -273,7 +273,7 @@ void CFormTreeCtrl::OnSelchanged (NMHDR* pNMHDR, LRESULT* pResult)
     //} moved 6 lines below----Chirag Problem seen in lot of versions...
         CFSourceEditView* pView2 = (CFSourceEditView*)pDoc->GetView(FormViewType::Logic);
         if (pView2 != NULL) {
-            pView2->GetEditCtrl()->EmptyUndoBuffer();
+            pView2->GetLogicCtrl()->EmptyUndoBuffer();
         }
     }
 
