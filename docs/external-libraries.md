@@ -200,6 +200,50 @@ Batch scripts to update many of these libraries are located here:
 
 
 
+## Libraries in the Third-Party Libraries Repository (Built Into CSPro)
+
+
+### Lexilla
+
+*Current version: 5.5.4*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-lexilla
+2. Merge the latest release into the *cspro* branch: https://github.com/ScintillaOrg/lexilla/tags
+3. Run the *editor/copy-to-cspro.bat* batch script.
+4. This only copies files that are currently used by CSPro, so any new files will have to be copied manually.
+5. The library is built as part of the CSPro solution.
+6. This library should be updated at the same time as Scintilla and ScintillaCtrl / ScintillaView.
+
+
+### Scintilla
+
+*Current version: 5.6.7*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-scintilla
+2. Download the latest release: https://www.scintilla.org/ScintillaDownload.html
+3. Replace the contents of the *main* branch with the latest version.
+4. Merge the *main* branch into the *cspro* branch.
+5. Run the *editor/copy-to-cspro.bat* batch script.
+6. This only copies files that are currently used by CSPro, so any new files will have to be copied manually.
+7. The library is built as part of the CSPro solution.
+8. This library should be updated at the same time as Lexilla and ScintillaCtrl / ScintillaView.
+
+
+### ScintillaCtrl / ScintillaView
+
+*Current version: 1.97*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-scintilla-wrappers
+2. Download the latest release: http://www.naughter.com/scintilla.html
+3. Replace the four files in the *main* branch with the latest version.
+4. The license is at the top of *ScintillaCtrl.h*, so check if the *LICENSE* file should be updated.
+5. Merge the *main* branch into the *cspro* branch.
+6. Run the *editor/copy-to-cspro.bat* batch script.
+7. The library is built as part of the CSPro solution.
+8. This library should be updated at the same time as Lexilla and Scintilla.
+
+
+
 ## Libraries With Build Scripts
 
 
@@ -367,18 +411,6 @@ Batch scripts to update many of these libraries are located here:
 5. Run the batch script *Update Android HTML Assets*.
 
 
-### Lexilla
-
-1. Find the latest tag here: https://github.com/ScintillaOrg/lexilla/tags
-2. Edit the batch script, *lexilla.bat*, setting **lexilla_tag**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications made to many files that have to be restored.
-7. The library is built as part of the CSPro solution.
-8. This library should be updated at the same time as Scintilla and ScintillaCtrl / ScintillaView.
-
-
 ### librdata
 
 1. Run the batch script, *librdata.bat*.
@@ -459,29 +491,6 @@ Batch scripts to update many of these libraries are located here:
 3. Run the batch script.
 4. This copies files into the CSPro solution.
 5. The library is built as part of the CSPro solution.
-
-
-### Scintilla
-
-1. Find the latest version number here: https://www.scintilla.org/ScintillaDownload.html
-2. Edit the batch script, *scintilla.bat*, setting **scintilla_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications that have to be restored in:
-    * win32\ScintillaWin.cxx
-7. The library is built as part of the CSPro solution.
-8. This library should be updated at the same time as Lexilla and ScintillaCtrl / ScintillaView.
-
-
-### ScintillaCtrl / ScintillaView
-
-1. Run the batch script, *scintilla-ctrl-view.bat*.
-2. This copies files into the CSPro solution.
-3. There are CSPro modifications that have to be restored.
-4. The license is at the top of *ScintillaCtrl.h*, so check if it should be updated.
-5. The library is built as part of the CSPro solution.
-6. This library should be updated at the same time as Lexilla and Scintilla.
 
 
 ### scrypt
