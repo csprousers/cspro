@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSPro/MDlgBar.h>
 #include <zToolsO/RaiiHelpers.h>
@@ -206,7 +206,7 @@ private:
     // --------------------------------------------------------------------------
 private:
     void OnViewLogic(int position_in_buffer);
-    void GotoExternalLogicOrReportNode(const CDocument* pDoc, CLogicCtrl* logic_control, NullTerminatedString filename,
+    void GotoExternalLogicOrReportNode(const CDocument* pDoc, LogicCtrl* logic_control, NullTerminatedString filename,
                                        bool using_line_number, int line_number_or_position_in_buffer);
 
 protected:

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/LogicCtrl.h>
 
@@ -19,6 +19,6 @@ protected:
 
 public:
     bool m_bIsPostCalc;    // BMD 05 Jun 2006
-    CLogicCtrl m_edtLogicCtrl;
+    LogicCtrl m_edtLogicCtrl;
     std::string m_logic;
 };

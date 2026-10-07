@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodeMenu.h"
 #include "PathAdjusterDlg.h"
 #include "StringEncoderDlg.h"
@@ -16,7 +16,7 @@ void CodeMenu::ReplaceCodeMenuPopups(CMenu* pPopupMenu, int document_lexer_langu
 }
 
 
-void CodeMenu::OnPasteStringLiteral(CLogicCtrl& logic_ctrl)
+void CodeMenu::OnPasteStringLiteral(LogicCtrl& logic_ctrl)
 {
     std::string clipboard_text = WinClipboard::GetText<std::string>();
     SO::Remove(clipboard_text, '\r');

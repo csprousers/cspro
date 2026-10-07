@@ -24,7 +24,7 @@ UniverseDlg::UniverseDlg(std::shared_ptr<const CDataDict> dictionary, std::strin
         m_universe(std::move(universe)),
         m_actionResponder(action_responder),
         m_dictionaryTreeCtrl(std::make_unique<DictionaryTreeCtrl>()),
-        m_universeLogicCtrl(std::make_unique<CLogicCtrl>())
+        m_universeLogicCtrl(std::make_unique<LogicCtrl>())
 {
     ASSERT(m_dictionary != nullptr);
 }

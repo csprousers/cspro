@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/zEditO.h>
 #include <zEditO/CSProScintillaCtrl.h>
@@ -8,13 +8,13 @@
 class CSProScintillaFindReplaceDlg;
 
 
-class CLASS_DECL_ZEDITO CLogicCtrl : public CSProScintillaCtrl
+class CLASS_DECL_ZEDITO LogicCtrl : public CSProScintillaCtrl
 {
-    DECLARE_DYNCREATE(CLogicCtrl)
+    DECLARE_DYNCREATE(LogicCtrl)
 
 public:
-    CLogicCtrl();
-    virtual ~CLogicCtrl();
+    LogicCtrl();
+    virtual ~LogicCtrl();
 
     void BaseInitControl(int lexer_language);
 

@@ -3,8 +3,8 @@
 #include <zUtilF/SplitterWndWithDifferingViews.h>
 #include <zDesignerF/FileModificationChecker.h>
 
-class CLogicCtrl;
 class CodeDoc;
+class LogicCtrl;
 class TextTemplatePreviewer;
 
 

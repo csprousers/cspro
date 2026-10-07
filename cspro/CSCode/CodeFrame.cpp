@@ -224,7 +224,7 @@ void CodeFrame::OnUpdateLanguageType(CCmdUI* const pCmdUI)
 void CodeFrame::OnStringEncoder()
 {
     LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
-    CLogicCtrl* const active_logic_ctrl = assert_cast<CodeView*>(GetActiveView())->GetLogicCtrl();
+    LogicCtrl* const active_logic_ctrl = assert_cast<CodeView*>(GetActiveView())->GetLogicCtrl();
 
     CodeMenu::OnStringEncoder(doc_language_settings.GetOrCreateLogicSettings(), active_logic_ctrl->GetSelText());
 }
@@ -434,7 +434,7 @@ void CodeFrame::OnRunPreviewTextTemplate()
     CodeDoc& code_doc = GetCodeDoc();
     LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
     const LogicSettings& logic_settings = doc_language_settings.GetOrCreateLogicSettings();
-    CLogicCtrl* const logic_ctrl = code_doc.GetPrimaryCodeView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_doc.GetPrimaryCodeView().GetLogicCtrl();
 
     try
     {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //***************************************************************************
 //  File name: MyView.h
 //
@@ -18,14 +18,14 @@
 // CTSourceEditView view
 
 
-class CLASS_DECL_ZTABLEF CTSourceEditView : public CLogicView {
+class CLASS_DECL_ZTABLEF CTSourceEditView : public LogicView {
 
     DECLARE_DYNCREATE(CTSourceEditView)
 
     // Members
 protected:
 
-    CLogicCtrl*  m_pWndEditCtrl;
+    LogicCtrl* m_pWndEditCtrl;
 
 public:
     CTSourceEditView();
@@ -36,7 +36,7 @@ public:
 
     // Operations
 public:
-    CLogicCtrl* GetEditCtrl(void) { return CLogicView::GetLogicCtrl(); }
+    LogicCtrl* GetEditCtrl(void) { return LogicView::GetLogicCtrl(); }
 
 private:
 

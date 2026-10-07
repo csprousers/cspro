@@ -4,7 +4,7 @@
 #include <zDesignerF/CompilerMessageType.h>
 #include <afxdockablepane.h>
 
-class CLogicCtrl;
+class LogicCtrl;
 namespace Logic { struct ParserMessage; }
 
 
@@ -20,8 +20,8 @@ public:
     void SetAddNewlinesBetweenErrorsAndWarnings(bool flag) { m_addNewlinesBetweenErrorsAndWarnings = flag; }
     void SetIndentMessageLinesAfterFirstLine(bool flag)    { m_indentMessageLinesAfterFirstLine = flag; }
 
-    void Initialize(CLogicCtrl* source_logic_ctrl, const std::string& source_title, std::string action, bool reset_flags = false);
-    void Initialize(CLogicCtrl* source_logic_ctrl, const CDocument* source_doc, std::string action, bool reset_flags = false);
+    void Initialize(LogicCtrl* source_logic_ctrl, const std::string& source_title, std::string action, bool reset_flags = false);
+    void Initialize(LogicCtrl* source_logic_ctrl, const CDocument* source_doc, std::string action, bool reset_flags = false);
 
     void Finalize();
 
@@ -43,16 +43,16 @@ public:
     const std::vector<std::string>& GetErrors() const { return m_errors; }
 
 protected:
-    CLogicCtrl* GetSourceLogicSource() { return m_sourceLogicSource; }
+    LogicCtrl* GetSourceLogicSource() { return m_sourceLogicSource; }
 
     // subclasses must override
-    virtual CLogicCtrl* ActivateDocumentAndGetLogicCtrl(std::variant<const CLogicCtrl*, const std::string*> source_logic_ctrl_or_file_path) = 0;
+    virtual LogicCtrl* ActivateDocumentAndGetLogicCtrl(std::variant<const LogicCtrl*, const std::string*> source_logic_ctrl_or_file_path) = 0;
 
 protected:
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 
-	int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	void OnSize(UINT nType, int cx, int cy);
+    int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    void OnSize(UINT nType, int cx, int cy);
 
 private:
     void AddMessage(CompilerMessageType compiler_message_type, const std::string* file_path, const std::string& text, int line_number_base1);
@@ -68,7 +68,7 @@ private:
     bool m_addNewlinesBetweenErrorsAndWarnings;
     bool m_indentMessageLinesAfterFirstLine;
 
-    CLogicCtrl* m_sourceLogicSource;
+    LogicCtrl* m_sourceLogicSource;
     std::string m_sourceDocFilePath;
     std::string m_currentAction;
     size_t m_currentSeparatorWideLength;

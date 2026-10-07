@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSPro.h"
 #include "SymbolAnalysisDlg.h"
 #include <zDesignerF/CodeMenu.h>
@@ -10,13 +10,13 @@
 
 namespace
 {
-    std::tuple<CDocument*, CLogicCtrl*> GetActiveDocumentAndLogicCtrl(CMainFrame* pMainFrame);
-    std::tuple<const Application*, CLogicCtrl*> GetActiveApplicationAndLogicCtrl(CMainFrame* pMainFrame);
-    CLogicCtrl* GetActiveLogicCtrl(CMainFrame* pMainFrame);
+    std::tuple<CDocument*, LogicCtrl*> GetActiveDocumentAndLogicCtrl(CMainFrame* pMainFrame);
+    std::tuple<const Application*, LogicCtrl*> GetActiveApplicationAndLogicCtrl(CMainFrame* pMainFrame);
+    LogicCtrl* GetActiveLogicCtrl(CMainFrame* pMainFrame);
     bool IsLogicCtrlActive(CMainFrame* pMainFrame);
 
 
-    std::tuple<CDocument*, CLogicCtrl*> GetActiveDocumentAndLogicCtrl(CMainFrame* pMainFrame)
+    std::tuple<CDocument*, LogicCtrl*> GetActiveDocumentAndLogicCtrl(CMainFrame* pMainFrame)
     {
         ASSERT(pMainFrame != nullptr);
 
@@ -25,19 +25,19 @@ namespace
 
         CView* pView = pFrame->GetActiveView();
 
-        CLogicCtrl* logic_ctrl = ( pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView)) ) ? assert_cast<CFSourceEditView*>(pView)->GetLogicCtrl() :
-                                 ( pView->IsKindOf(RUNTIME_CLASS(COSourceEditView)) ) ? assert_cast<COSourceEditView*>(pView)->GetLogicCtrl() :
-                                                                                        nullptr;
+        LogicCtrl* logic_ctrl = ( pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView)) ) ? assert_cast<CFSourceEditView*>(pView)->GetLogicCtrl() :
+                                ( pView->IsKindOf(RUNTIME_CLASS(COSourceEditView)) ) ? assert_cast<COSourceEditView*>(pView)->GetLogicCtrl() :
+                                                                                       nullptr;
 
         return { pFrame->GetActiveDocument(), logic_ctrl };
     }
 
 
-    std::tuple<const Application*, CLogicCtrl*> GetActiveApplicationAndLogicCtrl(CMainFrame* pMainFrame)
+    std::tuple<const Application*, LogicCtrl*> GetActiveApplicationAndLogicCtrl(CMainFrame* pMainFrame)
     {
         const Application* application = nullptr;
         CDocument* document;
-        CLogicCtrl* logic_ctrl;
+        LogicCtrl* logic_ctrl;
         std::tie(document, logic_ctrl) = GetActiveDocumentAndLogicCtrl(pMainFrame);
 
         if( document != nullptr )
@@ -52,7 +52,7 @@ namespace
     }
 
 
-    CLogicCtrl* GetActiveLogicCtrl(CMainFrame* pMainFrame)
+    LogicCtrl* GetActiveLogicCtrl(CMainFrame* pMainFrame)
     {
         return std::get<1>(GetActiveDocumentAndLogicCtrl(pMainFrame));
     }
@@ -78,7 +78,7 @@ void CMainFrame::OnUpdateIfLogicIsShowing(CCmdUI* pCmdUI)
 
 void CMainFrame::OnPasteStringLiteral()
 {
-    CLogicCtrl* logic_ctrl = assert_cast<CLogicCtrl*>(GetFocus());
+    LogicCtrl* logic_ctrl = assert_cast<LogicCtrl*>(GetFocus());
     CodeMenu::OnPasteStringLiteral(*logic_ctrl);
 }
 
@@ -92,8 +92,8 @@ void CMainFrame::OnUpdatePasteStringLiteral(CCmdUI* pCmdUI)
         CWnd* focused_wnd = GetFocus();
         ASSERT(focused_wnd != nullptr);
 
-        enable = ( focused_wnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl)) &&
-                   CodeMenu::CanPasteStringLiteral(assert_cast<CLogicCtrl*>(focused_wnd)->GetLexer()) );
+        enable = ( focused_wnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) &&
+                   CodeMenu::CanPasteStringLiteral(assert_cast<LogicCtrl*>(focused_wnd)->GetLexer()) );
     }
 
     pCmdUI->Enable(enable);
@@ -108,7 +108,7 @@ void CMainFrame::OnUpdatePasteStringLiteral(CCmdUI* pCmdUI)
 void CMainFrame::OnStringEncoder()
 {
     const Application* application;
-    CLogicCtrl* logic_ctrl;
+    LogicCtrl* logic_ctrl;
     std::tie(application, logic_ctrl) = GetActiveApplicationAndLogicCtrl(this);
 
     const LogicSettings* logic_settings = nullptr;

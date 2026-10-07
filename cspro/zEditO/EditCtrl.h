@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/zEditO.h>
 #include <zEditO/LogicCtrl.h>
 
 
-class CLASS_DECL_ZEDITO EditCtrl : public CLogicCtrl
+class CLASS_DECL_ZEDITO EditCtrl : public LogicCtrl
 {
 public:
     EditCtrl();

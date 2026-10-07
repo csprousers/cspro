@@ -73,7 +73,7 @@ void DocSetBaseFrame::CompileWrapper(std::string action, const bool input_is_jso
         return;
 
     CDocument& doc = *assert_cast<CDocument*>(GetActiveDocument());
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
 
     build_wnd->Initialize(logic_ctrl, &doc, std::move(action));
 
@@ -252,7 +252,7 @@ void DocSetBaseFrame::HandleWebMessage_getDocSetJson()
 
 void DocSetBaseFrame::OnFormatJson()
 {
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
     logic_ctrl->ClearErrorAndWarningMarkers();
 
     try
@@ -273,7 +273,7 @@ void DocSetBaseFrame::OnFormatComponent(const UINT nID)
 {
     CDocument& doc = *assert_cast<CDocument*>(GetActiveDocument());
 
-    CLogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetTextEditView().GetLogicCtrl();
     logic_ctrl->ClearErrorAndWarningMarkers();
 
     std::string doc_file_path = TC::ToUtf8(doc.GetPathName());
@@ -317,7 +317,7 @@ void DocSetBaseFrame::OnUpdateFormatComponent(CCmdUI* const pCmdUI)
 }
 
 
-void DocSetBaseFrame::SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text) const
+void DocSetBaseFrame::SetLogicCtrlTextWithFormattedText(LogicCtrl& logic_ctrl, std::string formatted_text) const
 {
     ASSERT(!formatted_text.empty());
 

@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/TextEditDoc.h>
 #include <zEditO/LogicView.h>
 
 
-class TextEditView : public CLogicView
+class TextEditView : public LogicView
 {
     DECLARE_DYNCREATE(TextEditView)
 

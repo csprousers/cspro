@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDesignerF/zDesignerF.h>
 #include <zDesignerF/resource_shared.h>
@@ -18,7 +18,7 @@ namespace CodeMenu
 
     CLASS_DECL_ZDESIGNERF void ReplaceCodeMenuPopups(CMenu* pPopupMenu, int document_lexer_language, int view_lexer_language);
 
-    CLASS_DECL_ZDESIGNERF void OnPasteStringLiteral(CLogicCtrl& logic_ctrl);
+    CLASS_DECL_ZDESIGNERF void OnPasteStringLiteral(LogicCtrl& logic_ctrl);
 
     CLASS_DECL_ZDESIGNERF void OnStringEncoder(const LogicSettings& logic_settings, std::string initial_text);
 
@@ -123,7 +123,7 @@ namespace CodeMenu
         }
 
 
-        inline void OnCodeFoldingLevel(UINT nID, CLogicCtrl* logic_ctrl)
+        inline void OnCodeFoldingLevel(UINT nID, LogicCtrl* logic_ctrl)
         {
             SetLevel(GetLevelFromId(nID));
 
@@ -141,7 +141,7 @@ namespace CodeMenu
         }
 
 
-        inline void OnCodeFoldingAction(UINT nID, CLogicCtrl* logic_ctrl)
+        inline void OnCodeFoldingAction(UINT nID, LogicCtrl* logic_ctrl)
         {
             ASSERT(logic_ctrl != nullptr && Lexers::CanFoldCode(logic_ctrl->GetLexer()));
 
@@ -164,7 +164,7 @@ namespace CodeMenu
         }
 
 
-        inline void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI, CLogicCtrl* logic_ctrl)
+        inline void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI, LogicCtrl* logic_ctrl)
         {
             pCmdUI->Enable(logic_ctrl != nullptr &&
                            GetLevel() != CodeFolding::Level::None &&

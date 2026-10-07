@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // ExportOptionsView.h : header file
 //
@@ -93,5 +93,5 @@ protected:
     CExportDoc*         m_pDoc;
 
 private:
-    CLogicCtrl m_cEditUniverse;
+    LogicCtrl m_cEditUniverse;
 };

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //
 //  Description:
 //
@@ -19,7 +19,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // COSourceEditView
 
-IMPLEMENT_DYNCREATE(COSourceEditView, CLogicView)
+IMPLEMENT_DYNCREATE(COSourceEditView, LogicView)
 
 COSourceEditView::COSourceEditView()
 {
@@ -40,7 +40,7 @@ void COSourceEditView::OnFinalRelease()
 }
 
 
-BEGIN_MESSAGE_MAP(COSourceEditView, CLogicView)
+BEGIN_MESSAGE_MAP(COSourceEditView, LogicView)
     //{{AFX_MSG_MAP(COSourceEditView)
     ON_WM_CREATE()
     ON_WM_SIZE()
@@ -107,7 +107,7 @@ void COSourceEditView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /
 /////////////////////////////////////////////////////////////////////////////
 
 void COSourceEditView::OnSize(UINT nType, int cx, int cy) {
-    CLogicView::OnSize(nType, cx, cy);
+    LogicView::OnSize(nType, cx, cy);
 }
 
 void COSourceEditView::OnEditCopy()
@@ -165,7 +165,7 @@ void COSourceEditView::OnOrdEditFind()
     CWnd* pWnd = GetFocus();
 
     if (pWnd && pWnd->GetSafeHwnd())
-        CLogicView::OnEditFind();
+        LogicView::OnEditFind();
     */
 }
 
@@ -228,7 +228,7 @@ void COSourceEditView::OnEditRedo()
 void COSourceEditView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl))){
+    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl))){
         pCmdUI->Enable(GetEditCtrl()->CanRedo());
     }
 
@@ -269,7 +269,7 @@ void COSourceEditView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
     CMenu popup;
     popup.CreatePopupMenu();
-    CLogicCtrl* pEdit = GetEditCtrl();
+    LogicCtrl* pEdit = GetEditCtrl();
 
     const bool writable = !pEdit->GetReadOnly();
 

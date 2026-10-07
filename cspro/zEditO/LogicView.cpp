@@ -1,32 +1,32 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "LogicView.h"
 #include <zScintilla/src/Position.h>
 #include <zToolsO/NumberToString.h>
 #include <zToolsO/WinSettings.h>
 
 
-IMPLEMENT_DYNCREATE(CLogicView, CScintillaView)
+IMPLEMENT_DYNCREATE(LogicView, CScintillaView)
 
 extern const UINT _ScintillaMsgFindReplace ;
 
-CLogicView::CLogicView()
+LogicView::LogicView()
 {
     m_pEdit = NULL;
 }
 
-CLogicView::~CLogicView()
+LogicView::~LogicView()
 {
 }
 
-BEGIN_MESSAGE_MAP(CLogicView, CScintillaView)
+BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_COMMAND(ID_HELP, OnHelp)
-    ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, &CLogicView::OnFindReplaceCmd)
+    ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, &LogicView::OnFindReplaceCmd)
 END_MESSAGE_MAP()
 
 
-int CLogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if( CView::OnCreate(lpCreateStruct) == -1 )
         return -1;
@@ -35,8 +35,8 @@ int CLogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if( m_pEdit != nullptr && m_pEdit->GetSafeHwnd() != nullptr )
         return 0;
 
-    m_pEdit = std::make_unique<CLogicCtrl>();
-    CLogicCtrl* logic_ctrl = GetLogicCtrl();
+    m_pEdit = std::make_unique<LogicCtrl>();
+    LogicCtrl* logic_ctrl = GetLogicCtrl();
 
     if( !logic_ctrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(0, 0, 0, 0), this, 100) )
         return -1;
@@ -57,7 +57,7 @@ int CLogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 
 
-void CLogicView::OnSize(UINT nType, int cx, int cy) {
+void LogicView::OnSize(UINT nType, int cx, int cy) {
 
     CScintillaView::OnSize(nType, cx, cy);
 
@@ -69,12 +69,12 @@ void CLogicView::OnSize(UINT nType, int cx, int cy) {
     GetLogicCtrl()->SetWindowPos(NULL, 0, 0, rc.Width() - rcEdit.left, rc.Height(), SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void CLogicView::OnDraw(CDC* /*pDC*/)
+void LogicView::OnDraw(CDC* /*pDC*/)
 {
 
 }
 
-void CLogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+void LogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
 #ifdef _ENABLE_PRINTING
     //Validate our parameters
@@ -101,10 +101,10 @@ void CLogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 #endif
 }
 
-BOOL CLogicView::PreTranslateMessage(MSG* pMsg)
+BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 {
     // TODO: Add your specialized code here and/or call the base class
-    CLogicCtrl* pLogicCtrl = GetLogicCtrl();
+    LogicCtrl* pLogicCtrl = GetLogicCtrl();
     if (pLogicCtrl && pMsg->hwnd == pLogicCtrl->GetSafeHwnd()) {
         if (pMsg->message == WM_KEYDOWN) {
             // Control+ALT is same as AltGr on French keyboards which is used for other characters like "{" (AltGr+4)) so only consider CTRL without ALT
@@ -158,7 +158,7 @@ BOOL CLogicView::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void CLogicView::OnZoom(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
+void LogicView::OnZoom(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
 {
     WinSettings::Write<DWORD>(WinSettings::Type::LogicEditorZoomLevel, GetLogicCtrl()->GetZoom());
 
@@ -166,21 +166,21 @@ void CLogicView::OnZoom(_Inout_ Scintilla::NotificationData* /*pSCNotification*/
 }
 
 
-void CLogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotification)
+void LogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotification)
 {
     // only display the tooltip if the Scintilla window has focus
     const CWnd* pFocusWnd = GetFocus();
 
     if( pFocusWnd != nullptr )
     {
-        CLogicCtrl* pLogicCtrl = GetLogicCtrl();
+        LogicCtrl* pLogicCtrl = GetLogicCtrl();
 
         if( pFocusWnd->GetSafeHwnd() == pLogicCtrl->GetSafeHwnd() )
             pLogicCtrl->ShowTooltip(pSCNotification->position, false);
     }
 }
 
-void CLogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
+void LogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
 {
     // cancel any outstanding tooltip
     if( GetLogicCtrl()->CallTipActive() )
@@ -188,7 +188,7 @@ void CLogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotificati
 }
 
 
-BOOL CLogicView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+BOOL LogicView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
     const NMHDR* pNMHdr = reinterpret_cast<NMHDR*>(lParam);
     BOOL bRet = CScintillaView::OnNotify(wParam, lParam, pResult);
@@ -220,13 +220,13 @@ BOOL CLogicView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 }
 
 
-void CLogicView::OnHelp()
+void LogicView::OnHelp()
 {
     // if the logic control has focus, override F1 because it sometimes
     // will just active the reference window
     CWnd* pWnd = GetActiveWindow()->GetFocus();
 
-    if( pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl)) )
+    if( pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) )
     {
         if( !OnHandleHelp() )
             AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_HELP, reinterpret_cast<LPARAM>(pWnd));
@@ -239,7 +239,7 @@ void CLogicView::OnHelp()
 }
 
 
-void CLogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
+void LogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
 {
     // when there are few lines, use a margin that will account for at least 10 lines so
     // that the view don't have a jarring update upon the frequent task of adding more 9 lines
@@ -275,12 +275,12 @@ namespace
 }
 
 
-void CLogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification)
+void LogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification)
 {
     CScintillaView::OnUpdateUI(pSCNotification);
 
     // Has the caret changed position?
-    CLogicCtrl* pLogicCtrl = GetLogicCtrl();
+    LogicCtrl* pLogicCtrl = GetLogicCtrl();
     Sci_Position caret_pos = pLogicCtrl->GetCurrentPos();
 
     if( last_caret_pos != caret_pos )
@@ -316,7 +316,7 @@ void CLogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification
     }
 }
 
-LRESULT CLogicView::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT LogicView::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
 {
     if (m_pEdit && m_pEdit->GetSafeHwnd()) {
          m_pEdit->SendMessage(_ScintillaMsgFindReplace, 0, lParam);

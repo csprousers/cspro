@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/LogicCtrl.h>
 
@@ -41,10 +41,10 @@ private:
     std::optional<bool> m_useVerbatimStringLiterals;
     bool m_escapeJsonForwardSlashes;
 
-    CLogicCtrl m_textLogicCtrl;
-    CLogicCtrl m_logicLogicCtrl;
-    CLogicCtrl m_jsonLogicCtrl;
-    CLogicCtrl m_percentEncodingLogicCtrl;
+    LogicCtrl m_textLogicCtrl;
+    LogicCtrl m_logicLogicCtrl;
+    LogicCtrl m_jsonLogicCtrl;
+    LogicCtrl m_percentEncodingLogicCtrl;
     HWND m_splitNewlinesHWnd;
     HWND m_useVerbatimStringLiteralsHWnd;
     HWND m_escapeJsonForwardSlashesHWnd;

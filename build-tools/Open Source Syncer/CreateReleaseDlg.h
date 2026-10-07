@@ -44,7 +44,7 @@ private:
 
     std::string m_releaseTitle;
     int m_releaseType;
-    CLogicCtrl m_releaseNotesLogicCtrl;
+    LogicCtrl m_releaseNotesLogicCtrl;
 
     std::optional<TemporaryFile> m_readmeTemporaryFile;
 

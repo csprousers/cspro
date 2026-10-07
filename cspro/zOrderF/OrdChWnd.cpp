@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: OrdChWnd.cpp
 //
 //  Description:
@@ -334,13 +334,13 @@ COSourceEditView* COrderChildWnd::GetOSourceView()
 }
 
 
-CLogicView* COrderChildWnd::GetSourceLogicView()
+LogicView* COrderChildWnd::GetSourceLogicView()
 {
     return GetOSourceView();
 }
 
 
-CLogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
+LogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
 {
     COSourceEditView* pView = GetOSourceView();
     ASSERT(pView != nullptr);
@@ -403,7 +403,7 @@ void COrderChildWnd::ModifyDocumentAndDoWithLogicCtrl(CF callback_function)
 void COrderChildWnd::OnCommentCode()
 {
     ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* const logic_ctrl)
+        [](LogicCtrl* const logic_ctrl)
         {
             logic_ctrl->CommentCode();
         });
@@ -413,7 +413,7 @@ void COrderChildWnd::OnCommentCode()
 void COrderChildWnd::OnFormatLogic()
 {
     ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* const logic_ctrl)
+        [](LogicCtrl* const logic_ctrl)
         {
             logic_ctrl->FormatLogic();
         });
@@ -422,7 +422,7 @@ void COrderChildWnd::OnFormatLogic()
 
 void COrderChildWnd::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
 {
-    CLogicCtrl* const logic_ctrl = COrderChildWnd::GetSourceLogicCtrl();
+    LogicCtrl* const logic_ctrl = COrderChildWnd::GetSourceLogicCtrl();
 
     pCmdUI->Enable(( logic_ctrl != nullptr &&
                      Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));

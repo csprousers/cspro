@@ -220,8 +220,8 @@ struct CTabViewContainerFocusSwitcher : public CWindowFocusSwitcher
 
     virtual bool MatchWindow(CWnd* pWnd) const
     {
-        return (pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(COXTabViewContainer)) &&
-             pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl)));
+        return ( pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(COXTabViewContainer)) &&
+                 pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) );
     }
 
     virtual void SetFocus(CWnd* pWnd)

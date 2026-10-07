@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zAppO/Application.h>
 #include <zEditO/LogicCtrl.h>
@@ -32,8 +32,8 @@ private:
     CStatic m_symbolsLabelCtrl;
     CTreeCtrl m_symbolsTreeCtrl;
     CStatic m_usesLabelCtrl;
-    std::unique_ptr<CLogicCtrl> m_usesLogicCtrl;
-    CLogicCtrl m_contextLogicCtrl;
+    std::unique_ptr<LogicCtrl> m_usesLogicCtrl;
+    LogicCtrl m_contextLogicCtrl;
 
     std::map<std::string, const TextSource*> m_textSources;
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: FrmChWnd.h
@@ -50,8 +50,8 @@ public:
     virtual ~CFormChildWnd();
 
     // ApplicationChildWnd overrides
-    CLogicView* GetSourceLogicView() override;
-    CLogicCtrl* GetSourceLogicCtrl() override;
+    LogicView* GetSourceLogicView() override;
+    LogicCtrl* GetSourceLogicCtrl() override;
 
     LogicDialogBar& GetLogicDialogBar() override       { return m_logicDlgBar; }
     LogicReferenceWnd& GetLogicReferenceWnd() override { return m_logicReferenceWnd; }

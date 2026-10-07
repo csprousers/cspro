@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilF/EditControls.h>
 #include <zEditO/LogicCtrl.h>
@@ -36,10 +36,10 @@ private:
     bool m_useForwardSlashes;
 
     CEditWithSelectAll m_pathEdit;
-    CLogicCtrl m_pathLogicCtrl;
+    LogicCtrl m_pathLogicCtrl;
     CEditWithSelectAll m_relativeToEdit;
     HWND m_relativePathHWnd;
-    CLogicCtrl m_relativePathLogicCtrl;
+    LogicCtrl m_relativePathLogicCtrl;
     HWND m_useForwardSlashesHWnd;
     bool m_initialized;
 };

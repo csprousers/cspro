@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //***************************************************************************
 //  File name: MyView.h
 //
@@ -17,13 +17,13 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFSourceEditView view
 
-class CLASS_DECL_ZFORMF CFSourceEditView : public CLogicView
+class CLASS_DECL_ZFORMF CFSourceEditView : public LogicView
 {
     DECLARE_DYNCREATE(CFSourceEditView)
 
 // Operations
 public:
-    CLogicCtrl* GetEditCtrl() { return CLogicView::GetLogicCtrl(); }
+    LogicCtrl* GetEditCtrl() { return LogicView::GetLogicCtrl(); }
 
 protected:
     virtual void OnDraw(CDC* pDC);      // overridden to draw this view

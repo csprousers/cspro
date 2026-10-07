@@ -155,7 +155,7 @@ bool ProcessorJavaScript::CompileRunWorker(JavaScript::Bytecode* const bytecode)
     const bool make_build_window_visible_if_not = compile_mode;
 
     CodeView& code_view = m_codeDoc.GetPrimaryCodeView();
-    CLogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_view.GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_JAVASCRIPT);
 
     CMainFrame* const main_frame = assert_cast<CMainFrame*>(AfxGetMainWnd());

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ProcessorHtml.h"
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 
@@ -77,7 +77,7 @@ void ProcessorHtml::DisplayHtmlDialog(CodeDoc& code_doc)
 
 void ProcessorHtml::DisplayHtml(CodeDoc& code_doc)
 {
-    CLogicCtrl* const logic_ctrl = code_doc.GetPrimaryCodeView().GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = code_doc.GetPrimaryCodeView().GetLogicCtrl();
     ASSERT(logic_ctrl->GetLexer() == SCLEX_HTML);
 
     try

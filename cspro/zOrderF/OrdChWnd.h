@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: OrdChWnd.h
@@ -34,8 +34,8 @@ protected:
 
 public:
     // ApplicationChildWnd overrides
-    CLogicView* GetSourceLogicView() override;
-    CLogicCtrl* GetSourceLogicCtrl() override;
+    LogicView* GetSourceLogicView() override;
+    LogicCtrl* GetSourceLogicCtrl() override;
 
     LogicDialogBar& GetLogicDialogBar() override       { return m_logicDlgBar; }
     LogicReferenceWnd& GetLogicReferenceWnd() override { return m_logicReferenceWnd; }

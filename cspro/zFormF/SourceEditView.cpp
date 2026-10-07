@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: SourceEditView.cpp
 //
 //  Description:
@@ -23,10 +23,10 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CFSourceEditView
 
-IMPLEMENT_DYNCREATE(CFSourceEditView, CLogicView)
+IMPLEMENT_DYNCREATE(CFSourceEditView, LogicView)
 
 
-BEGIN_MESSAGE_MAP(CFSourceEditView, CLogicView)
+BEGIN_MESSAGE_MAP(CFSourceEditView, LogicView)
     //{{AFX_MSG_MAP(CFSourceEditView)
     ON_WM_CREATE()
     ON_WM_MOUSEWHEEL()
@@ -226,7 +226,7 @@ void CFSourceEditView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
     BCMenu popMenu;
     popMenu.CreatePopupMenu();
 
-    CLogicCtrl* pEdit = GetEditCtrl();
+    LogicCtrl* pEdit = GetEditCtrl();
 
     const bool writable = !pEdit->GetReadOnly();
 
@@ -319,7 +319,7 @@ void CFSourceEditView::OnFormatLogic()
 
 void CFSourceEditView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
 {
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetLogicCtrl();
 
     pCmdUI->Enable(( logic_ctrl == GetFocus() &&
                      Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zHtml/HtmlEditorCtrl.h>
 
@@ -11,7 +11,7 @@ struct QuestionTextProperties;
 // An interface for question text editors. Subclasses include:
 //
 //     - QuestionTextHtmlEditor: a wrapper around HtmlViewCtrl.
-//     - QuestionTextTextEditor: a wrapper around CLogicCtrl.
+//     - QuestionTextTextEditor: a wrapper around LogicCtrl.
 //
 // --------------------------------------------------------------------------
 
@@ -140,7 +140,7 @@ public:
     QuestionTextTextEditor();
     ~QuestionTextTextEditor();
 
-    CLogicCtrl& GetLogicCtrl() { return *m_logicCtrl; }
+    LogicCtrl& GetLogicCtrl() { return *m_logicCtrl; }
 
     CWnd& GetWnd() override { return GetLogicCtrl(); }
 
@@ -196,7 +196,7 @@ private:
 
 private:
     class CustomLogicCtrl;
-    std::unique_ptr<CLogicCtrl> m_logicCtrl;
+    std::unique_ptr<LogicCtrl> m_logicCtrl;
     CapiText::Format m_format;
     std::shared_ptr<const QuestionTextProperties> m_questionTextProperties;
 };

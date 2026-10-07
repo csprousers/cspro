@@ -1,19 +1,19 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/zEditO.h>
 #include <zEditO/ScintillaDocView.h>
 #include <zEditO/LogicCtrl.h>
 
 
-class CLASS_DECL_ZEDITO CLogicView : public Scintilla::CScintillaView
+class CLASS_DECL_ZEDITO LogicView : public Scintilla::CScintillaView
 {
-    DECLARE_DYNCREATE(CLogicView)
+    DECLARE_DYNCREATE(LogicView)
 
 public:
-    CLogicView();
-    virtual ~CLogicView();
+    LogicView();
+    virtual ~LogicView();
 
-    CLogicCtrl* GetLogicCtrl() { return assert_cast<CLogicCtrl*>(m_pEdit.get()); }
+    LogicCtrl* GetLogicCtrl() { return assert_cast<LogicCtrl*>(m_pEdit.get()); }
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
@@ -37,7 +37,7 @@ protected:
     afx_msg void OnHelp();
     afx_msg LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
 
-    // CLogicView methods that can be overridden
+    // LogicView methods that can be overridden
 
     // return true if the context-sensitive help was handled
     virtual bool OnHandleHelp() { return false; }

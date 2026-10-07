@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PathAdjusterDlg.h"
 #include <zUtilO/FileUtil.h>
 #include <windowsx.h>
@@ -55,7 +55,7 @@ BOOL PathAdjusterDlg::OnInitDialog()
     m_useForwardSlashesHWnd = GetDlgItem(IDC_USE_FORWARD_SLASHES)->GetSafeHwnd();
 
     // set up the logic controls, overriding the font size and zoom, and turning off the horizontal scrollbar
-    for( CLogicCtrl* const logic_ctrl : { &m_pathLogicCtrl, &m_relativePathLogicCtrl } )
+    for( LogicCtrl* const logic_ctrl : { &m_pathLogicCtrl, &m_relativePathLogicCtrl } )
     {
         logic_ctrl->ReplaceCEdit(this, false, false, m_csproLexerLanguage);
 

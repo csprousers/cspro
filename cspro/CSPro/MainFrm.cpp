@@ -2706,7 +2706,7 @@ LRESULT CMainFrame::IsTabNameUnique(WPARAM wParam, LPARAM lParam)
 
 void CMainFrame::OnUpdateKeyOvr(CCmdUI* pCmdUI)
 {
-    CLogicCtrl* logic_ctrl = nullptr;
+    LogicCtrl* logic_ctrl = nullptr;
 
     //Get the active child window
     //if it is CFormChildWnd and the view is logic
@@ -5370,7 +5370,7 @@ void CMainFrame::OnOptionsProperties()
         pAplDoc->SetModifiedFlag();
 
         // refresh the Scintilla lexers in case the logic version changed
-        auto refresh_lexer = [&](CLogicCtrl* const logic_ctrl)
+        auto refresh_lexer = [&](LogicCtrl* const logic_ctrl)
         {
             if( logic_ctrl != nullptr )
                 logic_ctrl->PostMessage(UWM::Edit::RefreshLexer);
@@ -5692,7 +5692,7 @@ namespace
 }
 
 
-void CMainFrame::GotoExternalLogicOrReportNode(const CDocument* pDoc, CLogicCtrl* logic_control, NullTerminatedString filename,
+void CMainFrame::GotoExternalLogicOrReportNode(const CDocument* pDoc, LogicCtrl* logic_control, NullTerminatedString filename,
                                                bool using_line_number, int line_number_or_position_in_buffer)
 {
     bool success = false;
@@ -5736,7 +5736,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
     {
         ASSERT(logic_error_location.adjusted_line_number_for_bookmark.has_value());
 
-        CLogicCtrl* source_logic_ctrl = application_child_wnd->GetSourceLogicCtrl();
+        LogicCtrl* source_logic_ctrl = application_child_wnd->GetSourceLogicCtrl();
         source_logic_ctrl->SetFocus();
         source_logic_ctrl->GotoLine(*logic_error_location.adjusted_line_number_for_bookmark);
     }
@@ -5823,7 +5823,7 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 
 LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
 {
-    const CLogicCtrl* const logic_ctrl = reinterpret_cast<const CLogicCtrl*>(wParam);
+    const LogicCtrl* const logic_ctrl = reinterpret_cast<const LogicCtrl*>(wParam);
     int& lexer_language = *reinterpret_cast<int*>(lParam);
 
     CMDIChildWnd* const pWnd = this->MDIGetActive();

@@ -1697,7 +1697,7 @@ namespace
         {
             std::shared_ptr<Logic::SourceBuffer> source_buffer;
 
-            if( m_logicControl->GetParent()->IsKindOf(RUNTIME_CLASS(CLogicView)) )
+            if( m_logicControl->GetParent()->IsKindOf(RUNTIME_CLASS(LogicView)) )
             {
                 // instead of compiling the whole buffer, compile up to the semicolon following the selected word
                 std::string buffer_text = m_logicControl->GetText();
@@ -1830,7 +1830,7 @@ namespace
         CDocument* m_activeDocument = nullptr;
         CAplDoc* m_applicationDocument = nullptr;
         COXMDIChildWndSizeDock* m_applicationWindow = nullptr;
-        CLogicCtrl* m_logicControl = nullptr;
+        LogicCtrl* m_logicControl = nullptr;
         LogicReferenceWnd* m_logicReferenceWindow = nullptr;
         CTreeCtrl* m_treeControl = nullptr;
 
@@ -1842,7 +1842,7 @@ namespace
 
 LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 {
-    CLogicCtrl* const logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
+    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(lParam);
     const bool activated_by_f1 = ( wParam == ZEDITO_LOGIC_REFERENCE_HELP );
     const bool goto_word = ( wParam == ZEDITO_LOGIC_REFERENCE_GOTO );
 
@@ -2298,7 +2298,7 @@ LRESULT CMainFrame::OnSymbolsAdded(WPARAM wParam, LPARAM lParam)
 
 LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
 {
-    CLogicCtrl* logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
+    LogicCtrl* logic_control = reinterpret_cast<LogicCtrl*>(lParam);
 
     // compile up to the current buffer to look for any new symbols
     LogicReferenceWorker logic_reference_worker(this);
@@ -2375,7 +2375,7 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
 
 LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam)
 {
-    CLogicCtrl* const logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
+    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(lParam);
 
     LogicReferenceWorker logic_reference_worker(this);
 
@@ -2475,7 +2475,7 @@ void CMainFrame::OnViewLogic(int position_in_buffer)
     CDocument* pDoc = pWnd->GetActiveDocument();
 
     CTreeCtrl* pTreeCtrl = nullptr;
-    CLogicView* pLogicView = nullptr;
+    LogicView* pLogicView = nullptr;
 
     // TODO ... process numbers?
 
@@ -2498,7 +2498,7 @@ void CMainFrame::OnViewLogic(int position_in_buffer)
     // ...go to a certain position of the buffer
     if( pLogicView != nullptr )
     {
-        CLogicCtrl* pLogicCtrl = pLogicView->GetLogicCtrl();
+        LogicCtrl* pLogicCtrl = pLogicView->GetLogicCtrl();
         pLogicCtrl->GotoPos(position_in_buffer);
         pLogicCtrl->SetFocus();
     }

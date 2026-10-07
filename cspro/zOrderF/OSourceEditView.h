@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //
@@ -14,7 +14,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // COSourceEditView view
 
-class CLASS_DECL_ZORDERF COSourceEditView : public CLogicView {
+class CLASS_DECL_ZORDERF COSourceEditView : public LogicView {
 
     DECLARE_DYNCREATE(COSourceEditView)
 
@@ -30,7 +30,7 @@ public:
 
 // Operations
 public:
-    CLogicCtrl* GetEditCtrl(void) { return CLogicView::GetLogicCtrl(); }
+    LogicCtrl* GetEditCtrl(void) { return LogicView::GetLogicCtrl(); }
 private:
 
 // Overrides

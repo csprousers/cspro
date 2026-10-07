@@ -955,13 +955,13 @@ CFSourceEditView* CFormChildWnd::GetSourceView()
 }
 
 
-CLogicView* CFormChildWnd::GetSourceLogicView()
+LogicView* CFormChildWnd::GetSourceLogicView()
 {
     return m_pSourceEditView;
 }
 
 
-CLogicCtrl* CFormChildWnd::GetSourceLogicCtrl()
+LogicCtrl* CFormChildWnd::GetSourceLogicCtrl()
 {
     return ( m_pSourceEditView != nullptr ) ? m_pSourceEditView->GetLogicCtrl() :
                                               nullptr;

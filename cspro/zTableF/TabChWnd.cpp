@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TabChWnd.h"
 #include "DefaultStylesDlg.h"
 #include "FlashMsgDlg.h"
@@ -225,13 +225,13 @@ CTSourceEditView* CTableChildWnd::GetSourceView()
 }
 
 
-CLogicView* CTableChildWnd::GetSourceLogicView()
+LogicView* CTableChildWnd::GetSourceLogicView()
 {
     return m_pSourceEditView;
 }
 
 
-CLogicCtrl* CTableChildWnd::GetSourceLogicCtrl()
+LogicCtrl* CTableChildWnd::GetSourceLogicCtrl()
 {
     return ( m_pSourceEditView != nullptr ) ? m_pSourceEditView->GetLogicCtrl() :
                                               nullptr;

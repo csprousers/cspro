@@ -59,7 +59,7 @@ void DocSetBuilderBaseGenerateTask::GetTextAndModifiedIterationForOpenDocuments(
     std::map<std::string, TextSourceEditable*, cs::case_insensitive_less> text_sources_for_open_documents;
     WindowsDesktopMessage::Send(UWM::CSDocument::GetOpenTextSourceEditables, &text_sources_for_open_documents);
 
-    // because TextSourceEditable::GetText can try to get the text from the CLogicCtrl, which must be done on the UI-thread,
+    // because TextSourceEditable::GetText can try to get the text from the LogicCtrl, which must be done on the UI-thread,
     // we will get all details about the open documents here
     for( const auto& [file_path, text_source] : text_sources_for_open_documents )
     {

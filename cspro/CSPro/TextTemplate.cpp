@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MainFrm.h"
 #include <zFormF/QSFEView.h>
 #include <zCapiO/QSFView.h>
@@ -53,7 +53,7 @@ std::variant<std::monostate,
             PutSourceCode(pFormID, false);
     }
 
-    else if( pActiveView->IsKindOf(RUNTIME_CLASS(CLogicView)) )
+    else if( pActiveView->IsKindOf(RUNTIME_CLASS(LogicView)) )
     {
         AppTreeNode* app_tree_node = GetNodeIdForSourceCode<AppTreeNode>();
 

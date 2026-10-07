@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TSourceEditView.cpp
 //
 //  Description:
@@ -23,7 +23,7 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CTSourceEditView
 
-IMPLEMENT_DYNCREATE(CTSourceEditView, CLogicView)
+IMPLEMENT_DYNCREATE(CTSourceEditView, LogicView)
 
 CTSourceEditView::CTSourceEditView()
 {
@@ -44,7 +44,7 @@ void CTSourceEditView::OnFinalRelease()
 }
 
 
-BEGIN_MESSAGE_MAP(CTSourceEditView, CLogicView)
+BEGIN_MESSAGE_MAP(CTSourceEditView, LogicView)
     //{{AFX_MSG_MAP(CTSourceEditView)
     ON_WM_CREATE()
     ON_WM_SIZE()
@@ -128,7 +128,7 @@ void CTSourceEditView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) {
 /////////////////////////////////////////////////////////////////////////////
 
 void CTSourceEditView::OnSize(UINT nType, int cx, int cy) {
-    CLogicView::OnSize(nType, cx, cy);
+    LogicView::OnSize(nType, cx, cy);
 }
 
 void CTSourceEditView::OnEditCopy()
@@ -216,7 +216,7 @@ void CTSourceEditView::OnReplace()
 void CTSourceEditView::OnUpdateReplace(CCmdUI* pCmdUI)
 {
     CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl))){
+    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl))){
         pCmdUI->Enable(TRUE);
     }
 }
@@ -267,7 +267,7 @@ void CTSourceEditView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
     CMenu popup;
     popup.CreatePopupMenu();
-    CLogicCtrl* pEdit = GetEditCtrl();
+    LogicCtrl* pEdit = GetEditCtrl();
 
     const bool writable = !pEdit->GetReadOnly();
 

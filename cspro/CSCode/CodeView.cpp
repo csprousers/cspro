@@ -1,13 +1,13 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodeView.h"
 #include "ProcessorActionInvoker.h"
 #include "ProcessorJson.h"
 #include "ProcessorMessages.h"
 
 
-IMPLEMENT_DYNCREATE(CodeView, CLogicView)
+IMPLEMENT_DYNCREATE(CodeView, LogicView)
 
-BEGIN_MESSAGE_MAP(CodeView, CLogicView)
+BEGIN_MESSAGE_MAP(CodeView, LogicView)
 
     // editor handlers
     ON_COMMAND(ID_EDIT_FIND_NEXT, OnFindNext)
@@ -57,7 +57,7 @@ std::variant<const CDocument*, std::string> CodeView::GetDocumentOrTitleForBuild
 void CodeView::RefreshLogicControlLexer()
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetLogicCtrl();
 
     // set the proper lexer
     logic_ctrl->InitLogicControl(true, view_language_settings.CanCompileOrValidateCode(), view_language_settings.GetLexerLanguage());
@@ -93,7 +93,7 @@ void CodeView::OnInitialUpdateWorker(const cs::string_sz initial_text)
     RefreshLogicControlLexer();
 
     // set the text
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+    LogicCtrl* const logic_ctrl = GetLogicCtrl();
     logic_ctrl->SetTextAndSetSavePoint(initial_text);
     logic_ctrl->EmptyUndoBuffer();
 }

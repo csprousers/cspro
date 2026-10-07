@@ -31,7 +31,7 @@ private:
     SettingsDb m_settingsDb;
     Inputs m_inputs;
 
-    CLogicCtrl m_clearOutputsExclusionsLogicCtrl;
+    LogicCtrl m_clearOutputsExclusionsLogicCtrl;
     CMenu m_clearOutputsMenu;
     CMFCMenuButton m_clearOutputsButton;
 

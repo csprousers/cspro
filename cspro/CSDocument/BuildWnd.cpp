@@ -3,7 +3,7 @@
 #include "CSDocument.h"
 
 
-TextEditView* CSDocumentBuildWnd::FindTextEditView(const std::variant<const CLogicCtrl*, const std::string*>& source_logic_ctrl_or_file_path)
+TextEditView* CSDocumentBuildWnd::FindTextEditView(const std::variant<const LogicCtrl*, const std::string*>& source_logic_ctrl_or_file_path)
 {
     TextEditView* matched_text_edit_view = nullptr;
 
@@ -12,9 +12,9 @@ TextEditView* CSDocumentBuildWnd::FindTextEditView(const std::variant<const CLog
         {
             bool matches;
 
-            if( std::holds_alternative<const CLogicCtrl*>(source_logic_ctrl_or_file_path) )
+            if( std::holds_alternative<const LogicCtrl*>(source_logic_ctrl_or_file_path) )
             {
-                matches = ( text_edit_view.GetLogicCtrl() == std::get<const CLogicCtrl*>(source_logic_ctrl_or_file_path) );
+                matches = ( text_edit_view.GetLogicCtrl() == std::get<const LogicCtrl*>(source_logic_ctrl_or_file_path) );
             }
 
             else
@@ -35,7 +35,7 @@ TextEditView* CSDocumentBuildWnd::FindTextEditView(const std::variant<const CLog
 }
 
 
-CLogicCtrl* CSDocumentBuildWnd::ActivateDocumentAndGetLogicCtrl(const std::variant<const CLogicCtrl*, const std::string*> source_logic_ctrl_or_file_path)
+LogicCtrl* CSDocumentBuildWnd::ActivateDocumentAndGetLogicCtrl(const std::variant<const LogicCtrl*, const std::string*> source_logic_ctrl_or_file_path)
 {
     TextEditView* matched_text_edit_view = FindTextEditView(source_logic_ctrl_or_file_path);
 
