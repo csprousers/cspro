@@ -1,16 +1,25 @@
 #pragma once
 
 #include <zEditO/zEditO.h>
-#include <zEditO/ScintillaDocView.h>
 #include <zEditO/LogicCtrl.h>
+#include <zEditO/ScintillaDocView.h>
 
+
+// --------------------------------------------------------------------------
+// LogicView
+//
+// LogicView hosts a Scintilla control in a view.
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZEDITO LogicView : public Scintilla::CScintillaView
 {
     DECLARE_DYNCREATE(LogicView)
 
+protected:
+    LogicView();
+
 public:
-    LogicCtrl* GetLogicCtrl() { return assert_cast<LogicCtrl*>(m_pEdit.get()); }
+    LogicCtrl* GetLogicCtrl() { return m_logicCtrl; }
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
@@ -44,5 +53,6 @@ protected:
     void UpdateMarginWidth(bool force_margin_width_update = false);
 
 private:
+    LogicCtrl* m_logicCtrl;
     std::optional<int> m_lineCountNumberDigitsAtLastUpdateMarginWidth;
 };

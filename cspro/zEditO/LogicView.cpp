@@ -19,6 +19,12 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
 END_MESSAGE_MAP()
 
 
+LogicView::LogicView()
+    :   m_logicCtrl(nullptr)
+{
+}
+
+
 int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     // bypass CScintillaView's OnCreate as we will create the control here and set various properties
@@ -30,23 +36,23 @@ int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return 0;
 
     m_pEdit = LogicView::CreateScintillaControl();
-    LogicCtrl* const logic_ctrl = GetLogicCtrl();
+    m_logicCtrl = assert_cast<LogicCtrl*>(m_pEdit.get());
 
-    if( !logic_ctrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(), this, 0) )
+    if( !m_logicCtrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(), this, 0) )
         return -1;
 
     // setup the control to show logic
-    logic_ctrl->InitLogicControl(true, true);
+    m_logicCtrl->InitLogicControl(true, true);
 
     // disable the Scintilla default editing menu
-    logic_ctrl->UsePopUp(Scintilla::PopUp::Never);
+    m_logicCtrl->UsePopUp(Scintilla::PopUp::Never);
 
     const int zoom_level = WinSettings::Read<DWORD>(WinSettings::Type::LogicEditorZoomLevel, 1);
-    logic_ctrl->SetZoom(zoom_level);
-    logic_ctrl->SetMouseDwellTime(1000);
+    m_logicCtrl->SetZoom(zoom_level);
+    m_logicCtrl->SetMouseDwellTime(1000);
 
-    logic_ctrl->SetScrollWidth(1);
-    logic_ctrl->SetScrollWidthTracking(TRUE);
+    m_logicCtrl->SetScrollWidth(1);
+    m_logicCtrl->SetScrollWidthTracking(TRUE);
 
     return 0;
 }
@@ -64,10 +70,10 @@ void LogicView::OnSize(UINT nType, int cx, int cy) {
 
     CRect rc, rcEdit;
     GetClientRect(rc);
-    GetLogicCtrl()->GetWindowRect(rcEdit);
+    m_logicCtrl->GetWindowRect(rcEdit);
     ScreenToClient(rcEdit);
 
-    GetLogicCtrl()->SetWindowPos(NULL, 0, 0, rc.Width() - rcEdit.left, rc.Height(), SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+    m_logicCtrl->SetWindowPos(NULL, 0, 0, rc.Width() - rcEdit.left, rc.Height(), SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void LogicView::OnDraw(CDC* /*pDC*/)
@@ -106,21 +112,20 @@ void LogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 {
     // TODO: Add your specialized code here and/or call the base class
-    LogicCtrl* pLogicCtrl = GetLogicCtrl();
-    if (pLogicCtrl && pMsg->hwnd == pLogicCtrl->GetSafeHwnd()) {
+    if (m_logicCtrl != nullptr && pMsg->hwnd == m_logicCtrl->GetSafeHwnd()) {
         if (pMsg->message == WM_KEYDOWN) {
             // Control+ALT is same as AltGr on French keyboards which is used for other characters like "{" (AltGr+4)) so only consider CTRL without ALT
             if( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_MENU) >= 0 )
             {
                 if( pMsg->wParam == VK_SPACE )
                 {
-                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_AUTO_COMPLETE, 0, (LPARAM)pLogicCtrl);
+                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_AUTO_COMPLETE, 0, (LPARAM)m_logicCtrl);
                     return TRUE;
                 }
 
                 else if( pMsg->wParam == '4' ) // $ is on the 4 key on a U.S. keyboard
                 {
-                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_INSERT_PROC_NAME, 0, (LPARAM)pLogicCtrl);
+                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_INSERT_PROC_NAME, 0, (LPARAM)m_logicCtrl);
                     return TRUE;
                 }
 
@@ -148,7 +153,7 @@ BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 
                 if( nID != 0 )
                 {
-                    pLogicCtrl->PostMessage(WM_COMMAND, nID, 0);
+                    m_logicCtrl->PostMessage(WM_COMMAND, nID, 0);
                     return TRUE;
                 }
             }
@@ -162,7 +167,7 @@ BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 
 void LogicView::OnZoom(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
 {
-    WinSettings::Write<DWORD>(WinSettings::Type::LogicEditorZoomLevel, GetLogicCtrl()->GetZoom());
+    WinSettings::Write<DWORD>(WinSettings::Type::LogicEditorZoomLevel, m_logicCtrl->GetZoom());
 
     UpdateMarginWidth();
 }
@@ -175,10 +180,8 @@ void LogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotificatio
 
     if( pFocusWnd != nullptr )
     {
-        LogicCtrl* pLogicCtrl = GetLogicCtrl();
-
-        if( pFocusWnd->GetSafeHwnd() == pLogicCtrl->GetSafeHwnd() )
-            pLogicCtrl->ShowTooltip(pSCNotification->position, false);
+        if( pFocusWnd->GetSafeHwnd() == m_logicCtrl->GetSafeHwnd() )
+            m_logicCtrl->ShowTooltip(pSCNotification->position, false);
     }
 }
 
@@ -186,8 +189,8 @@ void LogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotificatio
 void LogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
 {
     // cancel any outstanding tooltip
-    if( GetLogicCtrl()->CallTipActive() )
-        GetLogicCtrl()->CallTipCancel();
+    if( m_logicCtrl->CallTipActive() )
+        m_logicCtrl->CallTipCancel();
 }
 
 
@@ -195,24 +198,24 @@ BOOL LogicView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
     const NMHDR* pNMHdr = reinterpret_cast<NMHDR*>(lParam);
     BOOL bRet = __super::OnNotify(wParam, lParam, pResult);
-    if (pNMHdr && pNMHdr->hwndFrom == GetLogicCtrl()->GetSafeHwnd()) {
+    if (pNMHdr && pNMHdr->hwndFrom == m_logicCtrl->GetSafeHwnd()) {
         switch (pNMHdr->code)
         {
         case SCN_UPDATEUI:
-            GetLogicCtrl()->SendMessage(UWM::Edit::UpdateStatusPaneCaretPos, 1); // force update of the current control
+            m_logicCtrl->SendMessage(UWM::Edit::UpdateStatusPaneCaretPos, 1); // force update of the current control
             UpdateMarginWidth();
             break;
         case SCN_AUTOCSELECTION:
         {
             SCNotification* pSCNotification  = reinterpret_cast<SCNotification*>(lParam);
             if(pSCNotification->listCompletionMethod == SC_AC_NEWLINE)
-                GetLogicCtrl()->SetAutoComplete(true);
+                m_logicCtrl->SetAutoComplete(true);
             else
-                GetLogicCtrl()->SetAutoComplete(false);
+                m_logicCtrl->SetAutoComplete(false);
         }
             break;
         case SCN_AUTOCCANCELLED:
-            GetLogicCtrl()->SetAutoComplete(false);
+            m_logicCtrl->SetAutoComplete(false);
             break;
 
         default:
@@ -246,13 +249,13 @@ void LogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
 {
     // when there are few lines, use a margin that will account for at least 10 lines so
     // that the view don't have a jarring update upon the frequent task of adding more 9 lines
-    const int line_count = std::max(static_cast<int>(GetLogicCtrl()->GetLineCount()), 10);
+    const int line_count = std::max(static_cast<int>(m_logicCtrl->GetLineCount()), 10);
     const int line_count_number_digits = IntToStringLength(line_count);
 
     if( force_margin_width_update || m_lineCountNumberDigitsAtLastUpdateMarginWidth != line_count_number_digits )
     {
         m_lineCountNumberDigitsAtLastUpdateMarginWidth = line_count_number_digits;
-        GetLogicCtrl()->SetMarginWidthN(0, GetLogicCtrl()->TextWidth(STYLE_LINENUMBER, FormatText("_%d", line_count).c_str()));
+        m_logicCtrl->SetMarginWidthN(0, m_logicCtrl->TextWidth(STYLE_LINENUMBER, FormatText("_%d", line_count).c_str()));
     }
 }
 
@@ -283,8 +286,7 @@ void LogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification)
     __super::OnUpdateUI(pSCNotification);
 
     // Has the caret changed position?
-    LogicCtrl* pLogicCtrl = GetLogicCtrl();
-    Sci_Position caret_pos = pLogicCtrl->GetCurrentPos();
+    Sci_Position caret_pos = m_logicCtrl->GetCurrentPos();
 
     if( last_caret_pos != caret_pos )
     {
@@ -293,31 +295,32 @@ void LogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification)
         Sci_Position brace_pos1 = Sci::invalidPosition;
 
         // Is there a brace to the left or right?
-        if( caret_pos > 0 && IsBrace(pLogicCtrl->GetCharAt(caret_pos - 1)) )
+        if( caret_pos > 0 && IsBrace(m_logicCtrl->GetCharAt(caret_pos - 1)) )
             brace_pos1 = caret_pos - 1;
 
-        else if( IsBrace(pLogicCtrl->GetCharAt(caret_pos)) )
+        else if( IsBrace(m_logicCtrl->GetCharAt(caret_pos)) )
             brace_pos1 = caret_pos;
 
         if( brace_pos1 != Sci::invalidPosition )
         {
             // Find the matching brace
-            Sci_Position brace_pos2 = pLogicCtrl->BraceMatch(brace_pos1, 0);
+            Sci_Position brace_pos2 = m_logicCtrl->BraceMatch(brace_pos1, 0);
 
             if( brace_pos2 == Sci::invalidPosition )
-                pLogicCtrl->BraceBadLight(brace_pos1);
+                m_logicCtrl->BraceBadLight(brace_pos1);
 
             else
-                pLogicCtrl->BraceHighlight(brace_pos1, brace_pos2);
+                m_logicCtrl->BraceHighlight(brace_pos1, brace_pos2);
         }
 
         // Turn off brace matching
         else
         {
-            pLogicCtrl->BraceHighlight(Sci::invalidPosition, Sci::invalidPosition);
+            m_logicCtrl->BraceHighlight(Sci::invalidPosition, Sci::invalidPosition);
         }
     }
 }
+
 
 LRESULT LogicView::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
 {
