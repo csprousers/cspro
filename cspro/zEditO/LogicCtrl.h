@@ -64,6 +64,9 @@ public:
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
+    // Returns the point, in client coordinates, of the current caret position.
+    CPoint GetCaretPoint();
+
     virtual LRESULT OnUpdateStatusPaneCaretPos(WPARAM wParam = 0, LPARAM lParam = 0);
 
     bool IsAutoCompleteActive(void) { return m_bAutoComplete;}

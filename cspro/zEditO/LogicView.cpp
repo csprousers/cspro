@@ -14,6 +14,7 @@ IMPLEMENT_DYNCREATE(LogicView, CScintillaView)
 BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_WM_CREATE()
     ON_WM_SIZE()
+    ON_WM_CONTEXTMENU()
     ON_COMMAND(ID_HELP, OnHelp)
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
 END_MESSAGE_MAP()
@@ -78,34 +79,46 @@ void LogicView::OnSize(UINT nType, int cx, int cy) {
 
 void LogicView::OnDraw(CDC* /*pDC*/)
 {
+    // CScintillaView's OnDraw asserts, so it is overridden here
 }
 
 
-void LogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
+HMENU LogicView::GetContextMenu()
 {
-#ifdef _ENABLE_PRINTING
-    //Validate our parameters
-    ASSERT_VALID(this);
-    ASSERT_VALID(pDC);
-#pragma warning(suppress: 26496)
-    AFXASSUME(pInfo != nullptr);
+    CMenu menu;
+    return menu.LoadMenu(IDR_EDIT) ? menu.Detach() : nullptr;
+}
 
-    if (pInfo->m_nCurPage <= pInfo->GetMaxPage())
+
+void LogicView::OnContextMenu(CWnd* const pWnd, CPoint point)
+{
+    ASSERT(pWnd == m_logicCtrl);
+
+    HMENU menu = GetContextMenu();
+    HMENU submenu = ( menu != nullptr ) ? GetSubMenu(menu, 0) : nullptr;
+
+    if( submenu == nullptr )
     {
-#pragma warning(suppress: 26472)
-        if ((pInfo->m_nCurPage > static_cast<UINT>(m_PageStart.size())) && !PaginateTo(pDC, pInfo))
-        {
-            //can't paginate to that page, thus cannot print it.
-            pInfo->m_bContinuePrinting = FALSE;
-        }
-        ASSERT_VALID(this);
+        ASSERT(false);
+        return;
     }
-    else
+
+    // when triggered by the keyboard, not the mouse,
+    // show the menu at the current caret
+    if( point.x == -1 && point.y == -1 )
     {
-        //Reached the max page to print
-        pInfo->m_bContinuePrinting = FALSE;
+        point = m_logicCtrl->GetCaretPoint();
+        m_logicCtrl->ClientToScreen(&point);
     }
-#endif
+
+    TrackPopupMenu(
+        submenu,
+        TPM_LEFTALIGN | TPM_RIGHTBUTTON,
+        point.x, point.y,
+        0, // nReserved
+        AfxGetMainWnd()->m_hWnd, // using the frame will properly update (enable/disable) all of the commands
+        nullptr // prcRect
+    );
 }
 
 

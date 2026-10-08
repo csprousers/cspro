@@ -9,6 +9,10 @@
 // LogicView
 //
 // LogicView hosts a Scintilla control in a view.
+//
+// Default functionality includes:
+//
+// - Showing a context menu. Overridable using GetContextMenu().
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZEDITO LogicView : public Scintilla::CScintillaView
@@ -21,14 +25,31 @@ protected:
 public:
     LogicCtrl* GetLogicCtrl() { return m_logicCtrl; }
 
-    BOOL PreTranslateMessage(MSG* pMsg) override;
+protected:
+    // LogicView methods that can be overridden
+
+    // Returns the context menu. The submenu at position 0 is displayed.
+    // If not specified, the IDR_EDIT menu is used.
+    virtual HMENU GetContextMenu();
+
+    // Return true if the context-sensitive help was handled.
+    virtual bool OnHandleHelp() { return false; }
 
 protected:
     DECLARE_MESSAGE_MAP()
 
-    void OnDraw(CDC* pDC) override;      // overridden to draw this view
-    void OnPrepareDC(CDC* pDC, CPrintInfo* pInfo) override;
+    int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    void OnSize(UINT nType, int cx, int cy);
+    void OnDraw(CDC* pDC) override;
+    void OnContextMenu(CWnd* pWnd, CPoint point);
 
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+
+    void OnHelp();
+
+    LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
+
+private:
     std::unique_ptr<Scintilla::CScintillaCtrl> CreateScintillaControl() override;
 
     // Scintilla virtual notifications override
@@ -37,17 +58,6 @@ protected:
     void OnDwellEnd(_Inout_ Scintilla::NotificationData* pSCNotification) override;
     void OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification) override;
     BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
-
-    // Generated message map functions
-    afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-    afx_msg void OnSize(UINT nType, int cx, int cy);
-    afx_msg void OnHelp();
-    afx_msg LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
-
-    // LogicView methods that can be overridden
-
-    // return true if the context-sensitive help was handled
-    virtual bool OnHandleHelp() { return false; }
 
 protected:
     void UpdateMarginWidth(bool force_margin_width_update = false);

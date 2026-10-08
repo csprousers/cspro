@@ -8,7 +8,7 @@
 #include <zDesignerF/CodeMenu.h>
 
 
-//CSPro Scintilla Logic Control
+// CSPro Scintilla Logic Control
 
 extern Scintilla::CScintillaEditState g_scintillaEditState;
 extern const UINT _ScintillaMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRING);
@@ -1141,6 +1141,15 @@ void LogicCtrl::UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu)
         }
         state.m_nIndexMax = nCount;
     }
+}
+
+
+CPoint LogicCtrl::GetCaretPoint()
+{
+    const Scintilla::Position pos = GetCurrentPos();
+
+    return CPoint(int32_cast(PointXFromPosition(pos)),
+                  int32_cast(PointYFromPosition(pos)));
 }
 
 
