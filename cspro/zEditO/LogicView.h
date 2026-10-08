@@ -35,6 +35,9 @@ protected:
     // Return true if the context-sensitive help was handled.
     virtual bool OnHandleHelp() { return false; }
 
+    // Updates the margin width based on the line count.
+    void UpdateMarginWidth(bool force_margin_width_update = false);
+
 protected:
     DECLARE_MESSAGE_MAP()
 
@@ -53,14 +56,14 @@ private:
     std::unique_ptr<Scintilla::CScintillaCtrl> CreateScintillaControl() override;
 
     // Scintilla virtual notifications override
-    void OnZoom(_Inout_ Scintilla::NotificationData* pSCNotification) override;
-    void OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotification) override;
-    void OnDwellEnd(_Inout_ Scintilla::NotificationData* pSCNotification) override;
-    void OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification) override;
-    BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
+    void OnZoom(Scintilla::NotificationData* pSCNotification) override;
+    void OnDwellStart(Scintilla::NotificationData* pSCNotification) override;
+    void OnDwellEnd(Scintilla::NotificationData* pSCNotification) override;
+    void OnUpdateUI(Scintilla::NotificationData* pSCNotification) override;
+    void OnAutoCSelection(Scintilla::NotificationData* pSCNotification) override;
+    void OnAutoCCancelled(Scintilla::NotificationData* pSCNotification) override;
 
-protected:
-    void UpdateMarginWidth(bool force_margin_width_update = false);
+    void UpdateBraceMatchingUI();
 
 private:
     LogicCtrl* m_logicCtrl;

@@ -69,8 +69,8 @@ public:
 
     virtual LRESULT OnUpdateStatusPaneCaretPos(WPARAM wParam = 0, LPARAM lParam = 0);
 
-    bool IsAutoCompleteActive(void) { return m_bAutoComplete;}
-    void SetAutoComplete(bool bAutoComplete) { m_bAutoComplete = bAutoComplete; }
+    bool IsAutoCompleteActive() const noexcept       { return m_autoCompleteActive; }
+    void SetAutoCompleteActive(bool active) noexcept { m_autoCompleteActive = active; }
 
     void CopySelection();
     void CopyAllText();
@@ -120,7 +120,7 @@ private:
     BOOL            m_bFirstSearch;                     //Is this the first search
     BOOL            m_bChangeFindRange;                 //Should search start again from beginning
     Sci_Position    m_lInitialSearchPos;                //Initial search position
-    bool            m_bAutoComplete;
+    bool            m_autoCompleteActive;
     bool            m_replacedCEdit;
 
     std::optional<bool> m_foldingEnabled;

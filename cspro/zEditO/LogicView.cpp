@@ -178,7 +178,7 @@ BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void LogicView::OnZoom(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
+void LogicView::OnZoom(Scintilla::NotificationData* /*pSCNotification*/)
 {
     WinSettings::Write<DWORD>(WinSettings::Type::LogicEditorZoomLevel, m_logicCtrl->GetZoom());
 
@@ -186,7 +186,7 @@ void LogicView::OnZoom(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
 }
 
 
-void LogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotification)
+void LogicView::OnDwellStart(Scintilla::NotificationData* pSCNotification)
 {
     // only display the tooltip if the Scintilla window has focus
     const CWnd* pFocusWnd = GetFocus();
@@ -199,7 +199,7 @@ void LogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotificatio
 }
 
 
-void LogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
+void LogicView::OnDwellEnd(Scintilla::NotificationData* /*pSCNotification*/)
 {
     // cancel any outstanding tooltip
     if( m_logicCtrl->CallTipActive() )
@@ -207,35 +207,30 @@ void LogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotificatio
 }
 
 
-BOOL LogicView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+void LogicView::OnUpdateUI(Scintilla::NotificationData* /*pSCNotification*/)
 {
-    const NMHDR* pNMHdr = reinterpret_cast<NMHDR*>(lParam);
-    BOOL bRet = __super::OnNotify(wParam, lParam, pResult);
-    if (pNMHdr && pNMHdr->hwndFrom == m_logicCtrl->GetSafeHwnd()) {
-        switch (pNMHdr->code)
-        {
-        case SCN_UPDATEUI:
-            m_logicCtrl->SendMessage(UWM::Edit::UpdateStatusPaneCaretPos, 1); // force update of the current control
-            UpdateMarginWidth();
-            break;
-        case SCN_AUTOCSELECTION:
-        {
-            SCNotification* pSCNotification  = reinterpret_cast<SCNotification*>(lParam);
-            if(pSCNotification->listCompletionMethod == SC_AC_NEWLINE)
-                m_logicCtrl->SetAutoComplete(true);
-            else
-                m_logicCtrl->SetAutoComplete(false);
-        }
-            break;
-        case SCN_AUTOCCANCELLED:
-            m_logicCtrl->SetAutoComplete(false);
-            break;
+    // increase or decrease the margin based on the number of lines
+    UpdateMarginWidth();
 
-        default:
-            break;
-        }
-    }
-    return bRet;
+    // update brace maching
+    UpdateBraceMatchingUI();
+
+    // update the current caret position
+    m_logicCtrl->SendMessage(UWM::Edit::UpdateStatusPaneCaretPos, 1);
+}
+
+
+void LogicView::OnAutoCSelection(Scintilla::NotificationData* const pSCNotification)
+{
+    m_logicCtrl->SetAutoCompleteActive(
+        ( pSCNotification->listCompletionMethod == Scintilla::CompletionMethods::Newline )
+    );
+}
+
+
+void LogicView::OnAutoCCancelled(Scintilla::NotificationData* /*pSCNotification*/)
+{
+    m_logicCtrl->SetAutoCompleteActive(false);
 }
 
 
@@ -294,10 +289,8 @@ namespace
 }
 
 
-void LogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification)
+void LogicView::UpdateBraceMatchingUI()
 {
-    __super::OnUpdateUI(pSCNotification);
-
     // Has the caret changed position?
     Sci_Position caret_pos = m_logicCtrl->GetCurrentPos();
 

@@ -39,7 +39,7 @@ LogicCtrl::LogicCtrl()
         m_lInitialSearchPos(0),
         m_modified(false),
         m_nCtxMenuId(0),
-        m_bAutoComplete(false),
+        m_autoCompleteActive(false),
         m_replacedCEdit(false),
         m_logicTooltips(nullptr)
 {
@@ -477,7 +477,7 @@ void LogicCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     if ((char)nChar == '\r' || (char)nChar == '\n') {
         if (IsAutoCompleteActive()) {
-            SetAutoComplete(false);
+            SetAutoCompleteActive(false);
             return;
         }
         Sci_Position nPos = GetCurrentPos();
