@@ -10,9 +10,6 @@ class CLASS_DECL_ZEDITO LogicView : public Scintilla::CScintillaView
     DECLARE_DYNCREATE(LogicView)
 
 public:
-    LogicView();
-    virtual ~LogicView();
-
     LogicCtrl* GetLogicCtrl() { return assert_cast<LogicCtrl*>(m_pEdit.get()); }
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
@@ -22,9 +19,10 @@ protected:
 
     void OnDraw(CDC* pDC) override;      // overridden to draw this view
     void OnPrepareDC(CDC* pDC, CPrintInfo* pInfo) override;
-    //}}AFX_VIRTUAL
 
-    //Scintilla virtual notifications override
+    std::unique_ptr<Scintilla::CScintillaCtrl> CreateScintillaControl() override;
+
+    // Scintilla virtual notifications override
     void OnZoom(_Inout_ Scintilla::NotificationData* pSCNotification) override;
     void OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotification) override;
     void OnDwellEnd(_Inout_ Scintilla::NotificationData* pSCNotification) override;

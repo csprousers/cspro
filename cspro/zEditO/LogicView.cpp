@@ -5,29 +5,23 @@
 #include <zToolsO/WinSettings.h>
 
 
+extern const UINT _ScintillaMsgFindReplace;
+
+
 IMPLEMENT_DYNCREATE(LogicView, CScintillaView)
 
-extern const UINT _ScintillaMsgFindReplace ;
-
-LogicView::LogicView()
-{
-    m_pEdit = NULL;
-}
-
-LogicView::~LogicView()
-{
-}
 
 BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_COMMAND(ID_HELP, OnHelp)
-    ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, &LogicView::OnFindReplaceCmd)
+    ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
 END_MESSAGE_MAP()
 
 
 int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+    // bypass CScintillaView's OnCreate as we will create the control here and set various properties
     if( CView::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
@@ -35,10 +29,10 @@ int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if( m_pEdit != nullptr && m_pEdit->GetSafeHwnd() != nullptr )
         return 0;
 
-    m_pEdit = std::make_unique<LogicCtrl>();
-    LogicCtrl* logic_ctrl = GetLogicCtrl();
+    m_pEdit = LogicView::CreateScintillaControl();
+    LogicCtrl* const logic_ctrl = GetLogicCtrl();
 
-    if( !logic_ctrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(0, 0, 0, 0), this, 100) )
+    if( !logic_ctrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(), this, 0) )
         return -1;
 
     // setup the control to show logic
@@ -47,13 +41,20 @@ int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // disable the Scintilla default editing menu
     logic_ctrl->UsePopUp(Scintilla::PopUp::Never);
 
-    int zoom_level = WinSettings::Read<DWORD>(WinSettings::Type::LogicEditorZoomLevel, 1);
+    const int zoom_level = WinSettings::Read<DWORD>(WinSettings::Type::LogicEditorZoomLevel, 1);
     logic_ctrl->SetZoom(zoom_level);
     logic_ctrl->SetMouseDwellTime(1000);
 
-    logic_ctrl->SetScrollWidthTracking(true);
+    logic_ctrl->SetScrollWidth(1);
+    logic_ctrl->SetScrollWidthTracking(TRUE);
 
     return 0;
+}
+
+
+std::unique_ptr<Scintilla::CScintillaCtrl> LogicView::CreateScintillaControl()
+{
+    return std::make_unique<LogicCtrl>();
 }
 
 
@@ -71,8 +72,8 @@ void LogicView::OnSize(UINT nType, int cx, int cy) {
 
 void LogicView::OnDraw(CDC* /*pDC*/)
 {
-
 }
+
 
 void LogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
@@ -100,6 +101,7 @@ void LogicView::OnPrepareDC(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
     }
 #endif
 }
+
 
 BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 {
@@ -180,6 +182,7 @@ void LogicView::OnDwellStart(_Inout_ Scintilla::NotificationData* pSCNotificatio
     }
 }
 
+
 void LogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotification*/)
 {
     // cancel any outstanding tooltip
@@ -191,7 +194,7 @@ void LogicView::OnDwellEnd(_Inout_ Scintilla::NotificationData* /*pSCNotificatio
 BOOL LogicView::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
     const NMHDR* pNMHdr = reinterpret_cast<NMHDR*>(lParam);
-    BOOL bRet = CScintillaView::OnNotify(wParam, lParam, pResult);
+    BOOL bRet = __super::OnNotify(wParam, lParam, pResult);
     if (pNMHdr && pNMHdr->hwndFrom == GetLogicCtrl()->GetSafeHwnd()) {
         switch (pNMHdr->code)
         {
@@ -234,7 +237,7 @@ void LogicView::OnHelp()
 
     else
     {
-        CScintillaView::OnHelp();
+        __super::OnHelp();
     }
 }
 
@@ -277,7 +280,7 @@ namespace
 
 void LogicView::OnUpdateUI(_Inout_ Scintilla::NotificationData* pSCNotification)
 {
-    CScintillaView::OnUpdateUI(pSCNotification);
+    __super::OnUpdateUI(pSCNotification);
 
     // Has the caret changed position?
     LogicCtrl* pLogicCtrl = GetLogicCtrl();
