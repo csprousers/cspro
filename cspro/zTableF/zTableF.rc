@@ -9,6 +9,7 @@
 //
 #include "resource_shared.h"
 #include "../zUtilF/resource_shared.h"
+#include "../zEditO/resource_shared.h"
 #include "../zDesignerF/resource_shared.h"
 #include "afxres.h"
 
@@ -37,6 +38,7 @@ END
 BEGIN
     "#include ""resource_shared.h""\r\n"
     "#include ""../zUtilF/resource_shared.h""\r\n"
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zDesignerF/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -365,6 +367,7 @@ IDI_XTBLOG              ICON                    "Res\\xtblog.ico"
 
 IDR_TABLE_FRAME ACCELERATORS
 BEGIN
+    VK_OEM_2,       ID_COMMENT_LINE,        VIRTKEY, CONTROL, NOINVERT
     "A",            ID_AREA,                VIRTKEY, ALT, NOINVERT
     "L",            ID_CHANGE_LANGUAGE,     VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT

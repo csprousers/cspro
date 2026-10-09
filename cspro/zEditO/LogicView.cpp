@@ -4,6 +4,7 @@
 #include <zScintilla/src/Position.h>
 #include <zToolsO/NumberToString.h>
 #include <zToolsO/WinSettings.h>
+#include <zDesignerF/CodeMenu.h>
 
 
 extern const UINT _ScintillaMsgFindReplace;
@@ -16,6 +17,7 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_WM_CONTEXTMENU()
+    ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
     ON_COMMAND(ID_HELP, OnHelp)
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
 END_MESSAGE_MAP()
@@ -268,25 +270,6 @@ void LogicView::OnAutoCCancelled(Scintilla::NotificationData* /*pSCNotification*
 }
 
 
-void LogicView::OnHelp()
-{
-    // if the logic control has focus, override F1 because it sometimes
-    // will just active the reference window
-    CWnd* pWnd = GetActiveWindow()->GetFocus();
-
-    if( pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) )
-    {
-        if( !OnHandleHelp() )
-            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_HELP, reinterpret_cast<LPARAM>(pWnd));
-    }
-
-    else
-    {
-        __super::OnHelp();
-    }
-}
-
-
 void LogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
 {
     // when there are few lines, use a margin that will account for at least 10 lines so
@@ -369,4 +352,36 @@ LRESULT LogicView::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
     }
 
     return 0;
+}
+
+
+bool LogicView::CanCommentLine()
+{
+    return CodeMenu::CanCommentCode(m_logicCtrl->GetLexer());
+}
+
+
+void LogicView::OnCommentLine()
+{
+    if( CanCommentLine() )
+        m_logicCtrl->CommentLine();
+}
+
+
+void LogicView::OnHelp()
+{
+    // if the logic control has focus, override F1 because it sometimes
+    // will just active the reference window
+    CWnd* pWnd = GetActiveWindow()->GetFocus();
+
+    if( pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) )
+    {
+        if( !OnHandleHelp() )
+            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_HELP, reinterpret_cast<LPARAM>(pWnd));
+    }
+
+    else
+    {
+        __super::OnHelp();
+    }
 }

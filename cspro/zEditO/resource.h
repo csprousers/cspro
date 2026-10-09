@@ -20,7 +20,6 @@
 #define IDC_LINE_HEADER                 10503
 #define IDC_REGULAR_EXPRESSION          10504
 #define IDC_REPLACE_IN_SELECTION        10505
-#define ID_EDIT_COMMENT_LINE            45001
 
 // Next default values for new objects
 // 

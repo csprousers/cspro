@@ -11,7 +11,6 @@ BEGIN_MESSAGE_MAP(CodeView, LogicView)
 
     // editor handlers
     ON_COMMAND(ID_EDIT_FIND_NEXT, OnFindNext)
-    ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
 
     // Code menu
     ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
@@ -116,15 +115,6 @@ void CodeView::OnSavePointLeft(_Inout_ Scintilla::NotificationData* /*pSCNotific
 void CodeView::OnFindNext()
 {
     SendMessage(WM_COMMAND, ID_EDIT_REPEAT);
-}
-
-
-void CodeView::OnCommentCode()
-{
-    const LanguageSettings& view_language_settings = GetLanguageSettings();
-
-    if( CodeMenu::CanCommentCode(view_language_settings.GetLexerLanguage()) )
-        GetLogicCtrl()->CommentCode();
 }
 
 

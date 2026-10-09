@@ -32,7 +32,6 @@ BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_WM_MDIACTIVATE()
     ON_COMMAND(ID_RUNBATCH, OnRun)
     ON_COMMAND(ID_ORD_COMPILE, OnCompile)
-    ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnViewQuestionnaire)
@@ -385,16 +384,6 @@ void COrderChildWnd::ModifyDocumentAndDoWithLogicCtrl(CF callback_function)
             callback_function(((COSourceEditView*)pView)->GetLogicCtrl());
         }
     }
-}
-
-
-void COrderChildWnd::OnCommentCode()
-{
-    ModifyDocumentAndDoWithLogicCtrl(
-        [](LogicCtrl* const logic_ctrl)
-        {
-            logic_ctrl->CommentCode();
-        });
 }
 
 

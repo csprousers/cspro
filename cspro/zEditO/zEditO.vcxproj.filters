@@ -94,6 +94,9 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="resource_win32.h">
       <Filter>Header Files</Filter>
     </ClInclude>

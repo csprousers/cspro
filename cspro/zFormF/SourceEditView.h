@@ -53,7 +53,6 @@ protected:
     afx_msg void OnShiftF10();
     afx_msg void OnFormatLogic();
     afx_msg void OnUpdateFormatLogic(CCmdUI* pCmdUI);
-    afx_msg void OnCommentCode();
 
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()

@@ -39,8 +39,6 @@ protected:
     // --------------------------------------------------------------------------
     void OnFindNext();
 
-    void OnCommentCode();
-
     // Code menu handlers
     // --------------------------------------------------------------------------
     void OnPasteStringLiteral();

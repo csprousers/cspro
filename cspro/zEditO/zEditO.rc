@@ -7,6 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#include "../zEditO/resource_shared.h"
 #include "../zEditO/resource_win32.h"
 #include "afxres.h"
 
@@ -33,6 +34,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zEditO/resource_win32.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -211,7 +213,7 @@ END
 
 IDR_MESSAGE_EDIT ACCELERATORS
 BEGIN
-    VK_OEM_2,       ID_EDIT_COMMENT_LINE,   VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_2,       ID_COMMENT_LINE,        VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT

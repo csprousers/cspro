@@ -33,7 +33,8 @@ namespace CodeMenu
     constexpr bool CanCommentCode(int lexer_language)
     {
         return ( Lexers::IsCSProLogic(lexer_language) ||
-                 Lexers::IsCSProMessage(lexer_language) );
+                 Lexers::IsCSProMessage(lexer_language) ||
+                 lexer_language == SCLEX_JAVASCRIPT );
     }
 
 

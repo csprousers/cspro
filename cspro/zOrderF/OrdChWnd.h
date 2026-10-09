@@ -60,7 +60,6 @@ protected:
     void OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd);
     void OnRun();
     void OnCompile();
-    void OnCommentCode();
     void OnFormatLogic();
     void OnUpdateFormatLogic(CCmdUI* pCmdUI);
     void OnViewQuestionnaire();

@@ -1226,7 +1226,7 @@ void LogicCtrl::DeleteLine()
 }
 
 
-void LogicCtrl::CommentCode() // 20101215
+void LogicCtrl::CommentLine() // 20101215
 {
     int selectionBufferLength = Scintilla::CScintillaCtrl::GetSelText(NULL);
     bool bResetSelection = true;
