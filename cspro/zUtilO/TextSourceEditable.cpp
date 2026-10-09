@@ -114,10 +114,10 @@ void TextSourceEditable::SetText(SharableString text)
 }
 
 
-void TextSourceEditable::SetModified()
+void TextSourceEditable::SetModified(const bool modified/* = true*/)
 {
-    m_modified = true;
-    m_modifiedIteration = GetTimestamp();
+    m_modified = modified;
+    m_modifiedIteration = modified ? GetTimestamp() : m_loadedFileModifiedTime;
 }
 
 
@@ -166,7 +166,7 @@ void TextSourceEditable::SetNewFilePath(std::string new_file_path)
 }
 
 
-void TextSourceEditable::SetSourceModifier(SourceModifier* const source_modifier)
+void TextSourceEditable::SetSourceModifier(SourceModifier* const source_modifier) noexcept
 {
     m_sourceModifier = source_modifier;
     m_sourceModifierLastGetTextModifiedIteration = m_modifiedIteration;

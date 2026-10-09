@@ -4,6 +4,8 @@
 #include <zEditO/LogicCtrl.h>
 #include <zEditO/ScintillaDocView.h>
 
+class TextSourceEditable;
+
 
 // --------------------------------------------------------------------------
 // LogicView
@@ -23,10 +25,16 @@ protected:
     LogicView();
 
 public:
-    LogicCtrl* GetLogicCtrl() { return m_logicCtrl; }
+    ~LogicView() noexcept;
+
+    LogicCtrl* GetLogicCtrl() noexcept { return m_logicCtrl; }
+
+    // Adds an object to the editable text source that manages the modification flag
+    // and keeps the text source's buffer in sync.
+    void RegisterTextSourceModifier(std::shared_ptr<TextSourceEditable> text_source);
 
 protected:
-    // LogicView methods that can be overridden
+    // LogicView methods that can be overridden, or used by subclasses.
 
     // Returns the context menu. The submenu at position 0 is displayed.
     // If not specified, the IDR_EDIT menu is used.
@@ -56,6 +64,8 @@ private:
     std::unique_ptr<Scintilla::CScintillaCtrl> CreateScintillaControl() override;
 
     // Scintilla virtual notifications override
+    void OnSavePointReached(Scintilla::NotificationData* pSCNotification) override;
+    void OnModified(Scintilla::NotificationData* pSCNotification) override;
     void OnZoom(Scintilla::NotificationData* pSCNotification) override;
     void OnDwellStart(Scintilla::NotificationData* pSCNotification) override;
     void OnDwellEnd(Scintilla::NotificationData* pSCNotification) override;
@@ -68,4 +78,7 @@ private:
 private:
     LogicCtrl* m_logicCtrl;
     std::optional<int> m_lineCountNumberDigitsAtLastUpdateMarginWidth;
+
+    class TextSourceModifier;
+    std::unique_ptr<TextSourceModifier> m_textSourceModifier;
 };

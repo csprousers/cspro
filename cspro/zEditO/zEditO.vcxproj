@@ -46,6 +46,7 @@
     <ClInclude Include="Lexers.h" />
     <ClInclude Include="LogicCtrl.h" />
     <ClInclude Include="LogicView.h" />
+    <ClInclude Include="LogicViewTextSourceModifier.h" />
     <ClInclude Include="MessageEditCtrl.h" />
     <ClInclude Include="ReadOnlyEditCtrl.h" />
     <ClInclude Include="resource.h" />

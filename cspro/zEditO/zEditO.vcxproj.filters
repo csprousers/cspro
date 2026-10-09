@@ -82,6 +82,9 @@
     <ClInclude Include="LogicView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LogicViewTextSourceModifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MessageEditCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>

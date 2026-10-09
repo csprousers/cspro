@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "LogicView.h"
+#include "LogicViewTextSourceModifier.h"
 #include <zScintilla/src/Position.h>
 #include <zToolsO/NumberToString.h>
 #include <zToolsO/WinSettings.h>
@@ -23,6 +24,18 @@ END_MESSAGE_MAP()
 LogicView::LogicView()
     :   m_logicCtrl(nullptr)
 {
+}
+
+
+LogicView::~LogicView() noexcept
+{
+}
+
+
+void LogicView::RegisterTextSourceModifier(std::shared_ptr<TextSourceEditable> text_source)
+{
+    ASSERT(m_textSourceModifier == nullptr);
+    m_textSourceModifier = std::make_unique<TextSourceModifier>(*this, std::move(text_source));
 }
 
 
@@ -174,7 +187,28 @@ BOOL LogicView::PreTranslateMessage(MSG* pMsg)
 
     }
 
-    return CView::PreTranslateMessage(pMsg);
+    return __super::PreTranslateMessage(pMsg);
+}
+
+
+void LogicView::OnSavePointReached(Scintilla::NotificationData* /*pSCNotification*/)
+{
+    if( m_textSourceModifier != nullptr )
+        m_textSourceModifier->SetModified(false);
+}
+
+
+void LogicView::OnModified(Scintilla::NotificationData* const pSCNotification)
+{
+    constexpr Scintilla::ModificationFlags TextModifications =
+        Scintilla::ModificationFlags::InsertText |
+        Scintilla::ModificationFlags::DeleteText;
+
+    if( ( m_textSourceModifier != nullptr ) &&
+        ( ( pSCNotification->modificationType & TextModifications ) != Scintilla::ModificationFlags::None ) )
+    {
+        m_textSourceModifier->SetModified(true);
+    }
 }
 
 

@@ -47,13 +47,16 @@ public:
 
     bool RequiresSave() const override { return m_modified; }
 
-    void SetModified();
+    // Sets whether the text source has been modified.
+    // If modified, the modified iteration is set to the current time.
+    // If not modified, the modified iteration is reset to the file modified time.
+    void SetModified(bool modified = true);
 
     void Save() override;
 
     void SetNewFilePath(std::string new_file_path);
 
-    void SetSourceModifier(SourceModifier* source_modifier);
+    void SetSourceModifier(SourceModifier* source_modifier) noexcept;
 
 private:
     void SyncText() const;

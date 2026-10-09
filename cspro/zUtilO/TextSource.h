@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -25,6 +25,10 @@ public:
     virtual const std::string& GetText() const;
     virtual SharableString GetTextAsSharableString() const;
 
+    // Returns the timestamp of the last time that the text source was modified.
+    // This is not guaranteed to always increase, as a text source's modification
+    // iteration could increase as a user makes edits and then go back to the
+    // file modified time if the changes are undone or reloaded from the disk.
     virtual int64_t GetModifiedIteration() const;
 
     virtual void SetText(SharableString text);
