@@ -26,19 +26,6 @@ namespace CodeMenu
 
 
     // --------------------------------------------------------------------------
-    // Lexer helpers
-    // --------------------------------------------------------------------------
-
-    constexpr bool CanCommentCode(int lexer_language)
-    {
-        return ( Lexers::IsCSProLogic(lexer_language) ||
-                 Lexers::IsCSProMessage(lexer_language) ||
-                 lexer_language == SCLEX_JAVASCRIPT );
-    }
-
-
-
-    // --------------------------------------------------------------------------
     // Deprecation Warnings
     // --------------------------------------------------------------------------
 
@@ -78,88 +65,6 @@ namespace CodeMenu
         inline void OnUpdateDeprecationWarnings(CCmdUI* pCmdUI)
         {
             pCmdUI->SetCheck(GetLevel() == GetLevelFromId(pCmdUI->m_nID));
-        }
-    }
-
-
-
-    // --------------------------------------------------------------------------
-    // Code Folding
-    // --------------------------------------------------------------------------
-
-    namespace CodeFolding
-    {
-        enum class Level { None, ProcsAndFunctions, All };
-        constexpr Level DefaultLevel = Level::All;
-
-
-        inline Level GetLevel()
-        {
-            return static_cast<Level>(WinSettings::Read<DWORD>(WinSettings::Type::CodeFolding, static_cast<DWORD>(DefaultLevel)));
-        }
-
-
-        inline void SetLevel(Level level)
-        {
-            WinSettings::Write<DWORD>(WinSettings::Type::CodeFolding, static_cast<DWORD>(level));
-        }
-
-
-        // for menu processing
-        // --------------------------------------------------------------------------
-
-        constexpr Level GetLevelFromId(UINT nID)
-        {
-            return AddToEnum(CodeFolding::Level::None, nID - ID_CODE_FOLDING_LEVEL_NONE);
-        }
-
-
-        inline void OnCodeFoldingLevel(UINT nID, LogicCtrl* logic_ctrl)
-        {
-            SetLevel(GetLevelFromId(nID));
-
-            if( logic_ctrl != nullptr )
-            {
-                logic_ctrl->SetFolding();
-                logic_ctrl->SetFocus();
-            }
-        }
-
-
-        inline void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI)
-        {
-            pCmdUI->SetCheck(GetLevel() == GetLevelFromId(pCmdUI->m_nID));
-        }
-
-
-        inline void OnCodeFoldingAction(UINT nID, LogicCtrl* logic_ctrl)
-        {
-            ASSERT(logic_ctrl != nullptr && Lexers::CanFoldCode(logic_ctrl->GetLexer()));
-
-            if( nID == ID_CODE_FOLDING_FOLD_ALL )
-            {
-                logic_ctrl->FoldAll(Scintilla::FoldAction::Contract);
-            }
-
-            else if( nID == ID_CODE_FOLDING_UNFOLD_ALL )
-            {
-                logic_ctrl->FoldAll(Scintilla::FoldAction::Expand);
-            }
-
-            else
-            {
-                ASSERT(nID == ID_CODE_FOLDING_TOGGLE);
-                const Scintilla::Line line_number = logic_ctrl->LineFromPosition(logic_ctrl->GetCurrentPos());
-                logic_ctrl->FoldLine(line_number, Scintilla::FoldAction::Toggle);
-            }
-        }
-
-
-        inline void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI, LogicCtrl* logic_ctrl)
-        {
-            pCmdUI->Enable(logic_ctrl != nullptr &&
-                           GetLevel() != CodeFolding::Level::None &&
-                           Lexers::CanFoldCode(logic_ctrl->GetLexer()));
         }
     }
 }

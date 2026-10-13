@@ -9,12 +9,6 @@ IMPLEMENT_DYNCREATE(CodeView, LogicView)
 
 BEGIN_MESSAGE_MAP(CodeView, LogicView)
 
-    // Code menu
-    ON_COMMAND_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnCodeFoldingLevel)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnUpdateCodeFoldingLevel)
-    ON_COMMAND_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnCodeFoldingAction)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnUpdateCodeFoldingAction)
-
     // Run menu
     ON_COMMAND(ID_RUN_COMPILE_OR_VALIDATE, OnRunCompileOrValidate)
     ON_UPDATE_COMMAND_UI(ID_RUN_COMPILE_OR_VALIDATE, OnUpdateRunCompileOrValidate)
@@ -47,7 +41,7 @@ void CodeView::RefreshLogicControlLexer()
 
     // enable folding if possible
     if( Lexers::CanFoldCode(view_language_settings.GetLexerLanguage()) )
-        logic_ctrl->SetFolding(true);
+        ProcessCodeFolding(true);
 
     // update the margin as it tended to initially be too wide
     UpdateMarginWidth(true);
@@ -93,30 +87,6 @@ void CodeView::OnSavePointLeft(_Inout_ Scintilla::NotificationData* /*pSCNotific
 {
     CodeDoc& code_doc = GetCodeDoc();
     code_doc.SetModifiedFlag(TRUE, this);
-}
-
-
-void CodeView::OnCodeFoldingLevel(const UINT nID)
-{
-    CodeMenu::CodeFolding::OnCodeFoldingLevel(nID, GetLogicCtrl());
-}
-
-
-void CodeView::OnUpdateCodeFoldingLevel(CCmdUI* const pCmdUI)
-{
-    CodeMenu::CodeFolding::OnUpdateCodeFoldingLevel(pCmdUI);
-}
-
-
-void CodeView::OnCodeFoldingAction(const UINT nID)
-{
-    CodeMenu::CodeFolding::OnCodeFoldingAction(nID, GetLogicCtrl());
-}
-
-
-void CodeView::OnUpdateCodeFoldingAction(CCmdUI* const pCmdUI)
-{
-    CodeMenu::CodeFolding::OnUpdateCodeFoldingAction(pCmdUI, GetLogicCtrl());
 }
 
 

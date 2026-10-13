@@ -348,6 +348,16 @@
       [
         "IDC_FIND_COMBO",
         "IDC_REPLACE_COMBO"
+      ],
+      [
+        "ID_CODE_FOLDING_FOLD_ALL",
+        "ID_CODE_FOLDING_UNFOLD_ALL",
+        "ID_CODE_FOLDING_TOGGLE"
+      ],
+      [
+        "ID_CODE_FOLDING_LEVEL_NONE",
+        "ID_CODE_FOLDING_LEVEL_PROCS_FUNCS",
+        "ID_CODE_FOLDING_LEVEL_ALL"
       ]
     ],
     "zDictF": [
@@ -429,16 +439,6 @@
       ]
     ],
     "zDesignerF": [
-      [
-        "ID_CODE_FOLDING_FOLD_ALL",
-        "ID_CODE_FOLDING_UNFOLD_ALL",
-        "ID_CODE_FOLDING_TOGGLE"
-      ],
-      [
-        "ID_CODE_FOLDING_LEVEL_NONE",
-        "ID_CODE_FOLDING_LEVEL_PROCS_FUNCS",
-        "ID_CODE_FOLDING_LEVEL_ALL"
-      ],
       [
         "ID_CODE_DEPRECATION_WARNINGS_NONE",
         "ID_CODE_DEPRECATION_WARNINGS_MOST",

@@ -33,13 +33,6 @@ protected:
     void OnSavePointReached(_Inout_ Scintilla::NotificationData* pSCNotification) override;
     void OnSavePointLeft(_Inout_ Scintilla::NotificationData* pSCNotification) override;
 
-    // Code menu handlers
-    // --------------------------------------------------------------------------
-    void OnCodeFoldingLevel(UINT nID);
-    void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI);
-    void OnCodeFoldingAction(UINT nID);
-    void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI);
-
     // Run menu handlers
     // --------------------------------------------------------------------------
     void OnRunCompileOrValidate();

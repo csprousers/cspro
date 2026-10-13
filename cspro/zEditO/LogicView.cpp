@@ -2,9 +2,9 @@
 #include "LogicView.h"
 #include "LogicViewTextSourceModifier.h"
 #include <zScintilla/src/Position.h>
+#include <zToolsO/EnumHelpers.h>
 #include <zToolsO/NumberToString.h>
 #include <zToolsO/WinSettings.h>
-#include <zDesignerF/CodeMenu.h>
 #include <zLogicO/StringEscaper.h>
 
 
@@ -25,6 +25,11 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
 
     ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
+
+    ON_COMMAND_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnCodeFoldingLevel)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnUpdateCodeFoldingLevel)
+    ON_COMMAND_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnCodeFoldingAction)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnUpdateCodeFoldingAction)
 
     ON_COMMAND(ID_HELP, OnHelp)
 
@@ -407,14 +412,134 @@ void LogicView::OnUpdatePasteStringLiteral(CCmdUI* const pCmdUI)
 
 bool LogicView::CanCommentLine()
 {
-    return CodeMenu::CanCommentCode(m_logicCtrl->GetLexer());
+    if( m_logicCtrl->GetReadOnly() )
+        return false;
+
+    const int lexer_language = m_logicCtrl->GetLexer();
+
+    return ( Lexers::IsCSProLogic(lexer_language) ||
+             Lexers::IsCSProMessage(lexer_language) ||
+             lexer_language == SCLEX_JAVASCRIPT );
 }
 
 
 void LogicView::OnCommentLine()
 {
     if( CanCommentLine() )
+    {
+        ASSERT(!m_logicCtrl->GetReadOnly());
         m_logicCtrl->CommentLine();
+    }
+}
+
+
+namespace CodeFolding
+{
+    enum class Level { None, ProcsAndFunctions, All };
+    constexpr Level DefaultLevel = Level::All;
+
+    Level GetLevel()
+    {
+        return static_cast<Level>(WinSettings::Read<DWORD>(WinSettings::Type::CodeFolding, static_cast<DWORD>(DefaultLevel)));
+    }
+
+    void SetLevel(const Level level)
+    {
+        WinSettings::Write<DWORD>(WinSettings::Type::CodeFolding, static_cast<DWORD>(level));
+    }
+
+    constexpr Level GetLevelFromId(const UINT nID)
+    {
+        return AddToEnum(CodeFolding::Level::None, nID - ID_CODE_FOLDING_LEVEL_NONE);
+    }
+}
+
+
+void LogicView::ProcessCodeFolding(const std::optional<bool> fold_procs/* = std::nullopt*/)
+{
+    constexpr int FoldingMargin = 2;
+    ASSERT(m_logicCtrl->GetMargins() >= FoldingMargin);
+
+    const bool enable_folding = ( CodeFolding::GetLevel() != CodeFolding::Level::None );
+
+    if( m_codeFoldingEnabled != enable_folding )
+    {
+        m_codeFoldingEnabled = enable_folding;
+
+        m_logicCtrl->SetMarginWidthN(FoldingMargin, *m_codeFoldingEnabled ? 16 : 0);
+        m_logicCtrl->SetIdleStyling(*m_codeFoldingEnabled ? Scintilla::IdleStyling::AfterVisible : Scintilla::IdleStyling::None);
+
+        if( *m_codeFoldingEnabled )
+        {
+            m_logicCtrl->SetMarginSensitiveN(FoldingMargin, TRUE);
+            m_logicCtrl->SetMarginTypeN(FoldingMargin, Scintilla::MarginType::Symbol);
+            m_logicCtrl->SetMarginMaskN(FoldingMargin, Scintilla::MaskFolders);
+
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDEROPEN, Scintilla::MarkerSymbol::BoxMinus, RGB(255, 255, 255), RGB(0, 0, 0));
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDER, Scintilla::MarkerSymbol::BoxPlus, RGB(255, 255, 255), RGB(0, 0, 0));
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDERSUB, Scintilla::MarkerSymbol::VLine, RGB(255, 255, 255), RGB(0, 0, 0));
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDERTAIL, Scintilla::MarkerSymbol::LCorner, RGB(255, 255, 255), RGB(0, 0, 0));
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDEREND, Scintilla::MarkerSymbol::BoxPlusConnected, RGB(255, 255, 255), RGB(0, 0, 0));
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDEROPENMID, Scintilla::MarkerSymbol::BoxMinusConnected, RGB(255, 255, 255), RGB(0, 0, 0));
+            m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, Scintilla::MarkerSymbol::TCorner, RGB(255, 255, 255), RGB(0, 0, 0));
+        }
+
+        else
+        {
+            // when folding is being turned off, expand any folded blocks
+            m_logicCtrl->FoldAll(Scintilla::FoldAction::Expand);
+        }
+    }
+
+    m_logicCtrl->SetSCIProperty("fold", *m_codeFoldingEnabled ? "1" : "0");
+    m_logicCtrl->SetSCIProperty("fold.blocks", ( CodeFolding::GetLevel() == CodeFolding::Level::All ) ? "1" : "0");
+
+    if( fold_procs.has_value() )
+        m_logicCtrl->SetSCIProperty("fold.procs", *fold_procs ? "1" : "0");
+}
+
+
+void LogicView::OnCodeFoldingLevel(const UINT nID)
+{
+    CodeFolding::SetLevel(CodeFolding::GetLevelFromId(nID));
+    ProcessCodeFolding();
+}
+
+
+void LogicView::OnUpdateCodeFoldingLevel(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(Lexers::CanFoldCode(m_logicCtrl->GetLexer()));
+    pCmdUI->SetCheck(( CodeFolding::GetLevel() == CodeFolding::GetLevelFromId(pCmdUI->m_nID) ));
+}
+
+
+void LogicView::OnCodeFoldingAction(const UINT nID)
+{
+    ASSERT(Lexers::CanFoldCode(m_logicCtrl->GetLexer()));
+
+    if( nID == ID_CODE_FOLDING_FOLD_ALL )
+    {
+        m_logicCtrl->FoldAll(Scintilla::FoldAction::Contract);
+    }
+
+    else if( nID == ID_CODE_FOLDING_UNFOLD_ALL )
+    {
+        m_logicCtrl->FoldAll(Scintilla::FoldAction::Expand);
+    }
+
+    else
+    {
+        ASSERT(nID == ID_CODE_FOLDING_TOGGLE);
+        const Scintilla::Line line_number = m_logicCtrl->LineFromPosition(m_logicCtrl->GetCurrentPos());
+        m_logicCtrl->FoldLine(line_number, Scintilla::FoldAction::Toggle);
+    }
+}
+
+
+void LogicView::OnUpdateCodeFoldingAction(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(( CodeFolding::GetLevel() != CodeFolding::Level::None &&
+                     Lexers::CanFoldCode(m_logicCtrl->GetLexer()) ));
 }
 
 

@@ -33,6 +33,10 @@ public:
     // and keeps the text source's buffer in sync.
     void RegisterTextSourceModifier(std::shared_ptr<TextSourceEditable> text_source);
 
+    // Processes the code folding setting (set via the Code menu).
+    // If fold_procs is set, the fold.procs property will be sent to the lexer.
+    void ProcessCodeFolding(std::optional<bool> fold_procs = std::nullopt);
+
 protected:
     // LogicView methods that can be overridden, or used by subclasses.
 
@@ -67,6 +71,11 @@ protected:
 
     void OnCommentLine();
 
+    void OnCodeFoldingLevel(UINT nID);
+    void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI);
+    void OnCodeFoldingAction(UINT nID);
+    void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI);
+
     void OnHelp();
 
 private:
@@ -88,8 +97,9 @@ protected:
     LogicCtrl* m_logicCtrl; // non-null after creation
 
 private:
-    std::optional<int> m_lineCountNumberDigitsAtLastUpdateMarginWidth;
-
     class TextSourceModifier;
+
     std::unique_ptr<TextSourceModifier> m_textSourceModifier;
+    std::optional<int> m_lineCountNumberDigitsAtLastUpdateMarginWidth;
+    std::optional<bool> m_codeFoldingEnabled;
 };

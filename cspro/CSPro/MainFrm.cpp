@@ -181,11 +181,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnDeprecationWarnings)
     ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnUpdateDeprecationWarnings)
 
-    ON_COMMAND_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnCodeFoldingLevel)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnUpdateCodeFoldingLevel)
-    ON_COMMAND_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnCodeFoldingAction)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnUpdateCodeFoldingAction)
-
 END_MESSAGE_MAP()
 
 
@@ -1733,7 +1728,7 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
 
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
-        pView->GetLogicCtrl()->SetFolding(bAppSrcCode);
+        pView->ProcessCodeFolding(bAppSrcCode);
 
     pWnd->GetLogicDialogBar().UpdateScrollState();
 }
@@ -1891,7 +1886,7 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
 
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
-        pView->GetLogicCtrl()->SetFolding(bAppSrcCode);
+        pView->ProcessCodeFolding(bAppSrcCode);
 
     pWnd->GetLogicDialogBar().UpdateScrollState();
 }

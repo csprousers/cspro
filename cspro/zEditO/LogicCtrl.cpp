@@ -5,7 +5,6 @@
 #include "LexerProperties.h"
 #include "ScintillaColorizer.h"
 #include <zScintilla/CSPro/CSPro.h>
-#include <zDesignerF/CodeMenu.h>
 
 
 // CSPro Scintilla Logic Control
@@ -1842,50 +1841,6 @@ BOOL LogicCtrl::PreTranslateMessage(MSG* pMsg)
     }
 
     return __super::PreTranslateMessage(pMsg);
-}
-
-
-void LogicCtrl::SetFolding(std::optional<bool> fold_procs/* = std::nullopt*/)
-{
-    const int FoldingMargin = 2;
-    ASSERT(GetMargins() >= FoldingMargin);
-
-    bool enable_folding = ( CodeMenu::CodeFolding::GetLevel() != CodeMenu::CodeFolding::Level::None );
-
-    if( m_foldingEnabled != enable_folding )
-    {
-        m_foldingEnabled = enable_folding;
-
-        SetMarginWidthN(FoldingMargin, *m_foldingEnabled ? 16 : 0);
-        SetIdleStyling(*m_foldingEnabled ? Scintilla::IdleStyling::AfterVisible : Scintilla::IdleStyling::None);
-
-        if( *m_foldingEnabled )
-        {
-            SetMarginSensitiveN(FoldingMargin, TRUE);
-            SetMarginTypeN(FoldingMargin, Scintilla::MarginType::Symbol);
-            SetMarginMaskN(FoldingMargin, Scintilla::MaskFolders);
-
-            DefineMarker(SC_MARKNUM_FOLDEROPEN, Scintilla::MarkerSymbol::BoxMinus, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDER, Scintilla::MarkerSymbol::BoxPlus, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDERSUB, Scintilla::MarkerSymbol::VLine, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDERTAIL, Scintilla::MarkerSymbol::LCorner, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDEREND, Scintilla::MarkerSymbol::BoxPlusConnected, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDEROPENMID, Scintilla::MarkerSymbol::BoxMinusConnected, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, Scintilla::MarkerSymbol::TCorner, RGB(255, 255, 255), RGB(0, 0, 0));
-        }
-
-        else
-        {
-            // when folding is being turned off, expand any folded blocks
-            FoldAll(Scintilla::FoldAction::Expand);
-        }
-    }
-
-    SetSCIProperty(_T("fold"), *m_foldingEnabled ? _T("1") : _T("0"));
-    SetSCIProperty(_T("fold.blocks"), ( CodeMenu::CodeFolding::GetLevel() == CodeMenu::CodeFolding::Level::All ) ? _T("1") : _T("0"));
-
-    if( fold_procs.has_value() )
-        SetSCIProperty(_T("fold.procs"), *fold_procs ? _T("1") : _T("0"));
 }
 
 

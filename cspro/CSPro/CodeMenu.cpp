@@ -179,32 +179,3 @@ void CMainFrame::OnUpdateDeprecationWarnings(CCmdUI* pCmdUI)
 {
     CodeMenu::DeprecationWarnings::OnUpdateDeprecationWarnings(pCmdUI);
 }
-
-
-
-// --------------------------------------------------------------------------
-// Code Folding
-// --------------------------------------------------------------------------
-
-void CMainFrame::OnCodeFoldingLevel(UINT nID)
-{
-    CodeMenu::CodeFolding::OnCodeFoldingLevel(nID, GetActiveLogicCtrl(this));
-}
-
-
-void CMainFrame::OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI)
-{
-    CodeMenu::CodeFolding::OnUpdateCodeFoldingLevel(pCmdUI);
-}
-
-
-void CMainFrame::OnCodeFoldingAction(UINT nID)
-{
-    CodeMenu::CodeFolding::OnCodeFoldingAction(nID, GetActiveLogicCtrl(this));
-}
-
-
-void CMainFrame::OnUpdateCodeFoldingAction(CCmdUI* pCmdUI)
-{
-    CodeMenu::CodeFolding::OnUpdateCodeFoldingAction(pCmdUI, GetActiveLogicCtrl(this));
-}

@@ -253,11 +253,6 @@ protected:
     void OnDeprecationWarnings(UINT nID);
     void OnUpdateDeprecationWarnings(CCmdUI* pCmdUI);
 
-    void OnCodeFoldingLevel(UINT nID);
-    void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI);
-    void OnCodeFoldingAction(UINT nID);
-    void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI);
-
 
     // other functions
     // --------------------------------------------------------------------------

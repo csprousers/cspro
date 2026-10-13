@@ -48,8 +48,6 @@ public:
 
     void SetLineIndentation(_In_ int line, _In_ int indentation);
 
-    void SetFolding(std::optional<bool> fold_procs = std::nullopt);
-
     //search and replace support
     void OnFindNext(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression);
     void TextNotFound(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression, _In_ BOOL bReplaced);
@@ -122,8 +120,6 @@ private:
     Sci_Position    m_lInitialSearchPos;                //Initial search position
     bool            m_autoCompleteActive;
     bool            m_replacedCEdit;
-
-    std::optional<bool> m_foldingEnabled;
 
     const std::map<std::string, const char*, cs::case_insensitive_less>* m_logicTooltips;
 
