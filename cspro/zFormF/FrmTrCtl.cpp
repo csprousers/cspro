@@ -70,7 +70,7 @@ BEGIN_MESSAGE_MAP(CFormTreeCtrl, CTreeCtrl)
     ON_COMMAND(ID_EDIT_GRID_AUTOFIT, OnEditGridAutoFit)
     ON_COMMAND(ID_EDIT_GRIDPROP, OnEditGridProp)
     ON_COMMAND(ID_EDIT_REPORT_PROPERTIES, OnEditReportProperties)
-    ON_COMMAND(ID_DELETE_ITEM, OnDeleteItem)
+    ON_COMMAND(ID_EDIT_CLEAR, OnDeleteItem)
     ON_COMMAND(ID_DELETE_FORM, OnDeleteForm)
     ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
@@ -3273,7 +3273,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         // Multiple selection
         popMenu.AppendMenu(MF_STRING, ID_EDIT_FIELDPROP, _T("&Properties"));
         deleteFlags = bIsFormViewActive ? MF_STRING : MF_STRING | MF_GRAYED;
-        popMenu.AppendMenu(deleteFlags, ID_DELETE_ITEM, _T("&Delete"));
+        popMenu.AppendMenu(deleteFlags, ID_EDIT_CLEAR, _T("&Delete"));
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_SHOW_BOXTOOLBAR, _T("Add &Text"));
         popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_ADD_FORM, _T("Add &Boxes"));
@@ -3319,13 +3319,13 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
             case eFTT_FORMFILE:
 
                 popMenu.AppendMenu(MF_ENABLED, ID_EDIT_FFPROP, _T("&Properties"));
-                popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_DELETE_ITEM, _T("&Delete"));
+                popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_CLEAR, _T("&Delete"));
                 break;
 
             case eFTT_LEVEL:
 
                 popMenu.AppendMenu(MF_ENABLED, ID_EDIT_LEVELPROP, _T("&Properties"));
-                popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_DELETE_ITEM, _T("&Delete"));
+                popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_CLEAR, _T("&Delete"));
                 break;
 
             case eFTT_FORM:
@@ -3340,7 +3340,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
                 popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_EDIT_BLOCKPROP, _T("&Properties"));
                 deleteFlags = bIsFormViewActive ? MF_STRING : MF_STRING | MF_GRAYED;
-                popMenu.AppendMenu(deleteFlags, ID_DELETE_ITEM, _T("&Delete Block"));
+                popMenu.AppendMenu(deleteFlags, ID_EDIT_CLEAR, _T("&Delete Block"));
 
                 pFV->m_pRightClickItem = pItem;
                 break;
@@ -3350,7 +3350,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
                 popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_EDIT_GRIDPROP, _T("&Properties"));
                 popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_EDIT_GRID_AUTOFIT, _T("AutoFit"));
                 deleteFlags = bIsFormViewActive ? MF_STRING : MF_STRING | MF_GRAYED;
-                popMenu.AppendMenu(deleteFlags, ID_DELETE_ITEM, _T("&Delete Roster"));
+                popMenu.AppendMenu(deleteFlags, ID_EDIT_CLEAR, _T("&Delete Roster"));
                 addBlockEnabled = true;
 
                 pFV->m_pRightClickItem = pItem;
@@ -3360,7 +3360,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
                 popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_EDIT_FIELDPROP, _T("&Properties"));
                 deleteFlags = bIsFormViewActive ? MF_STRING : MF_STRING | MF_GRAYED;
-                popMenu.AppendMenu(deleteFlags, ID_DELETE_ITEM, _T("&Delete Field"));
+                popMenu.AppendMenu(deleteFlags, ID_EDIT_CLEAR, _T("&Delete Field"));
                 addBlockEnabled = !selectedItemsInBlock;
 
                 pCol = ((CDERoster*)pItem)->GetCol(pID->GetColumnIndex());
@@ -3372,7 +3372,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
                 popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_EDIT_FIELDPROP, _T("&Properties"));
                 deleteFlags = bIsFormViewActive ? MF_STRING : MF_STRING | MF_GRAYED;
-                popMenu.AppendMenu(deleteFlags, ID_DELETE_ITEM, _T("&Delete Field"));
+                popMenu.AppendMenu(deleteFlags, ID_EDIT_CLEAR, _T("&Delete Field"));
                 addBlockEnabled = !selectedItemsInBlock;
 
                 pFV->m_pRightClickItem = pItem;

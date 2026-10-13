@@ -25,8 +25,6 @@ protected:
 
     bool OnHandleHelp() override;
 
-    void OnFindNext();
-
     void OnWordWrap();
     void OnUpdateWordWrap(CCmdUI* pCmdUI);
 };

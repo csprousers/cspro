@@ -134,9 +134,9 @@ BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM SEPARATOR
-        MENUITEM "&Find\tCtrl+F",               ID_ORD_EDIT_FIND
-        MENUITEM "Find &Next\tF3",              ID_FIND_NEXT
-        MENUITEM "R&eplace\tCtrl+H",            ID_REPLACE
+        MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
+        MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
         MENUITEM SEPARATOR
         MENUITEM "Format Logic",                ID_LOGIC_FORMAT
     END
@@ -273,13 +273,13 @@ BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_FIND_NEXT,           VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
     "0",            ID_CODE_FOLDING_FOLD_ALL, VIRTKEY, ALT, NOINVERT
     "F",            ID_CODE_FOLDING_TOGGLE, VIRTKEY, CONTROL, ALT, NOINVERT
     "0",            ID_CODE_FOLDING_UNFOLD_ALL, VIRTKEY, SHIFT, ALT, NOINVERT
     "K",            ID_ORD_COMPILE,         VIRTKEY, CONTROL, NOINVERT
-    "F",            ID_ORD_EDIT_FIND,       VIRTKEY, CONTROL, NOINVERT
-    "H",            ID_REPLACE,             VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "R",            ID_RUNBATCH,            VIRTKEY, CONTROL, NOINVERT
     "R",            ID_RUNBATCH,            VIRTKEY, SHIFT, CONTROL, NOINVERT
     VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
@@ -313,7 +313,7 @@ BEGIN
     BUTTON      ID_EDIT_CUT
     BUTTON      ID_EDIT_COPY
     BUTTON      ID_EDIT_PASTE
-    BUTTON      ID_ORD_EDIT_FIND
+    BUTTON      ID_EDIT_FIND
     SEPARATOR
     BUTTON      ID_VIEW_LISTING
     SEPARATOR
@@ -409,15 +409,11 @@ END
 STRINGTABLE
 BEGIN
     ID_CUSTOMORDER          "Custom order for editing fields\nCustom Order"
-    ID_FIND_NEXT            "Find the next occurrence of the specified text\nFind Next"
 END
 
 STRINGTABLE
 BEGIN
-    ID_FRM_EDIT_FIND        "Find"
     ID_ORD_COMPILE          "Compile the edit application\nCompile"
-    ID_ORD_EDIT_FIND        "Find the specified text\nFind"
-    ID_REPLACE              "Replace the specified text with different text\nReplace"
     ID_RUNBATCH             "Run the edit application\nRun"
 END
 
@@ -427,6 +423,8 @@ BEGIN
     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
     ID_EDIT_FIND            "Find the specified text\nFind"
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Find the next occurrence of the specified text\nFind Next"
+    ID_EDIT_REPLACE         "Replace the specified text with different text\nReplace"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the last action\nRedo"
 END

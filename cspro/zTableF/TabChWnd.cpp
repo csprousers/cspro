@@ -1617,9 +1617,9 @@ void CTableChildWnd::DynamicMenu4Logic(bool bDelete /*= true*/)
                     CMenu* pSubMenu = pMenu->GetSubMenu(2);
                     if (pSubMenu != nullptr && pSubMenu->GetMenuItemCount() > 0){
                         int iCount = pSubMenu->GetMenuItemCount();
-                        pSubMenu->DeleteMenu(ID_TBL_EDIT_FIND, MF_BYCOMMAND);
-                        pSubMenu->DeleteMenu(ID_FIND_NEXT, MF_BYCOMMAND);
-                        pSubMenu->DeleteMenu(ID_REPLACE, MF_BYCOMMAND);
+                        pSubMenu->DeleteMenu(ID_EDIT_FIND, MF_BYCOMMAND);
+                        pSubMenu->DeleteMenu(ID_EDIT_REPEAT, MF_BYCOMMAND);
+                        pSubMenu->DeleteMenu(ID_EDIT_REPLACE, MF_BYCOMMAND);
                         pSubMenu->DeleteMenu(ID_EDIT_GENERATELOGIC, MF_BYCOMMAND);
                         if(iCount > pSubMenu->GetMenuItemCount()){
                             bRedrawMenuBar = true;
@@ -1632,29 +1632,29 @@ void CTableChildWnd::DynamicMenu4Logic(bool bDelete /*= true*/)
                 if (pMenu != nullptr && pMenu->GetMenuItemCount() > 0){
                     CMenu* pSubMenu = pMenu->GetSubMenu(2);
                     if (pSubMenu != nullptr && pSubMenu->GetMenuItemCount() > 0){
-                        UINT state = pSubMenu->GetMenuState(ID_TBL_EDIT_FIND, MF_BYCOMMAND);
+                        UINT state = pSubMenu->GetMenuState(ID_EDIT_FIND, MF_BYCOMMAND);
                         if(state == 0xFFFFFFFF){
                             bRedrawMenuBar = true;
                             pSubMenu->AppendMenu(MF_SEPARATOR);
-                            //pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_TBL_EDIT_FIND,"&Find \tCtrl+F");
-                            pSubMenu->AppendMenu(MF_STRING,ID_TBL_EDIT_FIND,_T("&Find \tCtrl+F"));
+                            //pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_EDIT_FIND,"&Find \tCtrl+F");
+                            pSubMenu->AppendMenu(MF_STRING,ID_EDIT_FIND,_T("&Find \tCtrl+F"));
                         }
-                        state = pSubMenu->GetMenuState(ID_FIND_NEXT, MF_BYCOMMAND);
+                        state = pSubMenu->GetMenuState(ID_EDIT_REPEAT, MF_BYCOMMAND);
                         if(state == 0xFFFFFFFF){
                             bRedrawMenuBar = true;
-                           // pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_FIND_NEXT,"Find &Next \tF3");
-                            pSubMenu->AppendMenu(MF_STRING,ID_FIND_NEXT,_T("Find &Next \tF3"));
+                           // pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_EDIT_REPEAT,"Find &Next \tF3");
+                            pSubMenu->AppendMenu(MF_STRING,ID_EDIT_REPEAT,_T("Find &Next \tF3"));
                         }
-                        state = pSubMenu->GetMenuState(ID_REPLACE, MF_BYCOMMAND);
+                        state = pSubMenu->GetMenuState(ID_EDIT_REPLACE, MF_BYCOMMAND);
                         if(state == 0xFFFFFFFF){
                             bRedrawMenuBar = true;
-                            //pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_REPLACE,"R&eplace... \tCtrl+H");
-                            pSubMenu->AppendMenu(MF_STRING,ID_REPLACE,_T("R&eplace... \tCtrl+H"));
+                            //pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_EDIT_REPLACE,"R&eplace... \tCtrl+H");
+                            pSubMenu->AppendMenu(MF_STRING,ID_EDIT_REPLACE,_T("R&eplace... \tCtrl+H"));
                         }
                         state = pSubMenu->GetMenuState(ID_EDIT_GENERATELOGIC, MF_BYCOMMAND);
                         if(state == 0xFFFFFFFF){
                             bRedrawMenuBar = true;
-                            //pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_REPLACE,"R&eplace... \tCtrl+H");
+                            //pSubMenu->InsertMenu(ID_EDIT_GENERATELOGIC,MF_BYCOMMAND,ID_EDIT_REPLACE,"R&eplace... \tCtrl+H");
                             pSubMenu->AppendMenu(MF_STRING,ID_EDIT_GENERATELOGIC,_T("Generate Logic"));
                         }
                     }

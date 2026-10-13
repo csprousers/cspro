@@ -142,11 +142,11 @@ BEGIN
         MENUITEM "De&lete Form\tCtrl+Del",      ID_DELETE_FORM
         MENUITEM "&Generate Forms...\tCtrl+G",  ID_GENERATE_FRM
         MENUITEM SEPARATOR
-        MENUITEM "&Delete\tDel",                ID_DELETE_ITEM
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
         MENUITEM SEPARATOR
-        MENUITEM "&Find...\tCtrl+F",            ID_FRM_EDIT_FIND
-        MENUITEM "Find &Next \tF3",             ID_FIND_NEXT
-        MENUITEM "R&eplace...\tCtrl+H",         ID_REPLACE
+        MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
+        MENUITEM "Find &Next \tF3",             ID_EDIT_REPEAT
+        MENUITEM "R&eplace...\tCtrl+H",         ID_EDIT_REPLACE
         MENUITEM SEPARATOR
         MENUITEM "Format Logic",                ID_LOGIC_FORMAT
     END
@@ -341,8 +341,8 @@ BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_FIND_NEXT,           VIRTKEY, NOINVERT
-    "F",            ID_FRM_EDIT_FIND,       VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     "G",            ID_GENERATE_FRM,        VIRTKEY, CONTROL, NOINVERT
     "R",            ID_GO,                  VIRTKEY, CONTROL, NOINVERT
     "R",            ID_GO,                  VIRTKEY, SHIFT, CONTROL, NOINVERT
@@ -351,7 +351,7 @@ BEGIN
     "0",            ID_CODE_FOLDING_UNFOLD_ALL, VIRTKEY, SHIFT, ALT, NOINVERT
     VK_RETURN,      ID_PROPERTIES,          VIRTKEY, ALT, NOINVERT
     "Q",            ID_QSF_EDITOR,          VIRTKEY, CONTROL, NOINVERT
-    "H",            ID_REPLACE,             VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
     VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
     "M",            ID_VIEW_FORM,           VIRTKEY, CONTROL, NOINVERT
@@ -392,8 +392,8 @@ BEGIN
     BUTTON      ID_EDIT_COPY
     BUTTON      ID_EDIT_PASTE
     SEPARATOR
-    BUTTON      ID_DELETE_ITEM
-    BUTTON      ID_FRM_EDIT_FIND
+    BUTTON      ID_EDIT_CLEAR
+    BUTTON      ID_EDIT_FIND
     SEPARATOR
     BUTTON      ID_SELECT_ITEMS
     SEPARATOR
@@ -1594,7 +1594,6 @@ BEGIN
     ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
     ID_FILE_PUBLISHANDDEPLOY 
                             "Deploy application to synchronization service\nPublish and Deploy"
-    ID_FIND_NEXT            "Find Next\n Find Next"
     ID_FORMAT_ALIGN_LEFT    "Left justify this paragraph\nLeft"
     ID_FORMAT_ALIGN_CENTER  "Center this paragraph\nCenter"
     ID_FORMAT_ALIGN_RIGHT   "Right justify this paragraph\nRight"
@@ -1609,7 +1608,6 @@ STRINGTABLE
 BEGIN
     ID_FORMAT_OUTLINE_NUMBER "Use numbering for this paragraph\nNumbering"
     ID_FORMAT_UNDERLINE     "Make the selection underline (toggle)\nUnderline"
-    ID_FRM_EDIT_FIND        "Find the specified text\nFind"
     ID_GENERATE_FRM         "Generate a set of forms based on the dictionary\nGenerate"
     ID_GLOBALFONT           "Change default text font"
     ID_GO                   "Run the data entry application\nRun"
@@ -1649,7 +1647,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_REPLACE              "Replace"
     ID_RUNAS_BCH            "Run data entry application as a batch edit"
     ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
     ID_SELITEMS_FROMTB      "Return to tracker mode\nSelect items"
@@ -1691,7 +1688,7 @@ BEGIN
     ID_CAPI_MACROS          "Run specialized operations on the question text\nQuestion Text Macros"
     ID_COMPILE              "Compile code\nCompile"
     ID_DELETE_FORM          "Delete the currently displayed form\nDelete Form"
-    ID_DELETE_ITEM          "Delete the currently selected item(s)\nDelete"
+    ID_EDIT_CLEAR           "Delete the currently selected item(s)\nDelete"
     ID_EDIT_BLOCKPROP       "Edit the properties for the selected block\nBlock Properties"
     ID_EDIT_CAPI_STYLES     "Edit question text styles\nEdit CAPI Styles"
     ID_EDIT_COLUMNPROP      "Edit the current column's properties\nColumn Properties"
@@ -1724,7 +1721,10 @@ STRINGTABLE
 BEGIN
     ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the last action\nRedo"
 END

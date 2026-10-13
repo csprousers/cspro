@@ -156,7 +156,7 @@ BEGIN
         MENUITEM "Copy Table &Spec",            ID_EDIT_COPYTABLESTRUCTURE
         MENUITEM "Paste Table Spec",            ID_EDIT_PASTETABLE
         MENUITEM SEPARATOR
-        MENUITEM "Select A&ll\tCtrl+A",         ID_SELECTALL
+        MENUITEM "Select A&ll\tCtrl+A",         ID_EDIT_SELECT_ALL
         MENUITEM "Cancel Selec&tion\tEsc",      ID_DESELECTALL
         MENUITEM SEPARATOR
         MENUITEM "E&xclude Table from Run",     ID_EDIT_TABLE_EXCLUDE
@@ -165,9 +165,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Preferences",                ID_EDIT_TBL_OPTIONS
         MENUITEM SEPARATOR
-        MENUITEM "&Find...\tCtrl+F",            ID_TBL_EDIT_FIND
-        MENUITEM "Find &Next \tF3",             ID_FIND_NEXT
-        MENUITEM "R&eplace...\tCtrl+H",         ID_REPLACE
+        MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
+        MENUITEM "Find &Next \tF3",             ID_EDIT_REPEAT
+        MENUITEM "R&eplace...\tCtrl+H",         ID_EDIT_REPLACE
         MENUITEM "Generate Logic",              ID_EDIT_GENERATELOGIC
     END
     POPUP "&View"
@@ -382,17 +382,17 @@ BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_FIND_NEXT,           VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    "H",            ID_REPLACE,             VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "R",            ID_RUNTAB,              VIRTKEY, CONTROL, NOINVERT
-    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
     VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
     "K",            ID_TBL_COMPILE,         VIRTKEY, CONTROL, NOINVERT
-    "F",            ID_TBL_EDIT_FIND,       VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     VK_HOME,        ID_VIEW_FIRST_PAGE,     VIRTKEY, ALT, NOINVERT
     VK_END,         ID_VIEW_LAST_PAGE,      VIRTKEY, ALT, NOINVERT
     "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
@@ -1350,14 +1350,11 @@ BEGIN
     ID_EDIT_VAR_TALLYATTRIB "Edit percent, statistics, or display properties for the given variable\nEdit Item Properties"
     ID_EDIT_VAR_TALLYATTRIB1 "Edit Tally attributes"
     ID_FILE_SAVE_TABLE      "Save the CSPro tables\nSave Tables"
-    ID_FIND_NEXT            "Find the next occurrence of the specified text "
     ID_INSERT_TABLE         "Insert a new table into the table set\nInsert Table"
     ID_PRTVIEW_PAGENUM      "Indicates the current page"
-    ID_REPLACE              "Replace the specified text with different text "
     ID_RUN_PCS              "Run separate tabulation modules"
     ID_RUNTAB               "Run the tabulation\nRun"
-    ID_SELECTALL            "Select the entire table\nSelect All"
-    ID_TBL_EDIT_FIND        "Find the specified text\nFind"
+    ID_EDIT_SELECT_ALL      "Select the entire table\nSelect All"
     ID_TBL_RUN              "Run All Tabluation Modules"
 END
 
@@ -1419,6 +1416,9 @@ END
 STRINGTABLE
 BEGIN
     ID_EDIT_COPY            "Copy the selected cells and their correspond heads and stubs and put them on the Clipboard\nCopy"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
 END
 
 #endif    // English (United States) resources

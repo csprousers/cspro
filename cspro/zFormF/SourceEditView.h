@@ -31,21 +31,6 @@ protected:
     // Generated message map functions
 protected:
     //{{AFX_MSG(CFSourceEditView)
-    afx_msg void OnEditCut();
-    afx_msg void OnEditCopy();
-    afx_msg void OnUpdateEditCutOrCopy(CCmdUI* pCmdUI);
-    afx_msg void OnEditPaste();
-    afx_msg void OnUpdateEditPaste(CCmdUI* pCmdUI);
-    afx_msg void OnFrmEditFind();
-    afx_msg void OnUpdateFrmEditFind(CCmdUI* pCmdUI);
-    afx_msg void OnFindNext();
-    afx_msg void OnUpdateFindNext(CCmdUI* pCmdUI);
-    afx_msg void OnReplace();
-    afx_msg void OnUpdateReplace(CCmdUI* pCmdUI);
-    afx_msg void OnEditUndo();
-    afx_msg void OnUpdateEditUndo(CCmdUI* pCmdUI);
-    afx_msg void OnEditRedo();
-    afx_msg void OnUpdateEditRedo(CCmdUI* pCmdUI);
     afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg void OnViewForm();
     afx_msg void OnQsfEditor();

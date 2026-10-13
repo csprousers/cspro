@@ -35,10 +35,6 @@ protected:
     void OnSavePointReached(_Inout_ Scintilla::NotificationData* pSCNotification) override;
     void OnSavePointLeft(_Inout_ Scintilla::NotificationData* pSCNotification) override;
 
-    // editor handlers
-    // --------------------------------------------------------------------------
-    void OnFindNext();
-
     // Code menu handlers
     // --------------------------------------------------------------------------
     void OnPasteStringLiteral();

@@ -30,26 +30,10 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, LogicView)
     //{{AFX_MSG_MAP(CFSourceEditView)
     ON_WM_CREATE()
     ON_WM_MOUSEWHEEL()
-    ON_COMMAND(ID_FRM_EDIT_FIND, OnFrmEditFind)
-    ON_UPDATE_COMMAND_UI(ID_FRM_EDIT_FIND, OnUpdateFrmEditFind)
-    ON_COMMAND(ID_FIND_NEXT, OnFindNext)
-    ON_UPDATE_COMMAND_UI(ID_FIND_NEXT, OnUpdateFindNext)
-    ON_COMMAND(ID_REPLACE, OnReplace)
-    ON_UPDATE_COMMAND_UI(ID_REPLACE, OnUpdateReplace)
-    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
-    ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
     ON_WM_CONTEXTMENU()
-    ON_COMMAND(ID_EDIT_CUT, OnEditCut)
     ON_COMMAND(ID_VIEW_FORM, OnViewForm)
     ON_COMMAND(ID_QSF_EDITOR, OnQsfEditor)
     ON_WM_SETFOCUS()
-    ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateEditCutOrCopy)
-    ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCutOrCopy)
-    ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateEditPaste)
     ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
@@ -73,137 +57,6 @@ void CFSourceEditView::OnDraw(CDC* /*pDC*/)
 
 void CFSourceEditView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
 {
-}
-
-
-void CFSourceEditView::OnEditCopy()
-{
-    GetLogicCtrl()->CopySelection();
-}
-
-
-void CFSourceEditView::OnUpdateEditCutOrCopy(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd) {
-        if (GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()) {
-            const Sci_Position nStartChar = GetLogicCtrl()->GetSelectionStart();
-            const Sci_Position nEndChar = GetLogicCtrl()->GetSelectionEnd();
-            pCmdUI->Enable(nStartChar != nEndChar);
-        }
-        else {
-            pCmdUI->Enable(FALSE);
-        }
-    }
-}
-
-
-void CFSourceEditView::OnEditCut()
-{
-    GetLogicCtrl()->Cut();
-}
-
-
-void CFSourceEditView::OnEditPaste()
-{
-    GetLogicCtrl()->Paste();
-}
-
-
-void CFSourceEditView::OnUpdateEditPaste(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(!GetLogicCtrl()->GetReadOnly() &&::IsClipboardFormatAvailable(CF_TEXT));
-    }
-    else {
-        pCmdUI->Enable(FALSE);
-    }
-}
-
-
-void CFSourceEditView::OnFrmEditFind()
-{
-    CWnd* pWnd = GetFocus();
-    // SAVY 05/18/00 fixed the Ctrl+F bug crash reported by BMD .
-    if (pWnd == this)
-        pWnd = this->GetLogicCtrl(); // If you dont do this it will go into an infinite loop
-    if (pWnd && pWnd->GetSafeHwnd())
-        pWnd->SendMessage(WM_COMMAND, ID_EDIT_FIND);
-}
-
-
-void CFSourceEditView::OnUpdateFrmEditFind(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(TRUE);
-    }
-}
-
-
-void CFSourceEditView::OnFindNext()
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && pWnd->GetSafeHwnd())
-        pWnd->SendMessage(WM_COMMAND, ID_EDIT_REPEAT);
-}
-
-
-void CFSourceEditView::OnUpdateFindNext(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(TRUE);
-    }
-}
-
-
-void CFSourceEditView::OnReplace()
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->GetSafeHwnd())
-        pWnd->SendMessage(WM_COMMAND, ID_EDIT_REPLACE);
-}
-
-
-void CFSourceEditView::OnUpdateReplace(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(TRUE);
-    }
-}
-
-
-void CFSourceEditView::OnEditUndo()
-{
-    GetLogicCtrl()->Undo();
-}
-
-
-void CFSourceEditView::OnUpdateEditUndo(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd) {
-        pCmdUI->Enable(GetLogicCtrl()->CanUndo());
-    }
-}
-
-
-void CFSourceEditView::OnEditRedo()
-{
-    GetLogicCtrl()->Redo();
-}
-
-
-void CFSourceEditView::OnUpdateEditRedo(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(GetLogicCtrl()->CanRedo());
-    }
-
 }
 
 

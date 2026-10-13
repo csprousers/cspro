@@ -41,30 +41,15 @@ protected:
 
     // Generated message map functions
 protected:
-    //{{AFX_MSG(COSourceEditView)
-    afx_msg void OnSize(UINT nType, int cx, int cy);
-    afx_msg void OnEditCut();
-    afx_msg void OnEditCopy();
-    afx_msg void OnUpdateEditCutOrCopy(CCmdUI* pCmdUI);
-    afx_msg void OnEditPaste();
-    afx_msg void OnUpdateEditPaste(CCmdUI* pCmdUI);
-    afx_msg void OnOrdEditFind();
-    afx_msg void OnUpdateOrdEditFind(CCmdUI* pCmdUI);
-    afx_msg void OnFindNext();
-    afx_msg void OnUpdateFindNext(CCmdUI* pCmdUI);
-    afx_msg void OnReplace();
-    afx_msg void OnUpdateReplace(CCmdUI* pCmdUI);
-    afx_msg void OnEditUndo();
-    afx_msg void OnUpdateEditUndo(CCmdUI* pCmdUI);
-    afx_msg void OnEditRedo();
-    afx_msg void OnUpdateEditRedo(CCmdUI* pCmdUI);
-    afx_msg void OnShiftF10();
-    //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
+
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+
+    afx_msg void OnShiftF10();
+
 public:
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
     afx_msg void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
-
 };
 
 /////////////////////////////////////////////////////////////////////////////

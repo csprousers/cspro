@@ -248,26 +248,23 @@
 #define ID_EDIT_VAR_TALLYATTRIB         46032
 #define ID_EDIT_VAR_TALLYATTRIB1        46033
 #define ID_FILE_SAVE_TABLE              46034
-#define ID_FIND_NEXT                    46035
-#define ID_INSERT_TABLE                 46036
-#define ID_PRTVIEW_PAGENUM              46038
-#define ID_REPLACE                      46040
-#define ID_RUN_PCS                      46041
-#define ID_RUNTAB                       46042
-#define ID_TBL_COMPILE                  46045
-#define ID_TBL_EDIT_FIND                46046
-#define ID_TBL_RUN                      46047
-#define ID_TOGGLE_TREE                  46048
-#define ID_TOOLS_EXPORTTFT              46049
-#define ID_TOOLS_IMPORTTFT              46050
-#define ID_VIEW_ZOOM                    46062
+#define ID_INSERT_TABLE                 46035
+#define ID_PRTVIEW_PAGENUM              46037
+#define ID_RUN_PCS                      46039
+#define ID_RUNTAB                       46040
+#define ID_TBL_COMPILE                  46042
+#define ID_TBL_RUN                      46043
+#define ID_TOGGLE_TREE                  46044
+#define ID_TOOLS_EXPORTTFT              46045
+#define ID_TOOLS_IMPORTTFT              46046
+#define ID_VIEW_ZOOM                    46058
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        12052
-#define _APS_NEXT_COMMAND_VALUE         46065
+#define _APS_NEXT_COMMAND_VALUE         46061
 #define _APS_NEXT_CONTROL_VALUE         12670
 #define _APS_NEXT_SYMED_VALUE           12052
 #endif

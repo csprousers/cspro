@@ -45,29 +45,9 @@ void CTSourceEditView::OnFinalRelease()
 
 
 BEGIN_MESSAGE_MAP(CTSourceEditView, LogicView)
-    //{{AFX_MSG_MAP(CTSourceEditView)
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_COMMAND(ID_VIEW_TABLE, OnViewTable)
-    ON_COMMAND(ID_TBL_EDIT_FIND, OnFrmEditFind)
-    ON_UPDATE_COMMAND_UI(ID_TBL_EDIT_FIND, OnUpdateFrmEditFind)
-    ON_COMMAND(ID_FIND_NEXT, OnFindNext)
-    ON_UPDATE_COMMAND_UI(ID_FIND_NEXT, OnUpdateFindNext)
-    ON_COMMAND(ID_REPLACE, OnReplace)
-    ON_UPDATE_COMMAND_UI(ID_REPLACE, OnUpdateReplace)
-    ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateEditUndo)
-    ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
-    //}}AFX_MSG_MAP
-    ON_COMMAND(ID_EDIT_CUT, OnEditCut)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateEditCutOrCopy)
-    ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCutOrCopy)
-    ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateEditPaste)
-
-
     ON_WM_MOUSEWHEEL()
     ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
@@ -130,124 +110,6 @@ void CTSourceEditView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) {
 void CTSourceEditView::OnSize(UINT nType, int cx, int cy) {
     LogicView::OnSize(nType, cx, cy);
 }
-
-void CTSourceEditView::OnEditCopy()
-{
-    GetLogicCtrl()->CopySelection();
-}
-
-void CTSourceEditView::OnUpdateEditCutOrCopy(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd) {
-        if (GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()) {
-            const Sci_Position nStartChar = GetLogicCtrl()->GetSelectionStart();
-            const Sci_Position nEndChar = GetLogicCtrl()->GetSelectionEnd();
-            pCmdUI->Enable(nStartChar != nEndChar);
-        }
-        else {
-            pCmdUI->Enable(FALSE);
-        }
-    }
-}
-
-void CTSourceEditView::OnEditCut()
-{
-    GetLogicCtrl()->Cut();
-}
-
-void CTSourceEditView::OnEditPaste()
-{
-    GetLogicCtrl()->Paste();
-}
-
-void CTSourceEditView::OnUpdateEditPaste(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(!GetLogicCtrl()->GetReadOnly() &&::IsClipboardFormatAvailable(CF_TEXT));
-    }
-    else {
-        pCmdUI->Enable(FALSE);
-    }
-}
-
-
-void CTSourceEditView::OnFrmEditFind()
-{
-    CWnd* pWnd = GetFocus();
-    // SAVY 05/18/00 fixed the Ctrl+F bug crash reported by BMD .
-    if (pWnd == this)
-        pWnd = this->GetLogicCtrl(); // If you dont do this it will go into an infinite loop
-    if (pWnd && pWnd->GetSafeHwnd())
-        pWnd->SendMessage(WM_COMMAND, ID_EDIT_FIND);
-}
-
-void CTSourceEditView::OnUpdateFrmEditFind(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(TRUE);
-    }
-}
-
-void CTSourceEditView::OnFindNext()
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->GetSafeHwnd())
-        pWnd->SendMessage(WM_COMMAND, ID_EDIT_REPEAT);
-}
-
-void CTSourceEditView::OnUpdateFindNext(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(TRUE);
-    }
-}
-
-void CTSourceEditView::OnReplace()
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->GetSafeHwnd())
-        pWnd->SendMessage(WM_COMMAND, ID_EDIT_REPLACE);
-}
-
-void CTSourceEditView::OnUpdateReplace(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl))){
-        pCmdUI->Enable(TRUE);
-    }
-}
-
-void CTSourceEditView::OnEditUndo()
-{
-    GetLogicCtrl()->Undo();
-}
-
-void CTSourceEditView::OnUpdateEditUndo(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd && GetLogicCtrl() == pWnd) {
-        pCmdUI->Enable(GetLogicCtrl()->CanUndo());
-    }
-}
-
-void CTSourceEditView::OnEditRedo()
-{
-    GetLogicCtrl()->Redo();
-}
-
-void CTSourceEditView::OnUpdateEditRedo(CCmdUI* pCmdUI)
-{
-    CWnd* pWnd = GetFocus();
-    if(pWnd && GetLogicCtrl() == pWnd){
-        pCmdUI->Enable(GetLogicCtrl()->CanRedo());
-    }
-
-}
-
 BOOL CTSourceEditView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 // TODO: Add your message handler code here and/or call default

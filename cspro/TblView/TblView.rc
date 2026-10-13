@@ -184,7 +184,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "Copy Cells Onl&y",            ID_EDIT_COPYCELLSONLY
-        MENUITEM "Select A&ll\tCtrl+A",         ID_SELECTALL
+        MENUITEM "Select A&ll\tCtrl+A",         ID_EDIT_SELECT_ALL
         MENUITEM "Canc&el Selection\tEsc",      ID_DESELECTALL
         MENUITEM SEPARATOR
         MENUITEM "&Preferences",                ID_EDIT_TBL_OPTIONS
@@ -248,7 +248,7 @@ BEGIN
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, SHIFT, CONTROL, NOINVERT
 END
 
@@ -266,7 +266,7 @@ BEGIN
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE_AS_VIEWER, VIRTKEY, CONTROL, NOINVERT
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
-    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
     VK_HOME,        ID_VIEW_FIRST_PAGE,     VIRTKEY, ALT, NOINVERT
     "J",            ID_VIEW_FULLSCREEN,     VIRTKEY, CONTROL, NOINVERT
@@ -462,7 +462,7 @@ BEGIN
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
     ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
     ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_SELECT_ALL      "Select the entire table\nSelect All"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
@@ -511,7 +511,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_SELECTALL            "Select the entire table"
     ID_DESELECTALL          "Cancel the current selection"
 END
 

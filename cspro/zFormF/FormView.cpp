@@ -77,8 +77,8 @@ BEGIN_MESSAGE_MAP(CFormScrollView, CScrollView)
     ON_COMMAND(ID_ADD_TEXT, OnAddText)
     ON_COMMAND(ID_ADD_FORM, OnAddForm)
     ON_COMMAND(ID_GENERATE_FRM, OnGenerateFrm)
-    ON_COMMAND(ID_DELETE_ITEM, OnDeleteItem)
-    ON_UPDATE_COMMAND_UI(ID_DELETE_ITEM, OnUpdateDeleteItem)
+    ON_COMMAND(ID_EDIT_CLEAR, OnDeleteItem)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR, OnUpdateDeleteItem)
     ON_COMMAND(ID_DELETE_FORM, OnDeleteForm)
     ON_UPDATE_COMMAND_UI(ID_DELETE_FORM, OnUpdateDeleteForm)
     ON_COMMAND_RANGE(ID_LAYOUT_ALIGN_LEFT, ID_LAYOUT_ALIGN_BOTTOM, OnLayoutAlign)
@@ -3883,12 +3883,12 @@ void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
             }
         }
 
-        popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+        popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
         popMenu.AppendMenu(MF_SEPARATOR);
 
         if (pItem->GetItemType() == CDEFormBase::Roster)   // use right-click item for all other opts
         {
-            popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+            popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
             popMenu.AppendMenu(MF_SEPARATOR);
 
             if (bRosterCol || bRosterRow || bRosterCell) {
@@ -5228,7 +5228,7 @@ void CFormScrollView::OnDeleteItem()
     {
         CFormGrid* pGrid = GetGridWhereTrackerSelected();
         pGrid->SetHitObj (pGrid->GetTracker(0).GetHitOb());
-        pGrid->SendMessage(WM_COMMAND, ID_DELETE_ITEM);
+        pGrid->SendMessage(WM_COMMAND, ID_EDIT_CLEAR);
         SetFocus();
     }
     else if (pWnd == this || IsAnyGridColSelected() || IsAnyGridRowSelected())
@@ -6276,16 +6276,16 @@ void CFormScrollView::DrawField(const CDEField* pField, CDC* pDC)
             pDC->TextOut(iX, iY, GetDecimalCharacter());
 
             // 20100708 the decimal point was eliminating some of the border
-            if( using_control ) 
+            if( using_control )
             {
                 // top border
                 const LONG top_border_y = rcFld.top + 1;
-                pDC->MoveTo(iX - 1, top_border_y); 
+                pDC->MoveTo(iX - 1, top_border_y);
                 pDC->LineTo(iX + szChar.cx, top_border_y);
 
                 // bottom border
                 const LONG bottom_border_y = iBottom + 1;
-                pDC->MoveTo(iX - 1, bottom_border_y); 
+                pDC->MoveTo(iX - 1, bottom_border_y);
                 pDC->LineTo(iX + szChar.cx, bottom_border_y);
             }
         }

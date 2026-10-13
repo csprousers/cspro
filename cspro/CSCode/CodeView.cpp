@@ -9,9 +9,6 @@ IMPLEMENT_DYNCREATE(CodeView, LogicView)
 
 BEGIN_MESSAGE_MAP(CodeView, LogicView)
 
-    // editor handlers
-    ON_COMMAND(ID_EDIT_FIND_NEXT, OnFindNext)
-
     // Code menu
     ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
     ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
@@ -109,12 +106,6 @@ void CodeView::OnSavePointLeft(_Inout_ Scintilla::NotificationData* /*pSCNotific
 {
     CodeDoc& code_doc = GetCodeDoc();
     code_doc.SetModifiedFlag(TRUE, this);
-}
-
-
-void CodeView::OnFindNext()
-{
-    SendMessage(WM_COMMAND, ID_EDIT_REPEAT);
 }
 
 
