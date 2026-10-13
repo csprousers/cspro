@@ -27,6 +27,7 @@
     <ClInclude Include="BasicTokenCompiler.h" />
     <ClInclude Include="ChildSymbolNames.h" />
     <ClInclude Include="ContextSensitiveHelp.h" />
+    <ClInclude Include="DeprecationWarnings.h" />
     <ClInclude Include="FunctionTable.h" />
     <ClInclude Include="GeneralizedFunction.h" />
     <ClInclude Include="KeywordTable.h" />

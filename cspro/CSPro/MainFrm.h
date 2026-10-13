@@ -250,9 +250,6 @@ protected:
 
     void OnSymbolAnalysis();
 
-    void OnDeprecationWarnings(UINT nID);
-    void OnUpdateDeprecationWarnings(CCmdUI* pCmdUI);
-
 
     // other functions
     // --------------------------------------------------------------------------

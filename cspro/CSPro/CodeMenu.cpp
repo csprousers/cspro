@@ -162,20 +162,3 @@ void CMainFrame::OnSymbolAnalysis()
         ErrorMessage::Display(exception);
     }
 }
-
-
-
-// --------------------------------------------------------------------------
-// Deprecation Warnings
-// --------------------------------------------------------------------------
-
-void CMainFrame::OnDeprecationWarnings(UINT nID)
-{
-    CodeMenu::DeprecationWarnings::OnDeprecationWarnings(nID);
-}
-
-
-void CMainFrame::OnUpdateDeprecationWarnings(CCmdUI* pCmdUI)
-{
-    CodeMenu::DeprecationWarnings::OnUpdateDeprecationWarnings(pCmdUI);
-}

@@ -35,6 +35,9 @@
     <ClInclude Include="ContextSensitiveHelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DeprecationWarnings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FunctionTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>

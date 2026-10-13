@@ -26,9 +26,6 @@ BEGIN_MESSAGE_MAP(CodeFrame, CMDIChildWndEx)
     ON_COMMAND(ID_CODE_STRING_ENCODER, OnStringEncoder)
     ON_COMMAND(ID_CODE_PATH_ADJUSTER, OnPathAdjuster)
 
-    ON_COMMAND_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnDeprecationWarnings)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnUpdateDeprecationWarnings)
-
     // Run menu
     ON_COMMAND(ID_RUN_RUN, OnRunRun)
     ON_UPDATE_COMMAND_UI(ID_RUN_RUN, OnUpdateRunRun)
@@ -236,18 +233,6 @@ void CodeFrame::OnPathAdjuster()
     const LanguageSettings& doc_language_settings = code_doc.GetLanguageSettings();
 
     CodeMenu::OnPathAdjuster(doc_language_settings.GetLexerLanguage(), code_doc.GetFilePath());
-}
-
-
-void CodeFrame::OnDeprecationWarnings(const UINT nID)
-{
-    CodeMenu::DeprecationWarnings::OnDeprecationWarnings(nID);
-}
-
-
-void CodeFrame::OnUpdateDeprecationWarnings(CCmdUI* const pCmdUI)
-{
-    CodeMenu::DeprecationWarnings::OnUpdateDeprecationWarnings(pCmdUI);
 }
 
 

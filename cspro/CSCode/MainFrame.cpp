@@ -5,6 +5,7 @@
 #include "LanguageSettingsPersister.h"
 #include "LocalhostSettingsDlg.h"
 #include <zToolsO/UWM.h>
+#include <zToolsO/WinSettings.h>
 #include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zUtilF/resource_shared.h>

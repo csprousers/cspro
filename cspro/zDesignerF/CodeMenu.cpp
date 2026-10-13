@@ -2,6 +2,7 @@
 #include "CodeMenu.h"
 #include "PathAdjusterDlg.h"
 #include "StringEncoderDlg.h"
+#include <zUtilO/WindowHelpers.h>
 
 
 void CodeMenu::ReplaceCodeMenuPopups(CMenu* pPopupMenu, int document_lexer_language, int view_lexer_language)

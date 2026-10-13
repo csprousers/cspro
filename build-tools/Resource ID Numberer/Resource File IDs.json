@@ -350,6 +350,11 @@
         "IDC_REPLACE_COMBO"
       ],
       [
+        "ID_CODE_DEPRECATION_WARNINGS_NONE",
+        "ID_CODE_DEPRECATION_WARNINGS_MOST",
+        "ID_CODE_DEPRECATION_WARNINGS_ALL"
+      ],
+      [
         "ID_CODE_FOLDING_FOLD_ALL",
         "ID_CODE_FOLDING_UNFOLD_ALL",
         "ID_CODE_FOLDING_TOGGLE"
@@ -439,11 +444,6 @@
       ]
     ],
     "zDesignerF": [
-      [
-        "ID_CODE_DEPRECATION_WARNINGS_NONE",
-        "ID_CODE_DEPRECATION_WARNINGS_MOST",
-        "ID_CODE_DEPRECATION_WARNINGS_ALL"
-      ],
       [
         "ID_TOOLS_DATAMANAGER",
         "ID_TOOLS_TEXTVIEW",

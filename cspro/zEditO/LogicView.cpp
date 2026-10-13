@@ -2,9 +2,8 @@
 #include "LogicView.h"
 #include "LogicViewTextSourceModifier.h"
 #include <zScintilla/src/Position.h>
-#include <zToolsO/EnumHelpers.h>
 #include <zToolsO/NumberToString.h>
-#include <zToolsO/WinSettings.h>
+#include <zLogicO/DeprecationWarnings.h>
 #include <zLogicO/StringEscaper.h>
 
 
@@ -25,6 +24,9 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
 
     ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
+
+    ON_COMMAND_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnDeprecationWarnings)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnUpdateDeprecationWarnings)
 
     ON_COMMAND_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnCodeFoldingLevel)
     ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnUpdateCodeFoldingLevel)
@@ -430,6 +432,18 @@ void LogicView::OnCommentLine()
         ASSERT(!m_logicCtrl->GetReadOnly());
         m_logicCtrl->CommentLine();
     }
+}
+
+
+void LogicView::OnDeprecationWarnings(const UINT nID)
+{
+    DeprecationWarnings::SetLevel(DeprecationWarnings::GetLevelFromId(nID));
+}
+
+
+void LogicView::OnUpdateDeprecationWarnings(CCmdUI* const pCmdUI)
+{
+    pCmdUI->SetCheck(( DeprecationWarnings::GetLevel() == DeprecationWarnings::GetLevelFromId(pCmdUI->m_nID) ));
 }
 
 
