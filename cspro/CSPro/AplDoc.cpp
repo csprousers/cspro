@@ -1056,7 +1056,7 @@ void CAplDoc::SetAppObjects()
 
 
 // Function name    : CAplDoc::OpenAllDocuments
-// Description      :Call this funciton only after a call of Build AllTrees
+// Description      :Call this function only after a call of BuildAllTrees
 // Return type      : void
 // Argument         : void
 
@@ -1193,16 +1193,11 @@ BOOL CAplDoc::OpenAllDocuments()
         tabTree.ReBuildTree();
     }
 
-    // refresh the message control's lexer language (based on the logic settings in this application)
-    if( application_child_wnd != nullptr && application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl() != nullptr )
-    {
-        application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl()->PostMessage(UWM::Edit::RefreshLexer);
-    }
+    ASSERT(application_child_wnd != nullptr);
 
-    else
-    {
-        ASSERT80(false);
-    }
+    // let any views created while opening CFormDoc / OrderDoc / CTabulateDoc
+    // know that this is its associated DesignerDoc
+    application_child_wnd->GetActiveDocument()->UpdateAllViews(nullptr, Hint::DesignerDocLoaded, this);
 
     return TRUE;
 }
@@ -2315,6 +2310,12 @@ std::shared_ptr<TextSourceEditable> CAplDoc::GetLogicMainCodeFileTextSource()
     ASSERT(text_source != nullptr);
 
     return text_source;
+}
+
+
+const LogicSettings& CAplDoc::GetLogicSettings()
+{
+    return m_application->GetLogicSettings();
 }
 
 

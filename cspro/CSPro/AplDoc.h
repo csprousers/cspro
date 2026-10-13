@@ -63,6 +63,7 @@ public:
     std::shared_ptr<TextSourceEditable> GetLogicMainCodeFileTextSource();
 
     // DesignerDoc overrides
+    const LogicSettings& GetLogicSettings() override;
     std::shared_ptr<TextSourceEditable> GetMessageTextSource() override;
 
     BOOL AreAplDictsOK(void);

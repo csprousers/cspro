@@ -1,25 +1,33 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "LogicDialogBar.h"
-#include "CompilerOutputTabViewPage.h"
+#include "MessageEditView.h"
+#include "TabViewContainer.h"
 
+
+// --------------------------------------------------------------------------
+// LogicDialogBar
+// --------------------------------------------------------------------------
 
 namespace
 {
-    constexpr const TCHAR* CompilerOutputTabText = _T("Compiler Output");
-    constexpr const TCHAR* MessagesTabText       = _T("Messages");
+    constexpr const wchar_t* CompilerOutputTabText = L"Compiler Output";
+    constexpr const wchar_t* MessagesTabText       = L"Messages";
+
+    constexpr size_t CompilerOutputTabIndex = 0;
 }
 
 
 BEGIN_MESSAGE_MAP(LogicDialogBar, UnfloatableDialogBar)
     ON_WM_CREATE()
     ON_WM_SIZE()
-    ON_MESSAGE(UWM::Designer::TabViewContainerTabChange, OnTabChange)
 END_MESSAGE_MAP()
 
 
 LogicDialogBar::LogicDialogBar()
     :   UnfloatableDialogBar(SZBARF_DLGAUTOSIZE | SZBARF_NOCAPTION | SZBARF_NOGRIPPER | SZBARF_NOCLOSEBTN | SZBARF_NORESIZEBTN),
-        m_applicationChildWnd(nullptr)
+        m_tabViewContainer(std::make_unique<TabViewContainer>()),
+        m_doc(nullptr),
+        m_messageEditTabIndex(-1)
 {
 }
 
@@ -29,19 +37,20 @@ LogicDialogBar::~LogicDialogBar()
 }
 
 
-bool LogicDialogBar::CreateAndDock(ApplicationChildWnd* application_child_wnd)
+bool LogicDialogBar::CreateAndDock(CFrameWnd* const frame_wnd, CDocument* const doc)
 {
-    m_applicationChildWnd = application_child_wnd;
-    m_compilerOutputTabViewPage = std::make_unique<CompilerOutputTabViewPage>(m_applicationChildWnd);
-    m_messageEditTabViewPage = std::make_unique<MessageEditTabViewPage>(m_applicationChildWnd);
+    ASSERT(doc != nullptr);
+    m_doc = doc;
 
-    if( !Create(m_applicationChildWnd, IDD_LOGIC_BAR, CBRS_BOTTOM, (UINT)-1) )
+    m_compilerOutputTabViewPage = std::make_unique<CompilerOutputTabViewPage>(assert_cast<ApplicationChildWnd*>(frame_wnd));
+
+    if( !Create(frame_wnd, IDD_LOGIC_BAR, CBRS_BOTTOM, static_cast<UINT>(-1)) )
         return false;
 
     // dock the window on the bottom
     EnableDocking(CBRS_ALIGN_BOTTOM);
 
-    m_applicationChildWnd->DockControlBar(this, CBRS_ALIGN_BOTTOM);
+    frame_wnd->DockControlBar(this, CBRS_ALIGN_BOTTOM);
 
     return true;
 }
@@ -49,60 +58,96 @@ bool LogicDialogBar::CreateAndDock(ApplicationChildWnd* application_child_wnd)
 
 int LogicDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if( UnfloatableDialogBar::OnCreate(lpCreateStruct) == -1 )
+    if( __super::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
-    // create the tab view container for the two tabs
-    if( !m_tabViewContainer.Create(this) )
+    // create the tab view container for the tabs
+    if( !m_tabViewContainer->Create(this) )
         return -1;
 
+    int tab_index = 0;
 
     // create the compiler output window
-    const DWORD dwStyle = WS_VISIBLE | WS_CHILD | WS_HSCROLL | WS_VSCROLL;
+    {
+        constexpr DWORD dwStyle = WS_VISIBLE | WS_CHILD | WS_HSCROLL | WS_VSCROLL;
 
-    if( !m_compilerOutputTabViewPage->Create(dwStyle, &m_tabViewContainer) )
-        return -1;
+        if( !m_compilerOutputTabViewPage->Create(dwStyle, m_tabViewContainer.get()) )
+            return -1;
 
-    m_tabViewContainer.AddPage(m_compilerOutputTabViewPage.get(), CompilerOutputTabText);
-
+        m_tabViewContainer->InsertPage(tab_index, m_compilerOutputTabViewPage.get(), CompilerOutputTabText);
+        ASSERT(tab_index == CompilerOutputTabIndex);
+        ++tab_index;
+    }
 
     // create the messages window
-    if( !m_messageEditTabViewPage->Create(dwStyle, &m_tabViewContainer) )
-        return -1;
+    {
+        CCreateContext context;
+        context.m_pNewViewClass = GetMessageEditRuntimeClass();
+        context.m_pCurrentDoc = m_doc;
+        context.m_pCurrentFrame = GetParentFrame();
 
-    m_tabViewContainer.AddPage(m_messageEditTabViewPage.get(), MessagesTabText);
+        if( !m_tabViewContainer->InsertPage(tab_index, context.m_pNewViewClass, &context, MessagesTabText) )
+            return -1;
 
+        m_messageEditTabIndex = tab_index++;
+    }
 
     // by default select the compiler output window
-    m_tabViewContainer.SetActivePageIndex(0);
-    
+    m_tabViewContainer->SetActivePageIndex(CompilerOutputTabIndex);
+
     return 0;
 }
 
 
-void LogicDialogBar::OnSize(UINT nType, int cx, int cy)
+void LogicDialogBar::OnSize(const UINT nType, const int cx, const int cy)
 {
-    UnfloatableDialogBar::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
     // resize the tab view container to match this window
-    if( m_tabViewContainer.GetSafeHwnd() != nullptr )
+    if( m_tabViewContainer->GetSafeHwnd() != nullptr )
     {
         CRect rect;
         GetClientRect(&rect);
 
-        m_tabViewContainer.MoveWindow(rect.left, rect.top, cx, cy);
-        m_tabViewContainer.UpdateScrollState();
+        m_tabViewContainer->MoveWindow(rect.left, rect.top, cx, cy);
+        m_tabViewContainer->UpdateScrollState();
     }
 }
 
 
-LRESULT LogicDialogBar::OnTabChange(WPARAM wParam, LPARAM /*lParam*/)
+void LogicDialogBar::SelectCompilerOutputTab()
 {
-    const int tab_index = static_cast<int>(wParam);
+    m_tabViewContainer->SetActivePageIndex(CompilerOutputTabIndex);
+}
 
-    // when selecting the messages tab, refresh the text
-    if( tab_index == 1 )
-        m_messageEditTabViewPage->OnTabChange();
 
-    return 0;
+LogicCtrl* LogicDialogBar::SelectMessageEditTab()
+{
+    ASSERT(m_messageEditTabIndex != -1);
+    m_tabViewContainer->SetActivePageIndex(m_messageEditTabIndex);
+
+    return assert_cast<MessageEditView*>(m_tabViewContainer->GetActivePage())->GetLogicCtrl();
+}
+
+
+void LogicDialogBar::UpdateScrollState()
+{
+    m_tabViewContainer->UpdateScrollState();
+}
+
+
+// --------------------------------------------------------------------------
+// MessageEditTabViewPage
+// --------------------------------------------------------------------------
+
+class MessageEditTabViewPage : public COXTabViewPage<MessageEditView>
+{
+    DECLARE_DYNCREATE(MessageEditTabViewPage)
+};
+
+IMPLEMENT_DYNCREATE(MessageEditTabViewPage, COXTabViewPage<MessageEditView>)
+
+CRuntimeClass* LogicDialogBar::GetMessageEditRuntimeClass()
+{
+    return RUNTIME_CLASS(MessageEditTabViewPage);
 }

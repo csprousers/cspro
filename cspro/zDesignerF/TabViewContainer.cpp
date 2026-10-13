@@ -1,16 +1,5 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TabViewContainer.h"
-
-
-BOOL TabViewContainer::SetActivePageIndex(int nIndex)
-{
-    BOOL return_value = COXTabViewContainer::SetActivePageIndex(nIndex);
-
-    if( return_value )
-        GetParent()->SendMessage(UWM::Designer::TabViewContainerTabChange, (WPARAM)nIndex, 0);
-
-    return return_value;
-}
 
 
 extern  BOOL g_bUpdatingScrollInfo =  FALSE;

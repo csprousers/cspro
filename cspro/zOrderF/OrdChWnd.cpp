@@ -139,7 +139,7 @@ BOOL COrderChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD
     EnableDocking(CBRS_ALIGN_ANY);
 
     // create the compiler output and messages tabs
-    if( !m_logicDlgBar.CreateAndDock(this) )
+    if( !m_logicDlgBar.CreateAndDock(this, pContext->m_pCurrentDoc) )
         return FALSE;
 
     // create the reference window

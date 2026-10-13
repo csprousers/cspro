@@ -27,7 +27,6 @@
     <ClCompile Include="Lexers.cpp" />
     <ClCompile Include="LogicCtrl.cpp" />
     <ClCompile Include="LogicView.cpp" />
-    <ClCompile Include="MessageEditCtrl.cpp" />
     <ClCompile Include="ReadOnlyEditCtrl.cpp" />
     <ClCompile Include="ScintillaColorizer.cpp" />
     <ClCompile Include="ScintillaCtrl.cpp" />
@@ -47,7 +46,6 @@
     <ClInclude Include="LogicCtrl.h" />
     <ClInclude Include="LogicView.h" />
     <ClInclude Include="LogicViewTextSourceModifier.h" />
-    <ClInclude Include="MessageEditCtrl.h" />
     <ClInclude Include="ReadOnlyEditCtrl.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource_shared.h" />

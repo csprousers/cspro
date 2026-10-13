@@ -1,58 +1,67 @@
-#include "StdAfx.h"
-#include "MessageEditTabViewPage.h"
+#include "stdafx.h"
+#include "MessageEditView.h"
 
 
-MessageEditTabViewPage::MessageEditTabViewPage(ApplicationChildWnd* const application_child_wnd)
-    :   m_applicationChildWnd(application_child_wnd)
+IMPLEMENT_DYNAMIC(MessageEditView, LogicView)
+
+
+MessageEditView::MessageEditView() noexcept
+    :   m_designerDoc(nullptr)
 {
-    ASSERT(application_child_wnd != nullptr);
 }
 
 
-MessageEditTabViewPage::~MessageEditTabViewPage()
+void MessageEditView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* const pHint)
 {
-    if( m_textSourceEditable != nullptr )
-        m_textSourceEditable->SetSourceModifier(nullptr);
-}
+    __super::OnUpdate(pSender, lHint, pHint);
 
-
-void MessageEditTabViewPage::OnTabChange()
-{
-    // get the message text source if it hasn't already been retrieved
-    if( m_textSourceEditable != nullptr )
-        return;
-
-    CDocument* const active_document = m_applicationChildWnd->GetActiveDocument();
-
-    if( active_document != nullptr &&
-        WindowsDesktopMessage::Send(UWM::Designer::GetMessageTextSource, active_document, &m_textSourceEditable) == 1 )
+    switch( lHint )
     {
-        SetText(m_textSourceEditable->GetText());
-        EmptyUndoBuffer();
+        case Hint::DesignerDocLoaded:
+        {
+            m_designerDoc = assert_cast<DesignerDoc*>(pHint);
+            OnDesignerDocLoaded();
+            break;
+        }
 
-        m_textSourceEditable->SetSourceModifier(this);
+        case Hint::LogicSettingsChanged:
+        {
+            OnLogicSettingsChanged();
+            break;
+        }
     }
 }
 
 
-void MessageEditTabViewPage::SetModified(const bool modified/* = true*/)
+void MessageEditView::OnDesignerDocLoaded()
 {
-    ASSERT(m_textSourceEditable != nullptr);
+    ASSERT(m_designerDoc != nullptr);
 
-    MessageEditCtrl::SetModified(modified);
+    // get the text source for the messages
+    const std::shared_ptr<TextSourceEditable> text_source = m_designerDoc->GetMessageTextSource();
+    ASSERT(text_source != nullptr);
 
-    if( modified )
-        m_textSourceEditable->SetModified();
+    // use a text source modifier to manage the modification flag and to keep the text source's buffer in sync
+    RegisterTextSourceModifier(text_source);
+
+    // set up the editor based on the version of messages being used
+    const int lexer_language = Lexers::GetLexer_Message(m_designerDoc->GetLogicSettings());
+    m_logicCtrl->BaseInitControl(lexer_language);
+
+    // do not show line numbers
+    m_logicCtrl->SetMargins(0);
+
+    // set the message text
+    m_logicCtrl->SetTextAndSetSavePoint(text_source->GetText());
+    m_logicCtrl->EmptyUndoBuffer();
 }
 
 
-void MessageEditTabViewPage::SyncTextSource()
+void MessageEditView::OnLogicSettingsChanged()
 {
-    m_textSourceEditable->SetText(GetText());
-}
+    ASSERT(m_designerDoc != nullptr);
 
-
-void MessageEditTabViewPage::OnTextSourceSave()
-{
-    SetModified(false);
+    const int lexer_language = Lexers::GetLexer_Message(m_designerDoc->GetLogicSettings());
+    m_logicCtrl->ToggleLexer(lexer_language);
+    m_logicCtrl->ColorizeEntireDocument();
 }

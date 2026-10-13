@@ -11,7 +11,8 @@ public:
 
     bool Create(DWORD dwStyle, CWnd* pParentWnd);
 
-    void SetAccelerators(UINT nId);
+    // If not specified, IDR_EDIT is used.
+    void SetAccelerators(UINT nId = 0);
 
 protected:
     DECLARE_MESSAGE_MAP()

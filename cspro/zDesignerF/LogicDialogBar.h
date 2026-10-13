@@ -1,14 +1,20 @@
-﻿#pragma once
+#pragma once
 
 #include <zDesignerF/zDesignerF.h>
-#include <zDesignerF/ApplicationChildWnd.h>
 #include <zDesignerF/CompilerOutputTabViewPage.h>
-#include <zDesignerF/MessageEditTabViewPage.h>
 #include <zDesignerF/UnfloatableDialogBar.h>
-#include <zDesignerF/TabViewContainer.h>
+
+class TabViewContainer;
 
 
-// the container holding the compiler output and messages tabs
+// --------------------------------------------------------------------------
+// LogicDialogBar
+//
+// This container hosts windows as tabs, including:
+//
+// - compiler output  |  CompilerOutputTabViewPage
+// - messages         |  MessageEditView (as MessageEditTabViewPage)
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZDESIGNERF LogicDialogBar : public UnfloatableDialogBar
 {
@@ -16,14 +22,17 @@ public:
     LogicDialogBar();
     ~LogicDialogBar();
 
-    bool CreateAndDock(ApplicationChildWnd* application_child_wnd);
+    bool CreateAndDock(CFrameWnd* frame_wnd, CDocument* doc);
 
-    CompilerOutputTabViewPage* GetCompilerOutputTabViewPage() { return m_compilerOutputTabViewPage.get(); }
-    MessageEditCtrl* GetMessageEditCtrl()                     { return m_messageEditTabViewPage.get(); }
+    CompilerOutputTabViewPage* GetCompilerOutputTabViewPage() noexcept { return m_compilerOutputTabViewPage.get(); }
 
-    void SelectCompilerOutputTab() { m_tabViewContainer.SetActivePageIndex(0); }
-    void SelectMessageEditTab()    { m_tabViewContainer.SetActivePageIndex(1); }
-    void UpdateScrollState()       { m_tabViewContainer.UpdateScrollState(); }
+    // Selects the "Compiler Output" tab.
+    void SelectCompilerOutputTab();
+
+    // Selects the "Messages" tab and returns the control used to edit messages.
+    LogicCtrl* SelectMessageEditTab();
+
+    void UpdateScrollState();
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -31,11 +40,12 @@ protected:
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
     void OnSize(UINT nType, int cx, int cy);
 
-    LRESULT OnTabChange(WPARAM wParam, LPARAM lParam);
+private:
+    static CRuntimeClass* GetMessageEditRuntimeClass();
 
 private:
-    TabViewContainer m_tabViewContainer;
+    std::unique_ptr<TabViewContainer> m_tabViewContainer;
+    CDocument* m_doc;
     std::unique_ptr<CompilerOutputTabViewPage> m_compilerOutputTabViewPage;
-    std::unique_ptr<MessageEditTabViewPage> m_messageEditTabViewPage;
-    ApplicationChildWnd* m_applicationChildWnd;
+    int m_messageEditTabIndex;
 };

@@ -35,9 +35,6 @@
     <ClCompile Include="LogicView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MessageEditCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ReadOnlyEditCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -83,9 +80,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogicViewTextSourceModifier.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageEditCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReadOnlyEditCtrl.h">

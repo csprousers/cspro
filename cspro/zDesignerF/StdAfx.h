@@ -4,6 +4,7 @@
 #include <engine/StrictCompilerErrors.h>
 // X64_TODO #include <StandardIncludes/strict_errors.h>
 
+#include <zDesignerF/DesignerDoc.h>
 #include <zDesignerF/OnUpdateHints.h>
 #include <zDesignerF/resource.h>
 #include <zDesignerF/resource_shared.h>
@@ -20,6 +21,5 @@
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DialogValidators.h>
 #include <zLogicO/StringEscaper.h>
-#include <zEditO/UWM.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>

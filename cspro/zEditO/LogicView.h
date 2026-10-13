@@ -81,8 +81,10 @@ private:
 
     void UpdateBraceMatchingUI();
 
+protected:
+    LogicCtrl* m_logicCtrl; // non-null after creation
+
 private:
-    LogicCtrl* m_logicCtrl;
     std::optional<int> m_lineCountNumberDigitsAtLastUpdateMarginWidth;
 
     class TextSourceModifier;

@@ -46,8 +46,11 @@ bool EditCtrl::Create(DWORD dwStyle, CWnd* pParentWnd)
 }
 
 
-void EditCtrl::SetAccelerators(UINT nId)
+void EditCtrl::SetAccelerators(UINT nId/* = 0*/)
 {
+    if( nId == 0 )
+        nId = IDR_EDIT;
+
     HINSTANCE hInstance = AfxFindResourceHandle(MAKEINTRESOURCE(nId), RT_ACCELERATOR);
     m_hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(nId));
 }

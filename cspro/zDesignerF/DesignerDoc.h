@@ -2,6 +2,7 @@
 
 #include <zDesignerF/zDesignerF.h>
 
+class LogicSettings;
 class TextSourceEditable;
 
 
@@ -16,7 +17,10 @@ class CLASS_DECL_ZDESIGNERF DesignerDoc : public CDocument
     DECLARE_DYNAMIC(DesignerDoc)
 
 public:
-    virtual ~DesignerDoc() = default;
+    virtual ~DesignerDoc() noexcept = default;
+
+    // Returns the logic settings used by the document.
+    virtual const LogicSettings& GetLogicSettings() = 0;
 
     // Returns a non-null pointer to the message text source, creating one
     // if necessary. TextSourceEditable does not throw exceptions on

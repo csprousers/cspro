@@ -1,27 +1,30 @@
-﻿#pragma once
+#pragma once
 
-#include <zDesignerF/zDesignerF.h>
-#include <zUToolO/oxtbvw.h>
-#include <zEditO/MessageEditCtrl.h>
-#include <zDesignerF/ApplicationChildWnd.h>
-#include <zUtilO/TextSourceEditable.h>
+#include <zEditO/LogicView.h>
 
 
-class CLASS_DECL_ZDESIGNERF MessageEditTabViewPage : public COXTabViewPage<MessageEditCtrl>, public TextSourceEditable::SourceModifier
+// --------------------------------------------------------------------------
+// MessageEditView
+//
+// This view is for editing message files as part of a DesignerDoc.
+//
+// The view is hosted in a tab page, MessageEditTabViewPage.
+// --------------------------------------------------------------------------
+
+class MessageEditView : public LogicView
 {
-public:
-    MessageEditTabViewPage(ApplicationChildWnd* application_child_wnd);
-    ~MessageEditTabViewPage();
-
-    void OnTabChange();
+    DECLARE_DYNAMIC(MessageEditView)
 
 protected:
-    void SetModified(bool modified = true) override;
+    MessageEditView() noexcept;
 
-    void SyncTextSource() override;
-    void OnTextSourceSave() override;
+protected:
+    void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) override;
 
 private:
-    ApplicationChildWnd* m_applicationChildWnd;
-    std::shared_ptr<TextSourceEditable> m_textSourceEditable;
+    void OnDesignerDocLoaded();
+    void OnLogicSettingsChanged();
+
+private:
+    DesignerDoc* m_designerDoc; // non-null after OnUpdate's Hint::DesignerDocLoaded
 };

@@ -75,7 +75,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Dictionary::GetApplicationPff, OnGetApplicationPff)
 
     ON_MESSAGE(UWM::Designer::GetDictionaryType, OnGetDictionaryType)
-    ON_MESSAGE(UWM::Designer::GetMessageTextSource, OnGetMessageTextSource)
     ON_MESSAGE(UWM::Designer::GetApplicationBeingLoaded, OnGetApplicationBeingLoaded)
     ON_MESSAGE(UWM::Designer::GetApplication, OnGetApplication)
     ON_MESSAGE(UWM::Designer::GetFormFileOrDictionary, OnGetFormFileOrDictionary)
@@ -2560,20 +2559,6 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
         ErrorMessage::Display(exception);
         return false;
     }
-}
-
-
-LRESULT CMainFrame::OnGetMessageTextSource(const WPARAM wParam, const LPARAM lParam)
-{
-    DesignerDoc* const designer_doc = GetDesignerDoc(reinterpret_cast<CDocument*>(wParam));
-    std::shared_ptr<TextSourceEditable>& message_text_source = *reinterpret_cast<std::shared_ptr<TextSourceEditable>*>(lParam);
-
-    if( designer_doc == nullptr )
-        return 0;
-
-    message_text_source = designer_doc->GetMessageTextSource();
-
-    return 1;
 }
 
 
@@ -5384,15 +5369,12 @@ void CMainFrame::OnOptionsProperties()
         pAplDoc->SetModifiedFlag();
 
         // refresh the Scintilla lexers in case the logic version changed
-        auto refresh_lexer = [&](LogicCtrl* const logic_ctrl)
-        {
-            if( logic_ctrl != nullptr )
-                logic_ctrl->PostMessage(UWM::Edit::RefreshLexer);
-        };
 
-        ApplicationChildWnd* application_child_wnd = assert_cast<ApplicationChildWnd*>(pWnd);
-        refresh_lexer(application_child_wnd->GetSourceLogicCtrl());
-        refresh_lexer(application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl());
+        // update the logic
+        assert_cast<ApplicationChildWnd*>(pWnd)->GetSourceLogicCtrl()->PostMessage(UWM::Edit::RefreshLexer);
+
+        // update the messages
+        pDoc->UpdateAllViews(nullptr, Hint::LogicSettingsChanged);
     }
 
     // reset any cached objects (e.g., if the logic version changed, the user message files need to be processed again)
@@ -5803,14 +5785,12 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
                 SO::EqualsNoCase(app_message_files.front().GetFilePath(), logic_error_location.parser_message.compilation_unit_name) )
             {
                 LogicDialogBar& logic_dialog_bar = application_child_wnd->GetLogicDialogBar();
-                logic_dialog_bar.SelectMessageEditTab();
-
-                MessageEditCtrl* const message_edit_ctrl = logic_dialog_bar.GetMessageEditCtrl();
-                ASSERT(message_edit_ctrl != nullptr);
+                LogicCtrl* const message_edit_logic_ctrl = logic_dialog_bar.SelectMessageEditTab();
+                ASSERT(message_edit_logic_ctrl != nullptr);
                 ASSERT(logic_error_location.parser_message.line_number > 0);
 
-                message_edit_ctrl->SetFocus();
-                message_edit_ctrl->GotoLine(logic_error_location.parser_message.line_number - 1);
+                message_edit_logic_ctrl->SetFocus();
+                message_edit_logic_ctrl->GotoLine(logic_error_location.parser_message.line_number - 1);
 
                 open_in_cscode = false;
             }
@@ -5846,19 +5826,8 @@ LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
     if( pWnd == nullptr || ( pAplDoc = ProcessFOForSrcCode(*pWnd->GetActiveDocument()) ) == nullptr )
         return 0;
 
-    // check if this is the message editor
-    std::optional<AppFileType> app_file_type;
-
-    ApplicationChildWnd* const application_child_wnd = dynamic_cast<ApplicationChildWnd*>(pWnd);
-
-    if( application_child_wnd != nullptr &&
-        logic_ctrl == application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl() )
-    {
-        lexer_language = Lexers::GetLexer_Message(pAplDoc->GetAppObject());
-    }
-
     // otherwise use the GetLexerLanguageForSourceCode routine
-    else if( pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(CFormDoc)) )
+    if( pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(CFormDoc)) )
     {
         CFormID* const pFormID = GetNodeIdForSourceCode<CFormID>();
         ASSERT(pFormID != nullptr);

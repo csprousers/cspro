@@ -141,7 +141,7 @@ BOOL CTableChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD
 
 
         // create the compiler output and messages tabs
-        if( !m_logicDlgBar.CreateAndDock(this) )
+        if( !m_logicDlgBar.CreateAndDock(this, pContext->m_pCurrentDoc) )
             return FALSE;
 
         m_logicDlgBar.ShowWindow(SW_HIDE);

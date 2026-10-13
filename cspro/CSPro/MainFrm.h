@@ -65,9 +65,6 @@ public:
 
     CAplDoc* ProcessFOForSrcCode(CDocument& document);
 
-protected:
-    LRESULT OnGetMessageTextSource(WPARAM wParam, LPARAM lParam);
-
 private:
     static std::unique_ptr<CImageList> Load24BitColorToolbarImages(CToolBar* pToolBar, UINT nIDResource);
 
