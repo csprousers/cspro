@@ -57,7 +57,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     ON_REGISTERED_MESSAGE(AFX_WM_ON_GET_TAB_TOOLTIP, OnGetTabToolTip)
 
     // status bar handlers
-    ON_MESSAGE(WM_IMSA_SET_STATUSBAR_PANE, OnSetStatusBarFilePos)
+    ON_MESSAGE(UWM::UtilO::SetStatusBarText, OnSetStatusBarFilePos)
     ON_MESSAGE(UWM::CSCode::SetStatusBarFileType, OnSetStatusBarFileType)
     ON_UPDATE_COMMAND_UI_RANGE(ID_STATUS_PANE_FILE_POS, ID_STATUS_PANE_FILE_TYPE, OnUpdateStatusBar)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_OVR, OnUpdateKeyOvertype)

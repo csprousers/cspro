@@ -4,6 +4,7 @@
 #include "GoToDlg.h"
 #include "LexerProperties.h"
 #include "ScintillaColorizer.h"
+#include <zUtilO/UWM.h>
 #include <zScintilla/CSPro/CSPro.h>
 
 
@@ -1166,7 +1167,7 @@ LRESULT LogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
         str.Format(_T("Ln %d, Col %d"), line, column);
     }
 
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)str.GetString());
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, str.GetString());
 
     return 0;
 }

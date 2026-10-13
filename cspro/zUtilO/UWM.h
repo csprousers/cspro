@@ -10,9 +10,10 @@ namespace UWM::UtilO
     constexpr unsigned GetCodeText              = UWM::Ranges::UtilOStart + 2;
     constexpr unsigned GetSharedDictionaryConst = UWM::Ranges::UtilOStart + 3;
     constexpr unsigned GetUserFonts             = UWM::Ranges::UtilOStart + 4;
+    constexpr unsigned SetStatusBarText         = UWM::Ranges::UtilOStart + 5; // WPARAM: const wchar_t* text
 
     // unlike the above messages, the following message is only used within the project
-    constexpr unsigned ResizableDlgRestoreSize  = UWM::Ranges::UtilOStart + 5;
+    constexpr unsigned ResizableDlgRestoreSize  = UWM::Ranges::UtilOStart + 6;
 
     CHECK_MESSAGE_NUMBERING(ResizableDlgRestoreSize, UWM::Ranges::UtilOLast)
 }

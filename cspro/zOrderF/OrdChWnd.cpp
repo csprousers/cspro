@@ -81,7 +81,7 @@ void COrderChildWnd::ActivateFrame(int nCmdShow)
     COXMDIChildWndSizeDock::ActivateFrame(nCmdShow);
 
     AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, static_cast<WPARAM>(FrameType::Order));
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
 
     //To Make the tree selection in sync with the correct document
     COrderDoc* pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
@@ -104,12 +104,8 @@ void COrderChildWnd::ActivateFrame(int nCmdShow)
     }
 
     COrderDoc* pOrder = assert_cast<COrderDoc*>(GetActiveDocument());
-    if (pOrder && pOrder->GetFormFile().IsDictOrder()) {
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, reinterpret_cast<WPARAM>(_T("Dictionary Order")));
-    }
-    else {
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, reinterpret_cast<WPARAM>(_T("Custom Order")));
-    }
+    const bool dictionary_order = ( pOrder != nullptr && pOrder->GetFormFile().IsDictOrder() );
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, dictionary_order ? L"Dictionary Order" : L"Custom Order");
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -207,7 +203,7 @@ void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDe
         if (m_bQuestionnaireView) {
             OnViewQuestionnaire();
         }
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+        WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
     }
 
     if(bActivate && pActivateWnd && pActivateWnd->IsKindOf(RUNTIME_CLASS(COrderChildWnd))) {
@@ -282,7 +278,7 @@ void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDe
             pTree->SetSndMsgFlg(TRUE);
 
         }
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+        WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
     }*/
 }
 

@@ -149,7 +149,7 @@ void CFormChildWnd::ActivateFrame(int nCmdShow)
     m_wndFSplitter.RecalcLayout();
 
     AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, (WPARAM)FrameType::Form);
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
     InvalidateRect(NULL);
 
     if(m_logicDlgBar.GetSafeHwnd() && m_logicDlgBar.IsWindowVisible()) {
@@ -444,7 +444,7 @@ void CFormChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDea
     }
     if (bActivate)
     {
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+        WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
         ActivateFrame(SW_SHOW); //Fixed the initialization bug related to the capi app Ctl+Tab window change Bug#12
     }
 
@@ -801,7 +801,7 @@ void CFormChildWnd::OnViewLogic()
     if(!pWnd || !pWnd->IsKindOf(RUNTIME_CLASS(CToolBar)))
         return;
 
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
     m_pSourceEditView->GetLogicCtrl()->SetFocus();
 }
 

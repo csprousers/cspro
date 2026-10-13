@@ -92,7 +92,7 @@ public:
     LRESULT UpdateOSrcCode(WPARAM wParam, LPARAM lParam);
     LRESULT IsNameUnique(WPARAM wParam, LPARAM lParam);
 
-    LRESULT SetStatusBarPane(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSetStatusBarText(WPARAM wParam, LPARAM lParam);
     LRESULT OnIMSASetFocus(WPARAM wParam, LPARAM lParam);
     LRESULT OnIsCode(WPARAM wParam, LPARAM lParam);
     LRESULT OnFIsCode(WPARAM wParam, LPARAM lParam);

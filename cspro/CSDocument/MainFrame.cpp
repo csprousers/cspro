@@ -3,6 +3,7 @@
 #include "CSDocFrame.h"
 #include "DocSetSpecDoc.h"
 #include "GlobalSettingsDlg.h"
+#include <zUtilO/UWM.h>
 #include <zUtilF/resource_shared.h>
 #include <zUtilF/WindowsMenuManager.h>
 #include <zDesignerF/UWM.h>
@@ -51,7 +52,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     // status bar handlers
     ON_COMMAND(ID_STATUS_PANE_ASSOCIATED_DOCSET, OnStatusBarAssociatedDocSetClick)
     ON_UPDATE_COMMAND_UI(ID_STATUS_PANE_ASSOCIATED_DOCSET, OnUpdateStatusBarAssociatedDocSet)
-    ON_MESSAGE(WM_IMSA_SET_STATUSBAR_PANE, OnSetStatusBarFilePos)
+    ON_MESSAGE(UWM::UtilO::SetStatusBarText, OnSetStatusBarFilePos)
     ON_UPDATE_COMMAND_UI(ID_STATUS_PANE_FILE_POS, OnUpdateStatusBar)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_OVR, OnUpdateKeyOvertype)
 

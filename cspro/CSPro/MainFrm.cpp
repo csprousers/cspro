@@ -127,7 +127,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(ZEDITO_LOGIC_AUTO_COMPLETE, OnLogicAutoComplete)
     ON_MESSAGE(ZEDITO_LOGIC_INSERT_PROC_NAME, OnLogicInsertProcName)
 
-    ON_MESSAGE(WM_IMSA_SET_STATUSBAR_PANE, SetStatusBarPane)
+    ON_MESSAGE(UWM::UtilO::SetStatusBarText, OnSetStatusBarText)
     ON_MESSAGE(WM_IMSA_SETFOCUS, OnIMSASetFocus)
 
     ON_MESSAGE(WM_IMSA_UPDATE_SYMBOLTBL, OnUpdateSymbolTblFlag)
@@ -380,7 +380,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 
-    SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+    SendMessage(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
 
     // Set tool tips for tool bars
     m_pWndToolBar->SetBarStyle(m_pWndToolBar->GetBarStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
@@ -2723,13 +2723,13 @@ void CMainFrame::OnUpdateKeyOvr(CCmdUI* pCmdUI)
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                      CMainFrame::SetStatusBarPane
+//                      CMainFrame::OnSetStatusBarText
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LRESULT CMainFrame::SetStatusBarPane(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnSetStatusBarText(WPARAM wParam, LPARAM /*lParam*/)
 {
-    auto pszText = (const TCHAR*)wParam;
+    const wchar_t* const pszText = reinterpret_cast<const wchar_t*>(wParam);
     int iPane = 1;
     ASSERT(indicators[iPane] == ID_STATUS_PANE_INDICATOR);
 

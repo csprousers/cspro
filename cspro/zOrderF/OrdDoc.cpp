@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "OrdDoc.h"
 #include <zUtilO/SpecFile.h>
 
@@ -411,12 +411,8 @@ void COrderDoc::OnCustomOrder()
             SetModifiedFlag(true);
         }
     }
-    if (m_orderSpec.IsDictOrder()) {
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)_T("Dictionary Order"));
-    }
-    else {
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)_T("Custom Order"));
-    }
+
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, m_orderSpec.IsDictOrder() ? L"Dictionary Order" : L"Custom Order");
 }
 
 
