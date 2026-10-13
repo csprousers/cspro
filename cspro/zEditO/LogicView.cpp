@@ -5,6 +5,7 @@
 #include <zToolsO/NumberToString.h>
 #include <zToolsO/WinSettings.h>
 #include <zDesignerF/CodeMenu.h>
+#include <zLogicO/StringEscaper.h>
 
 
 extern const UINT _ScintillaMsgFindReplace;
@@ -14,11 +15,19 @@ IMPLEMENT_DYNCREATE(LogicView, CScintillaView)
 
 
 BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
+
     ON_WM_CREATE()
     ON_WM_CONTEXTMENU()
-    ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
-    ON_COMMAND(ID_HELP, OnHelp)
+
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
+
+    ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
+    ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
+
+    ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
+
+    ON_COMMAND(ID_HELP, OnHelp)
+
 END_MESSAGE_MAP()
 
 
@@ -339,6 +348,60 @@ LRESULT LogicView::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
     }
 
     return 0;
+}
+
+
+void LogicView::OnPasteStringLiteral()
+{
+    std::string clipboard_text = WinClipboard::GetText<std::string>();
+    SO::Remove(clipboard_text, '\r');
+
+    if( clipboard_text.empty() )
+        return;
+
+    const int lexer_language = m_logicCtrl->GetLexer();
+    std::string escaped_text;
+
+    if( Lexers::UsesCSProLogic(lexer_language) || lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 )
+    {
+        const bool escape_string_literals = Lexers::IsNotV0(lexer_language);
+        const bool split_newlines = ( escape_string_literals &&
+                                      lexer_language != SCLEX_CSPRO_MESSAGE_V8_0 &&
+                                      WinSettings::Read<DWORD>(WinSettings::Type::CodeLogicSplitNewlines, 1) == 1 );
+
+        Logic::StringEscaper logic_string_escaper(escape_string_literals);
+
+        escaped_text = split_newlines ? logic_string_escaper.EscapeStringWithSplitNewlines(std::move(clipboard_text)) :
+                                        logic_string_escaper.EscapeString(std::move(clipboard_text));
+    }
+
+    else
+    {
+        ASSERT(lexer_language == SCLEX_JSON || lexer_language == SCLEX_JAVASCRIPT);
+        const bool escape_forward_slashes = ( WinSettings::Read<DWORD>(WinSettings::Type::CodeEscapeJsonForwardSlashes, 0) == 1);
+        escaped_text = Encoders::ToJsonString(clipboard_text, escape_forward_slashes);
+    }
+
+    m_logicCtrl->ReplaceSel(escaped_text.c_str());
+}
+
+
+void LogicView::OnUpdatePasteStringLiteral(CCmdUI* const pCmdUI)
+{
+    bool enable = ( !m_logicCtrl->GetReadOnly() &&
+                    WinClipboard::HasText() );
+
+    if( enable )
+    {
+        const int lexer_language = m_logicCtrl->GetLexer();
+
+        enable = ( Lexers::UsesCSProLogic(lexer_language) ||
+                   lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 ||
+                   lexer_language == SCLEX_JSON ||
+                   lexer_language == SCLEX_JAVASCRIPT );
+    }
+
+    pCmdUI->Enable(enable);
 }
 
 

@@ -6,6 +6,7 @@
 #include <zToolsO/WinSettings.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zEditO/LogicCtrl.h>
+#include <zEditO/resource_shared.h>
 
 
 namespace CodeMenu
@@ -17,8 +18,6 @@ namespace CodeMenu
     constexpr unsigned FirstCodeMenuItemId = ID_CODE_PASTE_STRING_LITERAL;
 
     CLASS_DECL_ZDESIGNERF void ReplaceCodeMenuPopups(CMenu* pPopupMenu, int document_lexer_language, int view_lexer_language);
-
-    CLASS_DECL_ZDESIGNERF void OnPasteStringLiteral(LogicCtrl& logic_ctrl);
 
     CLASS_DECL_ZDESIGNERF void OnStringEncoder(const LogicSettings& logic_settings, std::string initial_text);
 
@@ -34,15 +33,6 @@ namespace CodeMenu
     {
         return ( Lexers::IsCSProLogic(lexer_language) ||
                  Lexers::IsCSProMessage(lexer_language) ||
-                 lexer_language == SCLEX_JAVASCRIPT );
-    }
-
-
-    constexpr bool CanPasteStringLiteral(int lexer_language)
-    {
-        return ( Lexers::UsesCSProLogic(lexer_language) ||
-                 lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 ||
-                 lexer_language == SCLEX_JSON ||
                  lexer_language == SCLEX_JAVASCRIPT );
     }
 

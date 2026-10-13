@@ -245,9 +245,6 @@ private:
 protected:
     void OnUpdateIfLogicIsShowing(CCmdUI* pCmdUI);
 
-    void OnPasteStringLiteral();
-    void OnUpdatePasteStringLiteral(CCmdUI* pCmdUI);
-
     void OnStringEncoder();
     void OnPathAdjuster();
 

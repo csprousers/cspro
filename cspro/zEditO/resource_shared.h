@@ -1,2 +1,3 @@
 //{{NO_DEPENDENCIES}}
-#define ID_COMMENT_LINE                 45001
+#define ID_CODE_PASTE_STRING_LITERAL    45012
+#define ID_COMMENT_LINE                 45013

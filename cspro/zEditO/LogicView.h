@@ -62,6 +62,9 @@ protected:
 
     LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
 
+    void OnPasteStringLiteral();
+    void OnUpdatePasteStringLiteral(CCmdUI* pCmdUI);
+
     void OnCommentLine();
 
     void OnHelp();

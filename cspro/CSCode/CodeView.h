@@ -35,9 +35,6 @@ protected:
 
     // Code menu handlers
     // --------------------------------------------------------------------------
-    void OnPasteStringLiteral();
-    void OnUpdatePasteStringLiteral(CCmdUI* pCmdUI);
-
     void OnCodeFoldingLevel(UINT nID);
     void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI);
     void OnCodeFoldingAction(UINT nID);

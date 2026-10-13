@@ -73,35 +73,6 @@ void CMainFrame::OnUpdateIfLogicIsShowing(CCmdUI* pCmdUI)
 
 
 // --------------------------------------------------------------------------
-// Paste as String Literal
-// --------------------------------------------------------------------------
-
-void CMainFrame::OnPasteStringLiteral()
-{
-    LogicCtrl* logic_ctrl = assert_cast<LogicCtrl*>(GetFocus());
-    CodeMenu::OnPasteStringLiteral(*logic_ctrl);
-}
-
-
-void CMainFrame::OnUpdatePasteStringLiteral(CCmdUI* pCmdUI)
-{
-    bool enable = false;
-
-    if( WinClipboard::HasText() )
-    {
-        CWnd* focused_wnd = GetFocus();
-        ASSERT(focused_wnd != nullptr);
-
-        enable = ( focused_wnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) &&
-                   CodeMenu::CanPasteStringLiteral(assert_cast<LogicCtrl*>(focused_wnd)->GetLexer()) );
-    }
-
-    pCmdUI->Enable(enable);
-}
-
-
-
-// --------------------------------------------------------------------------
 // String Encoder
 // --------------------------------------------------------------------------
 

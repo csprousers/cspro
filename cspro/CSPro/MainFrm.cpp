@@ -172,9 +172,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_CHANGE_LANGUAGE, OnChangeDictionaryLanguage)
 
     // Code Menu
-    ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
-    ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
-
     ON_COMMAND(ID_CODE_STRING_ENCODER, OnStringEncoder)
     ON_COMMAND(ID_CODE_PATH_ADJUSTER, OnPathAdjuster)
 

@@ -10,9 +10,6 @@ IMPLEMENT_DYNCREATE(CodeView, LogicView)
 BEGIN_MESSAGE_MAP(CodeView, LogicView)
 
     // Code menu
-    ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
-    ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
-
     ON_COMMAND_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnCodeFoldingLevel)
     ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnUpdateCodeFoldingLevel)
     ON_COMMAND_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnCodeFoldingAction)
@@ -96,21 +93,6 @@ void CodeView::OnSavePointLeft(_Inout_ Scintilla::NotificationData* /*pSCNotific
 {
     CodeDoc& code_doc = GetCodeDoc();
     code_doc.SetModifiedFlag(TRUE, this);
-}
-
-
-void CodeView::OnPasteStringLiteral()
-{
-    CodeMenu::OnPasteStringLiteral(*GetLogicCtrl());
-}
-
-
-void CodeView::OnUpdatePasteStringLiteral(CCmdUI* const pCmdUI)
-{
-    const LanguageSettings& view_language_settings = GetLanguageSettings();
-
-    pCmdUI->Enable(WinClipboard::HasText() &&
-                   CodeMenu::CanPasteStringLiteral(view_language_settings.GetLexerLanguage()));
 }
 
 

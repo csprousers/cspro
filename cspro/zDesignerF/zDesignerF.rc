@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "../zDesignerF/resource_shared.h"
+#include "../zEditO/resource_shared.h"
 #include "../zUToolO/resource_shared.h"
 #include "afxres.h"
 
@@ -35,6 +36,7 @@ END
 2 TEXTINCLUDE 
 BEGIN
     "#include ""../zDesignerF/resource_shared.h""\r\n"
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zUToolO/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
