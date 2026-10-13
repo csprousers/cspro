@@ -1,35 +1,12 @@
-//***************************************************************************
-//  File name: SourceEditView.cpp
-//
-//  Description:
-//       My customized CHHGenericFormater object
-//
-//  History:    Date       Author   Comment
-//              ---------------------------
-//              08 Jun 98   gsf     Created for Measure 1.0
-//
-//***************************************************************************
-
 #include "StdAfx.h"
 #include "SourceEditView.h"
 #include <zUtilO/BCMenu.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
-// CFSourceEditView
 
 IMPLEMENT_DYNCREATE(CFSourceEditView, LogicView)
 
 
 BEGIN_MESSAGE_MAP(CFSourceEditView, LogicView)
-    //{{AFX_MSG_MAP(CFSourceEditView)
-    ON_WM_CREATE()
-    ON_WM_MOUSEWHEEL()
     ON_WM_CONTEXTMENU()
     ON_COMMAND(ID_VIEW_FORM, OnViewForm)
     ON_COMMAND(ID_QSF_EDITOR, OnQsfEditor)
@@ -37,34 +14,9 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, LogicView)
     ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
-    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 
-/////////////////////////////////////////////////////////////////////////////
-// CFSourceEditView drawing
-
-void CFSourceEditView::OnDraw(CDC* /*pDC*/)
-{
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                            CFSourceEditView::OnUpdate
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CFSourceEditView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
-{
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void CFSourceEditView::OnContextMenu(CWnd* pWnd, CPoint point)
-//
-/////////////////////////////////////////////////////////////////////////////////
 void CFSourceEditView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
     if (point.x < 0 || point.y < 0) {
@@ -125,21 +77,6 @@ void CFSourceEditView::OnSetFocus(CWnd* pOldWnd)
     if(GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()){
         GetLogicCtrl()->SetFocus();
     }
-}
-
-
-BOOL CFSourceEditView::OnMouseWheel(UINT /*nFlags*/, short zDelta, CPoint /*pt*/)
-{
-// TODO: Add your message handler code here and/or call default
-    if (zDelta > 0) {
-         //OnVScroll(SB_LINEUP, 0, NULL);
-         GetLogicCtrl()->SendMessage( WM_VSCROLL, SB_LINEUP);
-    }
-    else {
-        //OnVScroll(SB_LINEDOWN, 0, NULL);
-        GetLogicCtrl()->SendMessage( WM_VSCROLL, SB_LINEDOWN);
-    }
-    return FALSE;
 }
 
 

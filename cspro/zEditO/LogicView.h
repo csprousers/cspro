@@ -55,7 +55,6 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
-    void OnSize(UINT nType, int cx, int cy);
     void OnDraw(CDC* pDC) override;
     void OnContextMenu(CWnd* pWnd, CPoint point);
 

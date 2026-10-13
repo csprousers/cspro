@@ -1,46 +1,21 @@
 #pragma once
 
-//***************************************************************************
-//  File name: MyView.h
-//
-//  Description:
-//       My customized CHHGenericFormater object
-//
-//  History:    Date       Author   Comment
-//              ---------------------------
-//              08 Jun 98   gsf     Created for Measure 1.0
-//
-//***************************************************************************
-
 #include <zFormF/zFormF.h>
 #include <zEditO/LogicView.h>
 
-
-/////////////////////////////////////////////////////////////////////////////
-// CFSourceEditView view
 
 class CLASS_DECL_ZFORMF CFSourceEditView : public LogicView
 {
     DECLARE_DYNCREATE(CFSourceEditView)
 
 protected:
-    virtual void OnDraw(CDC* pDC);      // overridden to draw this view
-    virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
-    //}}AFX_VIRTUAL
-
-    // Generated message map functions
-protected:
-    //{{AFX_MSG(CFSourceEditView)
-    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
-    afx_msg void OnViewForm();
-    afx_msg void OnQsfEditor();
-    afx_msg void OnSetFocus(CWnd* pOldWnd);
-    afx_msg void OnShiftF10();
-    afx_msg void OnFormatLogic();
-    afx_msg void OnUpdateFormatLogic(CCmdUI* pCmdUI);
-
-    //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
-public:
-    afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+
+    void OnContextMenu(CWnd* pWnd, CPoint point);
+    void OnViewForm();
+    void OnQsfEditor();
+    void OnSetFocus(CWnd* pOldWnd);
+    void OnShiftF10();
+    void OnFormatLogic();
+    void OnUpdateFormatLogic(CCmdUI* pCmdUI);
 };

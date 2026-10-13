@@ -15,7 +15,6 @@ IMPLEMENT_DYNCREATE(LogicView, CScintillaView)
 
 BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_WM_CREATE()
-    ON_WM_SIZE()
     ON_WM_CONTEXTMENU()
     ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
     ON_COMMAND(ID_HELP, OnHelp)
@@ -79,18 +78,6 @@ std::unique_ptr<Scintilla::CScintillaCtrl> LogicView::CreateScintillaControl()
     return std::make_unique<LogicCtrl>();
 }
 
-
-void LogicView::OnSize(UINT nType, int cx, int cy) {
-
-    CScintillaView::OnSize(nType, cx, cy);
-
-    CRect rc, rcEdit;
-    GetClientRect(rc);
-    m_logicCtrl->GetWindowRect(rcEdit);
-    ScreenToClient(rcEdit);
-
-    m_logicCtrl->SetWindowPos(NULL, 0, 0, rc.Width() - rcEdit.left, rc.Height(), SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
-}
 
 void LogicView::OnDraw(CDC* /*pDC*/)
 {
