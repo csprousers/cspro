@@ -36,7 +36,7 @@
     <ClCompile Include="LogicDialogBar.cpp" />
     <ClCompile Include="LogicReferenceWnd.cpp" />
     <ClCompile Include="ManageFilesDlg.cpp" />
-    <ClCompile Include="MessageEditTabViewPage.cpp" />
+    <ClCompile Include="MessageEditView.cpp" />
     <ClCompile Include="NewFileCreator.cpp" />
     <ClCompile Include="PathAdjusterDlg.cpp" />
     <ClCompile Include="PropertyGrid\BoolProperty.cpp" />
@@ -85,7 +85,7 @@
     <ClInclude Include="LogicDialogBar.h" />
     <ClInclude Include="LogicReferenceWnd.h" />
     <ClInclude Include="ManageFilesDlg.h" />
-    <ClInclude Include="MessageEditTabViewPage.h" />
+    <ClInclude Include="MessageEditView.h" />
     <ClInclude Include="NewFileCreator.h" />
     <ClInclude Include="OnUpdateHints.h" />
     <ClInclude Include="PathAdjusterDlg.h" />
