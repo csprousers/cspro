@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 
@@ -57,7 +57,7 @@ class ZENGINEO_API LoopStack
     friend class LoopStackEntry;
 
 public:
-    LoopStack() = default;
+    LoopStack() noexcept = default;
     LoopStack(const LoopStack&) = delete;
     LoopStack& operator=(const LoopStack&) = delete;
 

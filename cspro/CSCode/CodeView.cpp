@@ -34,16 +34,6 @@ BEGIN_MESSAGE_MAP(CodeView, LogicView)
 END_MESSAGE_MAP()
 
 
-CodeView::CodeView()
-{
-}
-
-
-CodeView::~CodeView()
-{
-}
-
-
 std::variant<const CDocument*, std::string> CodeView::GetDocumentOrTitleForBuildWnd() const
 {
     return GetDocument();

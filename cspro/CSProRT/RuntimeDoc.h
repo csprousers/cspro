@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 class RuntimeDoc : public CDocument
@@ -6,7 +6,7 @@ class RuntimeDoc : public CDocument
     DECLARE_DYNCREATE(RuntimeDoc)
 
 protected:
-    RuntimeDoc() { } // create from serialization only
+    RuntimeDoc() noexcept = default; // create from serialization only
 
 public:
     const std::string& GetPathFromCommandLine() const { return m_pathFromCommandLine; }

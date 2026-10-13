@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/DocSetComponentDoc.h>
 #include <CSDocument/DocSetBaseFrame.h>
@@ -9,7 +9,7 @@ class DocSetComponentFrame : public DocSetBaseFrame
     DECLARE_DYNCREATE(DocSetComponentFrame)
 
 protected:
-    DocSetComponentFrame() { } // create from serialization only
+    DocSetComponentFrame() = default; // create from serialization only
 
 public:
     DocSetComponentDoc& GetDocSetComponentDoc() { return *assert_cast<DocSetComponentDoc*>(GetActiveDocument()); }

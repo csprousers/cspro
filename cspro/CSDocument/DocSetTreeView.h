@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/DocSetSpecDoc.h>
 #include <afxcview.h>
@@ -9,7 +9,7 @@ class DocSetTreeView : public CTreeView
     DECLARE_DYNCREATE(DocSetTreeView)
 
 protected:
-    DocSetTreeView() { } // create from serialization only
+    DocSetTreeView() = default; // create from serialization only
 
 public:
     DocSetSpecDoc& GetDocSetSpecDoc() { return *assert_cast<DocSetSpecDoc*>(GetDocument()); }

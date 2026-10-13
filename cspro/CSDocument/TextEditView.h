@@ -9,7 +9,7 @@ class TextEditView : public LogicView
     DECLARE_DYNCREATE(TextEditView)
 
 protected:
-    TextEditView() { } // create from serialization only
+    TextEditView() noexcept = default; // create from serialization only
 
 public:
     TextEditDoc& GetTextEditDoc() { return assert_cast<TextEditDoc&>(*GetDocument()); }

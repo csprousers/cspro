@@ -10,11 +10,9 @@ class CodeView : public LogicView
     DECLARE_DYNCREATE(CodeView)
 
 protected:
-    CodeView(); // create from serialization only
+    CodeView() noexcept = default; // create from serialization only
 
 public:
-    ~CodeView();
-
     const CodeDoc& GetCodeDoc() const { return assert_cast<const CodeDoc&>(*GetDocument()); }
     CodeDoc& GetCodeDoc()             { return assert_cast<CodeDoc&>(*GetDocument()); }
 
