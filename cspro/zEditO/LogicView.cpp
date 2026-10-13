@@ -3,6 +3,7 @@
 #include "LogicViewTextSourceModifier.h"
 #include <zScintilla/src/Position.h>
 #include <zToolsO/NumberToString.h>
+#include <zUtilO/UWM.h>
 #include <zLogicO/DeprecationWarnings.h>
 #include <zLogicO/StringEscaper.h>
 
@@ -98,6 +99,23 @@ std::unique_ptr<Scintilla::CScintillaCtrl> LogicView::CreateScintillaControl()
 void LogicView::OnDraw(CDC* /*pDC*/)
 {
     // CScintillaView's OnDraw asserts, so it is overridden here
+}
+
+
+void LogicView::OnActivateView(BOOL const bActivate, CView* const pActivateView, CView* const pDeactiveView)
+{
+    __super::OnActivateView(bActivate, pActivateView, pDeactiveView);
+
+    // update the status bar text on activation, and clear it on deactivation
+    if( bActivate )
+    {
+        UpdateStatusBarText();
+    }
+
+    else
+    {
+        WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
+    }
 }
 
 
@@ -254,8 +272,8 @@ void LogicView::OnUpdateUI(Scintilla::NotificationData* /*pSCNotification*/)
     // update brace maching
     UpdateBraceMatchingUI();
 
-    // update the current caret position
-    m_logicCtrl->SendMessage(UWM::Edit::UpdateStatusPaneCaretPos, 1);
+    // update the status bar text showing the line / character position
+    UpdateStatusBarText();
 }
 
 
@@ -270,6 +288,20 @@ void LogicView::OnAutoCSelection(Scintilla::NotificationData* const pSCNotificat
 void LogicView::OnAutoCCancelled(Scintilla::NotificationData* /*pSCNotification*/)
 {
     m_logicCtrl->SetAutoCompleteActive(false);
+}
+
+
+void LogicView::UpdateStatusBarText()
+{
+    const Sci_Position caret_pos = m_logicCtrl->GetCurrentPos();
+
+    const std::wstring text = FormatText(
+        L"Ln %d, Col %d",
+        m_logicCtrl->LineFromPosition(caret_pos) + 1, // one-based
+        m_logicCtrl->GetColumn(caret_pos) + 1
+    );
+
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, text.c_str());
 }
 
 

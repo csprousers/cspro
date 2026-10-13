@@ -4,7 +4,6 @@
 #include "GoToDlg.h"
 #include "LexerProperties.h"
 #include "ScintillaColorizer.h"
-#include <zUtilO/UWM.h>
 #include <zScintilla/CSPro/CSPro.h>
 
 
@@ -16,18 +15,13 @@ extern const UINT _ScintillaMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRI
 IMPLEMENT_DYNCREATE(LogicCtrl, CSProScintillaCtrl)
 
 BEGIN_MESSAGE_MAP(LogicCtrl, CSProScintillaCtrl)
-    ON_WM_KILLFOCUS()
-    ON_WM_SETFOCUS()
     ON_WM_LBUTTONDOWN()
-    ON_WM_RBUTTONDOWN()
     ON_WM_CHAR()
-    ON_WM_KEYDOWN()
     ON_WM_CONTEXTMENU()
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateNeedSel)
     ON_COMMAND(ID_EDIT_FIND, OnEditFind)
     ON_COMMAND(ID_EDIT_REPLACE, OnEditReplace)
     ON_COMMAND(ID_EDIT_REPEAT, OnEditRepeat)
-    ON_MESSAGE(UWM::Edit::UpdateStatusPaneCaretPos, OnUpdateStatusPaneCaretPos)
     ON_MESSAGE(UWM::Edit::RefreshLexer, OnRefreshLexer)
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
 END_MESSAGE_MAP()
@@ -86,7 +80,7 @@ bool LogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_ev
     const LexerProperties::Properties& properties = LexerProperties::GetProperties(lexer_language);
 
     for( size_t i = 0; i < properties.keywords.size(); ++i )
-        SetKeyWords(i, properties.keywords[i].c_str());
+        SetKeyWords(int32_cast(i), properties.keywords[i].c_str());
 
     m_logicTooltips = properties.logic_tooltips.get();
 
@@ -415,14 +409,6 @@ void LogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
     }
 
     __super::OnLButtonDown(nFlags, point);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void LogicCtrl::OnRButtonDown(UINT nFlags, CPoint point)
-{
-    __super::OnRButtonDown(nFlags, point);
-    OnUpdateStatusPaneCaretPos();
 }
 
 
@@ -597,7 +583,6 @@ void LogicCtrl::Cut()
     Clear();
 
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
@@ -1153,47 +1138,6 @@ CPoint LogicCtrl::GetCaretPoint()
 }
 
 
-LRESULT LogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
-{
-    bool force_update = ( wParam != 0 );
-
-    CString str;
-
-    if( force_update || ::GetFocus() == this->GetSafeHwnd() )
-    {
-        Sci_Position pos = GetCurrentPos();
-        int line = LineFromPosition(pos) + 1; // one-based
-        int column = GetColumn(pos) + 1;
-        str.Format(_T("Ln %d, Col %d"), line, column);
-    }
-
-    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, str.GetString());
-
-    return 0;
-}
-
-
-void LogicCtrl::OnKillFocus(CWnd* pNewWnd)
-{
-    __super::OnKillFocus(pNewWnd);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void LogicCtrl::OnSetFocus(CWnd* pOldWnd)
-{
-    __super::OnSetFocus(pOldWnd);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void LogicCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-    __super::OnKeyDown(nChar, nRepCnt, nFlags);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
 void LogicCtrl::OnEditRepeat()
 {
     if (!FindText(g_scintillaEditState.strFind, g_scintillaEditState.bNext, g_scintillaEditState.bCase, g_scintillaEditState.bWord, g_scintillaEditState.bRegularExpression, FALSE))
@@ -1213,7 +1157,6 @@ void LogicCtrl::DuplicateLineOrSelection()
                           SelectionDuplicate();
 
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
@@ -1222,7 +1165,6 @@ void LogicCtrl::DeleteLine()
     LineDelete();
 
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 

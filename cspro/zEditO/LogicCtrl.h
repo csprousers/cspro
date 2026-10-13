@@ -65,8 +65,6 @@ public:
     // Returns the point, in client coordinates, of the current caret position.
     CPoint GetCaretPoint();
 
-    virtual LRESULT OnUpdateStatusPaneCaretPos(WPARAM wParam = 0, LPARAM lParam = 0);
-
     bool IsAutoCompleteActive() const noexcept       { return m_autoCompleteActive; }
     void SetAutoCompleteActive(bool active) noexcept { m_autoCompleteActive = active; }
 
@@ -90,14 +88,9 @@ protected:
     afx_msg void OnUpdateNeedSel(CCmdUI* pCmdUI);
     afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 
-    afx_msg void OnKillFocus(CWnd* pNewWnd);
-    afx_msg void OnSetFocus(CWnd* pOldWnd);
-
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-    afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 
     afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
-    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 
     afx_msg LRESULT OnRefreshLexer(WPARAM wParam, LPARAM lParam);
 

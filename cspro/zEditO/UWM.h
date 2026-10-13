@@ -1,15 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/UWMRanges.h>
 
 
 namespace UWM::Edit
 {
-    constexpr unsigned GetLexerLanguage         = UWM::Ranges::EditStart + 0;
-    constexpr unsigned RefreshLexer             = UWM::Ranges::EditStart + 1;
+    constexpr unsigned GetLexerLanguage = UWM::Ranges::EditStart + 0;
+    constexpr unsigned RefreshLexer     = UWM::Ranges::EditStart + 1;
 
-    // unlike the above messages, the following messages are only used within the project
-    constexpr unsigned UpdateStatusPaneCaretPos = UWM::Ranges::EditStart + 2;
 }
 
 // RESOURCE_TODO ... use UWM scheme

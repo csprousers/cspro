@@ -3,29 +3,6 @@
 #include <zUtilO/TextSource.h>
 
 
-// this class will send messages to the dialog when the caret changes
-class SymbolAnalysisLogicCtrl : public LogicCtrl
-{
-public:
-    SymbolAnalysisLogicCtrl(SymbolAnalysisDlg& symbol_Analysis_dlg)
-        :   m_symbolAnalysisDlg(symbol_Analysis_dlg)
-    {
-    }
-
-protected:
-    LRESULT OnUpdateStatusPaneCaretPos(WPARAM /*wParam*/, LPARAM /*lParam*/) override
-    {
-        const int line_number = LineFromPosition(GetCurrentPos());
-        m_symbolAnalysisDlg.OnSymbolUsesLineChanged(line_number);
-
-        return 0;
-    }
-
-private:
-    SymbolAnalysisDlg& m_symbolAnalysisDlg;
-};
-
-
 BEGIN_MESSAGE_MAP(SymbolAnalysisDlg, CDialog)
     ON_NOTIFY(TVN_SELCHANGED, IDC_SYMBOL_ANALYSIS_TREE, OnSymbolsTreeSelectionChanged)
 END_MESSAGE_MAP()
@@ -34,8 +11,7 @@ END_MESSAGE_MAP()
 SymbolAnalysisDlg::SymbolAnalysisDlg(Application& application, const SymbolAnalysisCompiler& symbol_analysis_compiler, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_SYMBOL_ANALYSIS, pParent),
         m_application(application),
-        m_symbolAnalysisCompiler(symbol_analysis_compiler),
-        m_usesLogicCtrl(std::make_unique<SymbolAnalysisLogicCtrl>(*this))
+        m_symbolAnalysisCompiler(symbol_analysis_compiler)
 {
 }
 
@@ -47,7 +23,7 @@ void SymbolAnalysisDlg::DoDataExchange(CDataExchange* const pDX)
     DDX_Control(pDX, IDC_SYMBOL_ANALYSIS_SYMBOLS_LABEL, m_symbolsLabelCtrl);
     DDX_Control(pDX, IDC_SYMBOL_ANALYSIS_TREE, m_symbolsTreeCtrl);
     DDX_Control(pDX, IDC_SYMBOL_ANALYSIS_USES_LABEL, m_usesLabelCtrl);
-    DDX_Control(pDX, IDC_SYMBOL_ANALYSIS_USES, *m_usesLogicCtrl);
+    DDX_Control(pDX, IDC_SYMBOL_ANALYSIS_USES, m_usesLogicCtrl);
     DDX_Control(pDX, IDC_SYMBOL_ANALYSIS_CONTEXT, m_contextLogicCtrl);
 }
 
@@ -58,7 +34,7 @@ BOOL SymbolAnalysisDlg::OnInitDialog()
 
     m_symbolsLabelCtrl.SetWindowText(FormatText(L"Symbols (%d)", static_cast<int>(m_symbolAnalysisCompiler.GetSymbolUseMap().size())).c_str());
 
-    m_usesLogicCtrl->ReplaceCEdit(this, false, false);
+    m_usesLogicCtrl.ReplaceCEdit(this, false, false);
     m_contextLogicCtrl.ReplaceCEdit(this, false, true);
 
     // build the tree and select the first symbol
@@ -91,11 +67,26 @@ void SymbolAnalysisDlg::BuildTree()
     {
         std::wstring wide_symbol_name = TC::ToWide(symbol_name);
         tvi.item.pszText = wide_symbol_name.data();
-        tvi.item.cchTextMax = symbol_name.length();
+        tvi.item.cchTextMax = int32_cast(symbol_name.length());
         tvi.item.lParam = reinterpret_cast<LPARAM>(symbol);
 
         m_symbolsTreeCtrl.InsertItem(&tvi);
     }
+}
+
+
+BOOL SymbolAnalysisDlg::OnNotify(const WPARAM wParam, const LPARAM lParam, LRESULT* const pResult)
+{
+    const Scintilla::NotifyHeader* const pNMHdr = reinterpret_cast<Scintilla::NotifyHeader*>(lParam);
+
+    // the UpdateUI notification will fire when the line number changes
+    if( pNMHdr->hwndFrom == m_usesLogicCtrl.m_hWnd && pNMHdr->code == Scintilla::Notification::UpdateUI )
+    {
+        const Scintilla::Line line_number = m_usesLogicCtrl.LineFromPosition(m_usesLogicCtrl.GetCurrentPos());
+        OnSymbolUsesLineChanged(int32_cast(line_number));
+    }
+
+    return __super::OnNotify(wParam, lParam, pResult);
 }
 
 
@@ -150,9 +141,9 @@ void SymbolAnalysisDlg::OnSymbolsTreeSelectionChanged(NMHDR* const pNMHDR, LRESU
                                 "\r\n");
     }
 
-    m_usesLogicCtrl->SetReadOnly(FALSE);
-    m_usesLogicCtrl->SetText(symbol_uses_text);
-    m_usesLogicCtrl->SetReadOnly(TRUE);
+    m_usesLogicCtrl.SetReadOnly(FALSE);
+    m_usesLogicCtrl.SetText(symbol_uses_text);
+    m_usesLogicCtrl.SetReadOnly(TRUE);
 
     OnSymbolUsesLineChanged(0, symbol);
 }

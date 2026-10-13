@@ -60,6 +60,9 @@ protected:
 
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
     void OnDraw(CDC* pDC) override;
+
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
+
     void OnContextMenu(CWnd* pWnd, CPoint point);
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
@@ -93,6 +96,8 @@ private:
     void OnUpdateUI(Scintilla::NotificationData* pSCNotification) override;
     void OnAutoCSelection(Scintilla::NotificationData* pSCNotification) override;
     void OnAutoCCancelled(Scintilla::NotificationData* pSCNotification) override;
+
+    void UpdateStatusBarText();
 
     void UpdateBraceMatchingUI();
 

@@ -81,7 +81,6 @@ void EditCtrl::OnEditPaste()
 {
     Paste();
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 void EditCtrl::OnUpdateEditPaste(CCmdUI* pCmdUI)
@@ -94,7 +93,6 @@ void EditCtrl::OnEditClear()
 {
     Clear();
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
@@ -108,7 +106,6 @@ void EditCtrl::OnEditUndo()
 {
     Undo();
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 void EditCtrl::OnUpdateEditUndo(CCmdUI* pCmdUI)
@@ -121,7 +118,6 @@ void EditCtrl::OnEditRedo()
 {
     Redo();
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 void EditCtrl::OnUpdateEditRedo(CCmdUI* pCmdUI)
