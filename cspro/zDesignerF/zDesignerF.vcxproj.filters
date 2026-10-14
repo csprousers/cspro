@@ -42,7 +42,7 @@
     <ClCompile Include="CodeMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CompilerOutputTabViewPage.cpp">
+    <ClCompile Include="CompilerOutputView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DesignerDoc.cpp">
@@ -173,7 +173,7 @@
     <ClInclude Include="CompilerMessageType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CompilerOutputTabViewPage.h">
+    <ClInclude Include="CompilerOutputView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DesignerDoc.h">
