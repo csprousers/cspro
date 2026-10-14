@@ -1752,8 +1752,9 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
     CView* pOrderView = pOrderDoc->GetNextView(pos);
     ASSERT(pOrderView);
 
-    COrderChildWnd* pWnd = (COrderChildWnd*)pOrderView->GetParentFrame();
-    COSourceEditView* pView = pWnd->GetOSourceView();
+    COrderChildWnd* const pOrderChildWnd = assert_cast<COrderChildWnd*>(pOrderView->GetParentFrame());
+    LogicView* const logic_view = pOrderChildWnd->GetSourceLogicView();
+    LogicCtrl* const logic_ctrl = logic_view->GetLogicCtrl();
 
     SharableString source_code;
     bool bAppSrcCode = false;
@@ -1871,21 +1872,21 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
 
     // 20100316 nothing is changed by just loading or changing what proc is displayed
     bool modFlag1 = pOrderDoc->IsModified();
-    bool modFlag2 = pView->GetLogicCtrl()->IsModified();
+    bool modFlag2 = logic_ctrl->IsModified();
 
-    pView->GetLogicCtrl()->SetText(source_code.GetString());
+    logic_ctrl->SetText(source_code.GetString());
 
     pOrderDoc->SetModifiedFlag(modFlag1); // 20100316
-    pView->GetLogicCtrl()->SetModified(modFlag2);
+    logic_ctrl->SetModified(modFlag2);
 
-    if( lexer_language != pView->GetLogicCtrl()->GetLexer() )
-        pView->GetLogicCtrl()->InitLogicControl(true, true, lexer_language);
+    if( lexer_language != logic_ctrl->GetLexer() )
+        logic_ctrl->InitLogicControl(true, true, lexer_language);
 
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
-        pView->ProcessCodeFolding(bAppSrcCode);
+        logic_view->ProcessCodeFolding(bAppSrcCode);
 
-    pWnd->GetLogicDialogBar().UpdateScrollState();
+    pOrderChildWnd->GetLogicDialogBar().UpdateScrollState();
 }
 
 

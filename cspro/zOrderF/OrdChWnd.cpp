@@ -14,71 +14,37 @@
 #include "OrdChWnd.h"
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
-// COrderChildWnd
-
 IMPLEMENT_DYNCREATE(COrderChildWnd, ApplicationChildWnd)
 
 
 BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
-    //{{AFX_MSG_MAP(COrderChildWnd)
     ON_WM_SYSCOMMAND()
     ON_WM_MDIACTIVATE()
     ON_COMMAND(ID_RUNBATCH, OnRun)
     ON_COMMAND(ID_ORD_COMPILE, OnCompile)
+    ON_UPDATE_COMMAND_UI(ID_ORD_COMPILE, OnUpdateCompile)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
-    ON_COMMAND(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnViewQuestionnaire)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnUpdateViewQuestionnaire)
-    //}}AFX_MSG_MAP
-    ON_COMMAND(ID_VIEW_LOGIC, &COrderChildWnd::OnViewLogic)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_LOGIC, &COrderChildWnd::OnUpdateViewLogic)
-    ON_UPDATE_COMMAND_UI(ID_ORD_COMPILE, &COrderChildWnd::OnUpdateOrdCompile)
-    ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, &COrderChildWnd::OnUpdateLogicFormat)
+    ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, OnUpdateViewQuestionnaire)
+    ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_LOGIC, OnUpdateViewLogic)
 END_MESSAGE_MAP()
 
 
 COrderChildWnd::COrderChildWnd()
-    :   m_bQuestionnaireView(FALSE),
-        m_pQuestionnaireView(nullptr),
-        m_pOSourceEditView(nullptr)
+    :   m_viewingQuestionnaire(false),
+        m_questionnaireView(nullptr),
+        m_sourceEditView(nullptr)
 {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// COrderChildWnd message handlers
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  BOOL COrderChildWnd::PreCreateWindow(CREATESTRUCT& cs)
-//
-/////////////////////////////////////////////////////////////////////////////////
-BOOL COrderChildWnd::PreCreateWindow(CREATESTRUCT& cs)
-{
-    // TODO: Add your specialized code here and/or call the base class
-//  cs.style &= ~(WS_SYSMENU);
-    return COXMDIChildWndSizeDock::PreCreateWindow(cs);
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void COrderChildWnd::ActivateFrame(int nCmdShow)
-//
-/////////////////////////////////////////////////////////////////////////////////
 void COrderChildWnd::ActivateFrame(int nCmdShow)
 {
     // TODO: Add your specialized code here and/or call the base class
     nCmdShow = SW_SHOWMAXIMIZED;
-    COXMDIChildWndSizeDock::ActivateFrame(nCmdShow);
+    __super::ActivateFrame(nCmdShow);
 
     AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, static_cast<WPARAM>(FrameType::Order));
     WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
@@ -108,16 +74,12 @@ void COrderChildWnd::ActivateFrame(int nCmdShow)
     WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, dictionary_order ? L"Dictionary Order" : L"Custom Order");
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  BOOL COrderChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CMDIFrameWnd* pParentWnd, CCreateContext* pContext)
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 BOOL COrderChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CMDIFrameWnd* pParentWnd, CCreateContext* pContext)
 {
     // TODO: Add your specialized code here and/or call the base class
 
-    if( !COXMDIChildWndSizeDock::Create(lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, pContext) )
+    if( !__super::Create(lpszClassName, lpszWindowName, dwStyle, rect, pParentWnd, pContext) )
         return FALSE;
 
     // Get the window's menu
@@ -145,31 +107,25 @@ BOOL COrderChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD
     return TRUE;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void COrderChildWnd::OnSysCommand( UINT nID, LPARAM lParam )
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 void COrderChildWnd::OnSysCommand( UINT nID, LPARAM lParam )
 {
     if(nID == SC_CLOSE)  {
         return;
     }
     else {
-        COXMDIChildWndSizeDock::OnSysCommand(nID,lParam);
+        __super::OnSysCommand(nID,lParam);
     }
 }
+
+
 /////////////////////////////////////////////////////////////////////////////
 //SAVY&& Not yet updated for CSBatch support 05/22/00 you got to check for source code update on activate
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd)
-//
-/////////////////////////////////////////////////////////////////////////////////
+
 void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd)
 {
-    COXMDIChildWndSizeDock::OnMDIActivate(bActivate, pActivateWnd, pDeactivateWnd); // mfc-gen
+    __super::OnMDIActivate(bActivate, pActivateWnd, pDeactivateWnd); // mfc-gen
 
     if (bActivate) {
         //TO DO THE RECONCILE //SAVY&&&
@@ -200,7 +156,7 @@ void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDe
         }
         pDoc->GetFormFile().UpdatePointers();
         pTree->SetRedraw(TRUE);
-        if (m_bQuestionnaireView) {
+        if (m_viewingQuestionnaire) {
             OnViewQuestionnaire();
         }
         WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
@@ -282,11 +238,30 @@ void COrderChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDe
     }*/
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void COrderChildWnd::OnRun()
-//
-/////////////////////////////////////////////////////////////////////////////////
+
+COSourceEditView* COrderChildWnd::GetOSourceView()
+{
+    if( m_sourceEditView == nullptr )
+        m_sourceEditView = assert_nullable_cast<COSourceEditView*>(GetActiveView());
+
+    return m_sourceEditView;
+}
+
+
+LogicView* COrderChildWnd::GetSourceLogicView()
+{
+    return GetOSourceView();
+}
+
+
+LogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
+{
+    COSourceEditView* pView = GetOSourceView();
+    ASSERT(pView != nullptr);
+    return pView->GetLogicCtrl();
+}
+
+
 void COrderChildWnd::OnRun()
 {
     COrderDoc* pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
@@ -311,57 +286,31 @@ void COrderChildWnd::OnRun()
         AfxGetMainWnd()->SendMessage(UWM::Order::RunActiveApplication, 0, reinterpret_cast<LPARAM>(pOrderDoc));
         return;
     }
-
-}
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  COSourceEditView* COrderChildWnd::GetOSourceView()
-//
-/////////////////////////////////////////////////////////////////////////////////
-COSourceEditView* COrderChildWnd::GetOSourceView()
-{
-    if (!m_pOSourceEditView) {
-        m_pOSourceEditView = assert_nullable_cast<COSourceEditView*>(GetActiveView());
-    }
-    return m_pOSourceEditView;
 }
 
 
-LogicView* COrderChildWnd::GetSourceLogicView()
-{
-    return GetOSourceView();
-}
-
-
-LogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
-{
-    COSourceEditView* pView = GetOSourceView();
-    ASSERT(pView != nullptr);
-    return pView->GetLogicCtrl();
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void COrderChildWnd::OnCompile()
-//
-/////////////////////////////////////////////////////////////////////////////////
 void COrderChildWnd::OnCompile()
 {
     COrderDoc* pDoc = assert_cast<COrderDoc*>(GetActiveDocument());
-    CView* pView = GetActiveView();
 
-    if (pDoc && pView->IsKindOf(RUNTIME_CLASS(COSourceEditView)))
+    if( pDoc != nullptr )
     {
         HTREEITEM hItem = pDoc->GetOrderTreeCtrl()->GetSelectedItem();
         AppTreeNode* app_tree_node = pDoc->GetOrderTreeCtrl()->GetTreeNode(hItem);
 
         if( app_tree_node != nullptr && app_tree_node->GetDocument() == pDoc )
         {
-            //wParam 1 implies force compile
-            AfxGetMainWnd()->SendMessage(UWM::Order::PutSourceCode, 1, reinterpret_cast<LPARAM>(app_tree_node));
-            ((COSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
+            constexpr WPARAM ForceCompile = 1;
+            WindowsDesktopMessage::Send(UWM::Order::PutSourceCode, ForceCompile, app_tree_node);
+            GetSourceLogicCtrl()->SetFocus();
         }
     }
+}
+
+
+void COrderChildWnd::OnUpdateCompile(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(!m_viewingQuestionnaire);
 }
 
 
@@ -406,23 +355,23 @@ void COrderChildWnd::OnViewQuestionnaire()
 {
     m_logicDlgBar.ShowWindow(SW_HIDE);
     m_logicReferenceWnd.ShowWindow(SW_HIDE);
-    if (!m_bQuestionnaireView) {
-        m_bQuestionnaireView = TRUE;
+    if (!m_viewingQuestionnaire) {
+        m_viewingQuestionnaire = TRUE;
         //create questionnaire view and swap
         COrderDoc* pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
         CRect rect(0, 0, 100, 100);
         GetClientRect(&rect);
         //GetOSourceView()->GetClientRect(&rect);
         bool refreshContent = true;
-        if (!m_pQuestionnaireView) {
+        if (!m_questionnaireView) {
             refreshContent = false;
-            m_pQuestionnaireView = new QuestionnaireView(*pOrderDoc);
+            m_questionnaireView = new QuestionnaireView(*pOrderDoc);
             DWORD dwStyle = AFX_WS_DEFAULT_VIEW;
            // dwStyle = WS_CHILDWINDOW | WS_VISIBLE | WS_BORDER;
             CCreateContext context = CCreateContext();
             int iID = 11111;
             context.m_pCurrentDoc = pOrderDoc;
-            if (!m_pQuestionnaireView->Create(NULL, _T(""), dwStyle, rect, this, iID, &context)) {
+            if (!m_questionnaireView->Create(NULL, _T(""), dwStyle, rect, this, iID, &context)) {
                 TRACE0("Failed to create questionnaire view\n");
                 ASSERT(false);
                 return;
@@ -430,47 +379,47 @@ void COrderChildWnd::OnViewQuestionnaire()
         }
         // exchange view window IDs so RecalcLayout() works
         UINT temp = GetOSourceView()->GetDlgCtrlID();
-        UINT currentId = m_pQuestionnaireView->GetDlgCtrlID();
-        m_pQuestionnaireView->SetDlgCtrlID(temp);
+        UINT currentId = m_questionnaireView->GetDlgCtrlID();
+        m_questionnaireView->SetDlgCtrlID(temp);
         GetOSourceView()->SetDlgCtrlID(currentId);
 
         GetOSourceView()->ShowWindow(SW_HIDE);
-        m_pQuestionnaireView->ShowWindow(SW_SHOW);
+        m_questionnaireView->ShowWindow(SW_SHOW);
         if (refreshContent) {
-            m_pQuestionnaireView->RefreshContent(false);
+            m_questionnaireView->RefreshContent(false);
         }
-        m_pQuestionnaireView->SendMessage(WM_INITIALUPDATE);
-        SetActiveView(m_pQuestionnaireView);
+        m_questionnaireView->SendMessage(WM_INITIALUPDATE);
+        SetActiveView(m_questionnaireView);
 
         RecalcLayout();
-        m_pQuestionnaireView->Invalidate();
+        m_questionnaireView->Invalidate();
         GetClientRect(&rect);
-        COXMDIChildWndSizeDock::OnSize(SIZE_RESTORED, rect.Width(), rect.Height());
-        m_pQuestionnaireView->SendMessage(WM_SIZE);
+        __super::OnSize(SIZE_RESTORED, rect.Width(), rect.Height());
+        m_questionnaireView->SendMessage(WM_SIZE);
     }
     else {
-        m_pQuestionnaireView->RefreshContent(false);
+        m_questionnaireView->RefreshContent(false);
     }
 }
 
 
-void COrderChildWnd::OnUpdateViewQuestionnaire(CCmdUI* pCmdUI)
+void COrderChildWnd::OnUpdateViewQuestionnaire(CCmdUI* const pCmdUI)
 {
-    pCmdUI->SetCheck(m_bQuestionnaireView);
+    pCmdUI->SetCheck(m_viewingQuestionnaire);
 }
 
 
 void COrderChildWnd::OnViewLogic()
 {
-    if (m_bQuestionnaireView || !m_pQuestionnaireView) {
-        m_bQuestionnaireView = FALSE;
-        if (m_pQuestionnaireView && m_pQuestionnaireView->GetSafeHwnd()) {
-            m_pQuestionnaireView->ShowWindow(SW_HIDE);
+    if (m_viewingQuestionnaire || !m_questionnaireView) {
+        m_viewingQuestionnaire = FALSE;
+        if (m_questionnaireView && m_questionnaireView->GetSafeHwnd()) {
+            m_questionnaireView->ShowWindow(SW_HIDE);
         }
         // exchange view window IDs so RecalcLayout() works
         UINT temp = GetOSourceView()->GetDlgCtrlID();
-        UINT currentId = m_pQuestionnaireView->GetDlgCtrlID();
-        m_pQuestionnaireView->SetDlgCtrlID(temp);
+        UINT currentId = m_questionnaireView->GetDlgCtrlID();
+        m_questionnaireView->SetDlgCtrlID(temp);
         GetOSourceView()->SetDlgCtrlID(currentId);
 
         m_logicDlgBar.ShowWindow(SW_SHOW);
@@ -482,24 +431,7 @@ void COrderChildWnd::OnViewLogic()
 }
 
 
-void COrderChildWnd::OnUpdateViewLogic(CCmdUI* pCmdUI)
+void COrderChildWnd::OnUpdateViewLogic(CCmdUI* const pCmdUI)
 {
-    if (m_bQuestionnaireView) {
-        pCmdUI->SetCheck(FALSE);
-    }
-    else {
-        pCmdUI->SetCheck(TRUE);
-    }
-}
-
-
-void COrderChildWnd::OnUpdateOrdCompile(CCmdUI* pCmdUI)
-{
-    m_bQuestionnaireView ? pCmdUI->Enable(FALSE) : pCmdUI->Enable(TRUE);
-}
-
-
-void COrderChildWnd::OnUpdateLogicFormat(CCmdUI* pCmdUI)
-{
-    m_bQuestionnaireView ? pCmdUI->Enable(FALSE) : pCmdUI->Enable(TRUE);
+    pCmdUI->SetCheck(!m_viewingQuestionnaire);
 }

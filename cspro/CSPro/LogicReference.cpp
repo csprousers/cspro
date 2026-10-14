@@ -1491,7 +1491,7 @@ namespace
             {
                 CFormChildWnd* form_window = assert_cast<CFormChildWnd*>(m_currentMdiWindow);
                 m_applicationWindow = form_window;
-                m_logicControl = form_window->GetSourceView()->GetLogicCtrl();
+                m_logicControl = form_window->GetSourceLogicCtrl();
                 m_logicReferenceWindow = &form_window->GetLogicReferenceWnd();
                 m_treeControl = assert_cast<CFormDoc*>(m_activeDocument)->GetFormTreeCtrl();
             }
@@ -1500,7 +1500,7 @@ namespace
             {
                 COrderChildWnd* order_window = assert_cast<COrderChildWnd*>(m_currentMdiWindow);
                 m_applicationWindow = order_window;
-                m_logicControl = order_window->GetOSourceView()->GetLogicCtrl();
+                m_logicControl = order_window->GetSourceLogicCtrl();
                 m_logicReferenceWindow = &order_window->GetLogicReferenceWnd();
                 m_treeControl = assert_cast<COrderDoc*>(m_activeDocument)->GetOrderTreeCtrl();
             }
@@ -1509,7 +1509,7 @@ namespace
             {
                 CTableChildWnd* table_window = assert_cast<CTableChildWnd*>(m_currentMdiWindow);
                 m_applicationWindow = table_window;
-                m_logicControl = table_window->GetSourceView()->GetLogicCtrl();
+                m_logicControl = table_window->GetSourceLogicCtrl();
                 m_logicReferenceWindow = &table_window->GetLogicReferenceWnd();
                 m_treeControl = assert_cast<CTabulateDoc*>(m_activeDocument)->GetTabTreeCtrl();
             }
