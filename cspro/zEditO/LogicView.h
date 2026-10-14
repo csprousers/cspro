@@ -43,6 +43,10 @@ protected:
     // Creates LogicCtrl, or a subclass, to be used by the view.
     virtual std::unique_ptr<LogicCtrl> CreateLogicCtrl();
 
+    // Initializes the LogicCtrl post-creation. The default implementation
+    // calls LogicCtrl::InitLogicControl, showing line numbers and markers.
+    virtual void InitializeLogicControl();
+
     // Returns the context menu. The submenu at position 0 is displayed.
     // If not specified, the IDR_EDIT menu is used.
     virtual HMENU GetContextMenu();

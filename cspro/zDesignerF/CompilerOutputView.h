@@ -29,10 +29,9 @@ protected:
 
     // LogicView overrides
     std::unique_ptr<LogicCtrl> CreateLogicCtrl() override;
+    void InitializeLogicControl() override;
 
 private:
-    void OnDesignerDocLoaded();
-
     void ProcessLButtonDblClk(bool control_pressed);
 
 private:

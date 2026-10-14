@@ -33,6 +33,16 @@ void MessageEditView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject
 }
 
 
+void MessageEditView::InitializeLogicControl()
+{
+    m_logicCtrl->InitLogicControl(
+        false, // show_line_numbers
+        false, // show_error_markers
+        SCLEX_CSPRO_MESSAGE_V8_0 // the lexer may be changed in OnDesignerDocLoaded
+    );
+}
+
+
 void MessageEditView::OnDesignerDocLoaded()
 {
     ASSERT(m_designerDoc != nullptr);
@@ -46,10 +56,7 @@ void MessageEditView::OnDesignerDocLoaded()
 
     // set up the editor based on the version of messages being used
     const int lexer_language = Lexers::GetLexer_Message(m_designerDoc->GetLogicSettings());
-    m_logicCtrl->BaseInitControl(lexer_language);
-
-    // do not show line numbers
-    m_logicCtrl->SetMargins(0);
+    m_logicCtrl->ToggleLexer(lexer_language);
 
     // set the message text
     m_logicCtrl->SetTextAndSetSavePoint(text_source->GetText());

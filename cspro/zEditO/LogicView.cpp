@@ -73,8 +73,7 @@ int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if( !m_logicCtrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(), this, 0) )
         return -1;
 
-    // setup the control to show logic
-    m_logicCtrl->InitLogicControl(true, true);
+    InitializeLogicControl();
 
     // disable the Scintilla default editing menu
     m_logicCtrl->UsePopUp(Scintilla::PopUp::Never);
@@ -99,6 +98,13 @@ std::unique_ptr<LogicCtrl> LogicView::CreateLogicCtrl()
 std::unique_ptr<Scintilla::CScintillaCtrl> LogicView::CreateScintillaControl()
 {
     return CreateLogicCtrl();
+}
+
+
+void LogicView::InitializeLogicControl()
+{
+    // set up the control to show logic with line numbers and markers for error messages
+    m_logicCtrl->InitLogicControl(true, true);
 }
 
 

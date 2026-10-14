@@ -21,6 +21,9 @@ protected:
 protected:
     void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) override;
 
+    // LogicView overrides
+    void InitializeLogicControl() override;
+
 private:
     void OnDesignerDocLoaded();
     void OnLogicSettingsChanged();

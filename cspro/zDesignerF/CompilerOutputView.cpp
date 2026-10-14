@@ -21,24 +21,23 @@ void CompilerOutputView::OnUpdate(CView* const pSender, const LPARAM lHint, CObj
     __super::OnUpdate(pSender, lHint, pHint);
 
     if( lHint == Hint::DesignerDocLoaded )
-    {
         m_designerDoc = assert_cast<DesignerDoc*>(pHint);
-        OnDesignerDocLoaded();
-    }
 }
 
 
-void CompilerOutputView::OnDesignerDocLoaded()
+void CompilerOutputView::InitializeLogicControl()
 {
-    ASSERT(m_designerDoc != nullptr);
+    m_logicCtrl->InitLogicControl(
+        false, // show_line_numbers
+        false, // show_error_markers
+        SCLEX_NULL
+    );
 
-    m_logicCtrl->BaseInitControl(SCLEX_NULL);
+    // hide the caret
+    m_logicCtrl->SetCaretStyle(Scintilla::CaretStyle::Invisible);
 
-    // the compiler errors will read-only
+    // the text is read-only
     m_logicCtrl->SetReadOnly(TRUE);
-
-    // do not show line numbers
-    m_logicCtrl->SetMargins(0);
 }
 
 

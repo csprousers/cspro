@@ -122,7 +122,7 @@ void LogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers
                          show_line_numbers  ? ( LineNumberMargin + 1 ) :
                                               0;
 
-    if( GetMargins() < margins_needed )
+    if( GetMargins() != margins_needed )
         SetMargins(margins_needed);
 
     // optionally make room for line numbers
