@@ -40,6 +40,9 @@ public:
 protected:
     // LogicView methods that can be overridden, or used by subclasses.
 
+    // Creates LogicCtrl, or a subclass, to be used by the view.
+    virtual std::unique_ptr<LogicCtrl> CreateLogicCtrl();
+
     // Returns the context menu. The submenu at position 0 is displayed.
     // If not specified, the IDR_EDIT menu is used.
     virtual HMENU GetContextMenu();
@@ -85,7 +88,7 @@ protected:
     void OnHelp();
 
 private:
-    std::unique_ptr<Scintilla::CScintillaCtrl> CreateScintillaControl() override;
+    std::unique_ptr<Scintilla::CScintillaCtrl> CreateScintillaControl() override final;
 
     // Scintilla virtual notifications override
     void OnSavePointReached(Scintilla::NotificationData* pSCNotification) override;

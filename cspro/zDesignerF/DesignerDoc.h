@@ -2,6 +2,7 @@
 
 #include <zDesignerF/zDesignerF.h>
 
+class ApplicationChildWnd;
 class LogicSettings;
 class TextSourceEditable;
 
@@ -27,4 +28,7 @@ public:
     // construction when the file cannot be read, so it is assumed that this
     // method will not throw exceptions.
     virtual std::shared_ptr<TextSourceEditable> GetMessageTextSource() = 0;
+
+    // Returns the ApplicationChildWnd associated with this document (if any).
+    virtual ApplicationChildWnd* GetApplicationChildWnd() = 0;
 };

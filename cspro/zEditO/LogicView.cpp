@@ -90,9 +90,15 @@ int LogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 
 
-std::unique_ptr<Scintilla::CScintillaCtrl> LogicView::CreateScintillaControl()
+std::unique_ptr<LogicCtrl> LogicView::CreateLogicCtrl()
 {
     return std::make_unique<LogicCtrl>();
+}
+
+
+std::unique_ptr<Scintilla::CScintillaCtrl> LogicView::CreateScintillaControl()
+{
+    return CreateLogicCtrl();
 }
 
 

@@ -11,7 +11,7 @@
 #include <zLogicO/ReservedWords.h>
 #include <zLogicO/SourceBuffer.h>
 #include <zInterfaceF/UWM.h>
-#include <zDesignerF/CompilerOutputTabViewPage.h>
+#include <zDesignerF/CompilerOutputView.h>
 #include <zDesignerF/DesignerObjectTransporter.h>
 #include <zDictF/UWM.h>
 #include <zTableF/TabDoc.h>
@@ -1623,7 +1623,7 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
         }
 
         pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
-        pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
+        pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
         if(pFormDoc && !pBase) { // if it is a form file show entire source code
             bAppSrcCode = true;
@@ -1935,7 +1935,7 @@ namespace
         bool has_errors = false;
         std::optional<std::map<std::string, int>> proc_line_number_map;
 
-        CompilerOutputTabViewPage* compiler_output_tab_view_page = logic_dialog_bar.GetCompilerOutputTabViewPage();
+        CompilerOutputView& const compiler_output_view = logic_dialog_bar.GetCompilerOutputView();
 
         for( Logic::ParserMessage parser_message : CCompiler::GetCurrentSession()->GetParserMessages() )
         {
@@ -2101,20 +2101,19 @@ namespace
                     add_error_or_warning(line_number_for_bookmark);
             }
 
-            compiler_output_tab_view_page->AddLogicError(std::move(parser_message),
-                                                         parser_message.compilation_unit_name.empty() ? std::make_optional(line_number_for_bookmark) : std::nullopt);
+            compiler_output_view.AddLogicError(
+                std::move(parser_message),
+                parser_message.compilation_unit_name.empty() ? std::make_optional(line_number_for_bookmark) : std::nullopt
+            );
         }
 
         if( all_messages.empty() )
             all_messages = "Compile Successful at " + UTF8_TODO::GetUtf8(CTime::GetCurrentTime().Format(_T("%X")));
 
-        compiler_output_tab_view_page->SetReadOnlyText(all_messages);
+        compiler_output_view.GetLogicCtrl()->SetReadOnlyText(all_messages);
 
         logic_dialog_bar.SelectCompilerOutputTab();
         logic_dialog_bar.UpdateScrollState();
-
-        compiler_output_tab_view_page->Invalidate();
-        compiler_output_tab_view_page->UpdateWindow();
 
         if( has_errors )
         {
@@ -2190,7 +2189,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
         }
 
         pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
-        pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
+        pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
         if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEFormFile))) {
             // if it is a form file show entire source code
@@ -2262,7 +2261,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
 
 
     pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
-    pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
+    pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
     if( !bForceCompile )
         return bRet;
@@ -2502,7 +2501,7 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
 
 
     pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
-    pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
+    pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
     if( !bForceCompile )
         return bRet;
@@ -4369,7 +4368,7 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
         //arrProcLines.RemoveAll(); SAVY 09/27/00 Optimize;
         //pSourceCode->GetProc(arrProcLines,sSymbolName); SAVY 09/27/00 Optimize
         pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
-        pWnd->GetLogicDialogBar().GetCompilerOutputTabViewPage()->ClearLogicErrors();
+        pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
         if(!bForceCompile)
             return true;
@@ -5711,8 +5710,13 @@ void CMainFrame::GotoExternalLogicOrReportNode(const CDocument* pDoc, LogicCtrl*
 
 LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 {
-    ApplicationChildWnd* application_child_wnd = assert_cast<ApplicationChildWnd*>(reinterpret_cast<CWnd*>(wParam));
-    const CompilerOutputTabViewPage::LogicErrorLocation& logic_error_location = *reinterpret_cast<const CompilerOutputTabViewPage::LogicErrorLocation*>(lParam);
+    DesignerDoc* const designer_doc = GetDesignerDoc(reinterpret_cast<CDocument*>(wParam));
+    ASSERT(designer_doc != nullptr);
+
+    ApplicationChildWnd* application_child_wnd = designer_doc->GetApplicationChildWnd();
+    ASSERT(application_child_wnd != nullptr);
+
+    const CompilerOutputView::LogicErrorLocation& logic_error_location = *reinterpret_cast<const CompilerOutputView::LogicErrorLocation*>(lParam);
 
     CDocument* const pDoc = assert_cast<CDocument*>(application_child_wnd->GetActiveDocument());
 

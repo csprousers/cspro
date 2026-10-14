@@ -1,14 +1,19 @@
-﻿#pragma once
+#pragma once
 
 #include <zDesignerF/zDesignerF.h>
-#include <zDesignerF/ApplicationChildWnd.h>
-#include <zUToolO/oxtbvw.h>
-#include <zEditO/ReadOnlyEditCtrl.h>
+#include <zEditO/LogicView.h>
 #include <zLogicO/ParserMessage.h>
 
 
-class CLASS_DECL_ZDESIGNERF CompilerOutputTabViewPage : public COXTabViewPage<ReadOnlyEditCtrl>
+class CLASS_DECL_ZDESIGNERF CompilerOutputView : public LogicView
 {
+    DECLARE_DYNAMIC(CompilerOutputView)
+
+    class DoubleClickProcessingLogicCtrl;
+
+protected:
+    CompilerOutputView() noexcept;
+
 public:
     struct LogicErrorLocation
     {
@@ -16,19 +21,21 @@ public:
         std::optional<int> adjusted_line_number_for_bookmark;
     };
 
-    CompilerOutputTabViewPage(ApplicationChildWnd* application_child_wnd);
-
     void AddLogicError(Logic::ParserMessage parser_message, std::optional<int> adjusted_line_number_for_bookmark = std::nullopt);
     void ClearLogicErrors();
 
-    bool ProcessClicksForReferenceWindow() const override { return false; }
-
 protected:
-    DECLARE_MESSAGE_MAP()
+    void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) override;
 
-    void OnLButtonDblClk(UINT nFlags, CPoint point);
+    // LogicView overrides
+    std::unique_ptr<LogicCtrl> CreateLogicCtrl() override;
 
 private:
-    ApplicationChildWnd* m_applicationChildWnd;
+    void OnDesignerDocLoaded();
+
+    void ProcessLButtonDblClk(bool control_pressed);
+
+private:
+    DesignerDoc* m_designerDoc; // non-null after OnUpdate's Hint::DesignerDocLoaded
     std::vector<LogicErrorLocation> m_logicErrorLocations;
 };

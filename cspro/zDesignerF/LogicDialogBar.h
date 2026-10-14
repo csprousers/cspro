@@ -1,9 +1,10 @@
 #pragma once
 
 #include <zDesignerF/zDesignerF.h>
-#include <zDesignerF/CompilerOutputTabViewPage.h>
 #include <zDesignerF/UnfloatableDialogBar.h>
 
+class CompilerOutputView;
+class LogicCtrl;
 class TabViewContainer;
 
 
@@ -12,7 +13,7 @@ class TabViewContainer;
 //
 // This container hosts windows as tabs, including:
 //
-// - compiler output  |  CompilerOutputTabViewPage
+// - compiler output  |  CompilerOutputView (as CompilerOutputTabViewPage)
 // - messages         |  MessageEditView (as MessageEditTabViewPage)
 // --------------------------------------------------------------------------
 
@@ -24,9 +25,8 @@ public:
 
     bool CreateAndDock(CFrameWnd* frame_wnd, CDocument* doc);
 
-    CompilerOutputTabViewPage* GetCompilerOutputTabViewPage() noexcept { return m_compilerOutputTabViewPage.get(); }
-
-    // Selects the "Compiler Output" tab.
+    // Returns, or selects, the "Compiler Output" tab.
+    CompilerOutputView& GetCompilerOutputView();
     void SelectCompilerOutputTab();
 
     // Selects the "Messages" tab and returns the control used to edit messages.
@@ -41,11 +41,13 @@ protected:
     void OnSize(UINT nType, int cx, int cy);
 
 private:
+    CWnd* SelectTab(int index);
+
+    static CRuntimeClass* GetCompilerOutputRuntimeClass();
     static CRuntimeClass* GetMessageEditRuntimeClass();
 
 private:
     std::unique_ptr<TabViewContainer> m_tabViewContainer;
     CDocument* m_doc;
-    std::unique_ptr<CompilerOutputTabViewPage> m_compilerOutputTabViewPage;
     int m_messageEditTabIndex;
 };

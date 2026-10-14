@@ -19,12 +19,12 @@ END_MESSAGE_MAP()
 
 
 CAplDoc::CAplDoc()
-    :   m_application(std::make_unique<Application>())
+    :   m_bIsClosing(false),
+        m_deployWnd(nullptr),
+        m_application(std::make_unique<Application>()),
+        m_applicationChildWnd(nullptr),
+        m_bSrcLoaded(false)
 {
-    m_bSrcLoaded = false;
-    m_bIsClosing = false;
-    m_bIsClosing = false;
-    m_deployWnd = nullptr;
 }
 
 
@@ -1120,7 +1120,7 @@ BOOL CAplDoc::OpenAllDocuments()
         m_bSrcLoaded = pSourceCode->Load();
     }
 
-    ApplicationChildWnd* application_child_wnd = nullptr;
+    ASSERT(m_applicationChildWnd == nullptr);
 
     if( engine_app_type == EngineAppType::Entry )
     {
@@ -1132,7 +1132,7 @@ BOOL CAplDoc::OpenAllDocuments()
         if( pNode != nullptr )
         {
             POSITION pos = pNode->GetFormDoc()->GetFirstViewPosition();
-            application_child_wnd = assert_cast<ApplicationChildWnd*>(pNode->GetFormDoc()->GetNextView(pos)->GetParentFrame());
+            m_applicationChildWnd = assert_cast<ApplicationChildWnd*>(pNode->GetFormDoc()->GetNextView(pos)->GetParentFrame());
         }
 
         RefreshExternalLogicAndReportNodes();
@@ -1149,7 +1149,7 @@ BOOL CAplDoc::OpenAllDocuments()
 
             POSITION pos = form_order_app_tree_node->GetOrderDocument()->GetFirstViewPosition();
             COrderChildWnd* const pOrderChildWnd = assert_cast<COrderChildWnd*>(form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame());
-            application_child_wnd = pOrderChildWnd;
+            m_applicationChildWnd = pOrderChildWnd;
 
             orderTree.Select(form_order_app_tree_node->GetHItem(), TVGN_CARET);
 
@@ -1176,7 +1176,7 @@ BOOL CAplDoc::OpenAllDocuments()
 
         POSITION pos = pTabDoc->GetFirstViewPosition();
         CTabView* pView = assert_cast<CTabView*>(pTabDoc->GetNextView(pos));
-        application_child_wnd = assert_cast<ApplicationChildWnd*>(pView->GetParentFrame());
+        m_applicationChildWnd = assert_cast<ApplicationChildWnd*>(pView->GetParentFrame());
 
         CString sErr;
         AfxGetMainWnd()->SendMessage(WM_IMSA_UPDATE_SYMBOLTBL,(WPARAM)pTabDoc,0);
@@ -1193,11 +1193,11 @@ BOOL CAplDoc::OpenAllDocuments()
         tabTree.ReBuildTree();
     }
 
-    ASSERT(application_child_wnd != nullptr);
+    ASSERT(m_applicationChildWnd != nullptr);
 
     // let any views created while opening CFormDoc / OrderDoc / CTabulateDoc
     // know that this is its associated DesignerDoc
-    application_child_wnd->GetActiveDocument()->UpdateAllViews(nullptr, Hint::DesignerDocLoaded, this);
+    m_applicationChildWnd->GetActiveDocument()->UpdateAllViews(nullptr, Hint::DesignerDocLoaded, this);
 
     return TRUE;
 }

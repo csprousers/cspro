@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "LogicDialogBar.h"
+#include "CompilerOutputView.h"
 #include "MessageEditView.h"
 #include "TabViewContainer.h"
 
@@ -42,8 +43,6 @@ bool LogicDialogBar::CreateAndDock(CFrameWnd* const frame_wnd, CDocument* const 
     ASSERT(doc != nullptr);
     m_doc = doc;
 
-    m_compilerOutputTabViewPage = std::make_unique<CompilerOutputTabViewPage>(assert_cast<ApplicationChildWnd*>(frame_wnd));
-
     if( !Create(frame_wnd, IDD_LOGIC_BAR, CBRS_BOTTOM, static_cast<UINT>(-1)) )
         return false;
 
@@ -65,26 +64,26 @@ int LogicDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if( !m_tabViewContainer->Create(this) )
         return -1;
 
+    CCreateContext context;
+    context.m_pCurrentDoc = m_doc;
+    context.m_pCurrentFrame = GetParentFrame();
+
     int tab_index = 0;
 
     // create the compiler output window
     {
-        constexpr DWORD dwStyle = WS_VISIBLE | WS_CHILD | WS_HSCROLL | WS_VSCROLL;
+        context.m_pNewViewClass = GetCompilerOutputRuntimeClass();
 
-        if( !m_compilerOutputTabViewPage->Create(dwStyle, m_tabViewContainer.get()) )
+        if( !m_tabViewContainer->InsertPage(tab_index, context.m_pNewViewClass, &context, CompilerOutputTabText) )
             return -1;
 
-        m_tabViewContainer->InsertPage(tab_index, m_compilerOutputTabViewPage.get(), CompilerOutputTabText);
         ASSERT(tab_index == CompilerOutputTabIndex);
         ++tab_index;
     }
 
     // create the messages window
     {
-        CCreateContext context;
         context.m_pNewViewClass = GetMessageEditRuntimeClass();
-        context.m_pCurrentDoc = m_doc;
-        context.m_pCurrentFrame = GetParentFrame();
 
         if( !m_tabViewContainer->InsertPage(tab_index, context.m_pNewViewClass, &context, MessagesTabText) )
             return -1;
@@ -115,24 +114,69 @@ void LogicDialogBar::OnSize(const UINT nType, const int cx, const int cy)
 }
 
 
+CWnd* LogicDialogBar::SelectTab(const int index)
+{
+    ASSERT(index < m_tabViewContainer->GetPageCount());
+
+    const bool change_tab = ( index != m_tabViewContainer->GetActivePageIndex() );
+
+    if( change_tab )
+        m_tabViewContainer->SetActivePageIndex(index);
+
+    CWnd* const wnd = m_tabViewContainer->GetActivePage();
+    ASSERT(wnd != nullptr);
+
+    // prior to using CView subclasses in the tab view container, there was no issue
+    // with UI updates, but now we must manually invalidate the view to update the UI
+    if( change_tab )
+        wnd->Invalidate();
+
+    return wnd;
+}
+
+
+CompilerOutputView& LogicDialogBar::GetCompilerOutputView()
+{
+    return *assert_cast<CompilerOutputView*>(m_tabViewContainer->GetPage(CompilerOutputTabIndex));
+}
+
+
 void LogicDialogBar::SelectCompilerOutputTab()
 {
-    m_tabViewContainer->SetActivePageIndex(CompilerOutputTabIndex);
+    SelectTab(CompilerOutputTabIndex);
 }
 
 
 LogicCtrl* LogicDialogBar::SelectMessageEditTab()
 {
     ASSERT(m_messageEditTabIndex != -1);
-    m_tabViewContainer->SetActivePageIndex(m_messageEditTabIndex);
 
-    return assert_cast<MessageEditView*>(m_tabViewContainer->GetActivePage())->GetLogicCtrl();
+    CWnd* const wnd = SelectTab(m_messageEditTabIndex);
+
+    return assert_cast<MessageEditView*>(wnd)->GetLogicCtrl();
 }
 
 
 void LogicDialogBar::UpdateScrollState()
 {
     m_tabViewContainer->UpdateScrollState();
+}
+
+
+// --------------------------------------------------------------------------
+// CompilerOutputTabViewPage
+// --------------------------------------------------------------------------
+
+class CompilerOutputTabViewPage : public COXTabViewPage<CompilerOutputView>
+{
+    DECLARE_DYNCREATE(CompilerOutputTabViewPage)
+};
+
+IMPLEMENT_DYNCREATE(CompilerOutputTabViewPage, COXTabViewPage<CompilerOutputView>)
+
+CRuntimeClass* LogicDialogBar::GetCompilerOutputRuntimeClass()
+{
+    return RUNTIME_CLASS(CompilerOutputTabViewPage);
 }
 
 
