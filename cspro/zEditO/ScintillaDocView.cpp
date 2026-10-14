@@ -289,7 +289,7 @@ const UINT _ScintillaMsgFindReplace{::RegisterWindowMessage(FINDMSGSTRING)};
 #pragma warning(suppress: 26435 26440 26433)
 BEGIN_MESSAGE_MAP(CScintillaView, CView) //NOLINT(modernize-avoid-c-arrays)
   ON_WM_PAINT()
-  ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, &CScintillaView::OnUpdateNeedSel)
+  ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, &CScintillaView::OnUpdateNeedCut) // CSPRO_SCINTILLA_MOD
   ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, &CScintillaView::OnUpdateNeedPaste)
   ON_UPDATE_COMMAND_UI(ID_EDIT_FIND, &CScintillaView::OnUpdateNeedText)
   ON_UPDATE_COMMAND_UI(ID_EDIT_REPEAT, &CScintillaView::OnUpdateNeedFind)
@@ -846,6 +846,22 @@ void CScintillaView::OnUpdateNeedSel(CCmdUI* pCmdUI)
   const Position nEndChar{rCtrl.GetSelectionEnd()};
 #pragma warning(suppress: 26486)
   pCmdUI->Enable(nStartChar != nEndChar);
+}
+
+void CScintillaView::OnUpdateNeedCut(CCmdUI* pCmdUI) // CSPRO_SCINTILLA_MOD
+{
+  //Validate our parameters
+  ASSERT_VALID(this);
+
+  auto& rCtrl{GetCtrl()};
+  if (rCtrl.GetReadOnly())
+  {
+      pCmdUI->Enable(FALSE);
+  }
+  else
+  {
+      OnUpdateNeedSel(pCmdUI);
+  }
 }
 
 void CScintillaView::OnEditCut()

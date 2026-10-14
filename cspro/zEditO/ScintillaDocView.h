@@ -236,6 +236,7 @@ protected:
 //Message handlers
   afx_msg void OnPaint();
   afx_msg void OnUpdateNeedSel(CCmdUI* pCmdUI);
+  afx_msg void OnUpdateNeedCut(CCmdUI* pCmdUI); // CSPRO_SCINTILLA_MOD
   afx_msg void OnUpdateNeedPaste(CCmdUI* pCmdUI);
   afx_msg void OnUpdateNeedText(CCmdUI* pCmdUI);
   afx_msg void OnUpdateNeedFind(CCmdUI* pCmdUI);
