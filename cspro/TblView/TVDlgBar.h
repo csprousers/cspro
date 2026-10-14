@@ -1,8 +1,7 @@
-﻿#pragma once
+#pragma once
 
 // TDlgBar.h : header file
 //
-#include <zUToolO/zUToolO.h>
 #include <zTableF/TabTrCtl.h>
 
 #define ID_FIXEDDLGBAR                  0xe881

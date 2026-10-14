@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 // MDlgBar.h : header file
 //
 
 /////////////////////////////////////////////////////////////////////////////
 // CMDlgBar dialog
 
-#include <zUToolO/zUToolO.h>
 #include <zFormF/FrmTrCtl.h>
 #include <zOrderF/OrdTrCtl.h>
 #include <zTableF/TabTrCtl.h>

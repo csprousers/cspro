@@ -11,7 +11,7 @@
 #include "SelectDocsDlg.h"
 #include "StartDlg.h"
 #include "VersionShifterDlg.h"
-#include <zToolsO/FileIO.h>
+#include <zUToolO/oxtbvw.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/FileUtil.h>
 #include <zUtilO/TreeCtrlHelpers.h>
@@ -2874,7 +2874,7 @@ void CCSProApp::RestoreRFL()
         for(int iIndex = 0; iIndex < m_pRecentFileList->GetSize(); iIndex++) {
             m_pRecentFileList->Remove(0);
         }
-        for( int iIndex = m_arrRFLStrings.GetSize() -1; iIndex >= 0; iIndex--) {
+        for( INT_PTR iIndex = m_arrRFLStrings.GetSize() - 1; iIndex >= 0; iIndex--) {
             // JH 11/29/05 - added try/catch to catch CFileException::badPath thrown
             // by CRecentFileList::Add when one of the recent file list strings
             // has a path that is no longer valid e.g. was on a removeable drive

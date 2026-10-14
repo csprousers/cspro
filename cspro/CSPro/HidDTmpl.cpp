@@ -1,5 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "HidDTmpl.h"
+#include <../src/mfc/afximpl.h>
 
 
 IMPLEMENT_DYNAMIC(CHiddenDocTemplate, CMultiDocTemplate)

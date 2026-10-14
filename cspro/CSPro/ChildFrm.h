@@ -1,9 +1,8 @@
-﻿#pragma once
+#pragma once
+
 // ChildFrm.h : interface of the CChildFrame class
 //
 /////////////////////////////////////////////////////////////////////////////
-
-#include <zUToolO/zUToolO.h>
 
 class CChildFrame : public COXMDIChildWndSizeDock
 {
