@@ -114,27 +114,6 @@ void LogicDialogBar::OnSize(const UINT nType, const int cx, const int cy)
 }
 
 
-CWnd* LogicDialogBar::SelectTab(const int index)
-{
-    ASSERT(index < m_tabViewContainer->GetPageCount());
-
-    const bool change_tab = ( index != m_tabViewContainer->GetActivePageIndex() );
-
-    if( change_tab )
-        m_tabViewContainer->SetActivePageIndex(index);
-
-    CWnd* const wnd = m_tabViewContainer->GetActivePage();
-    ASSERT(wnd != nullptr);
-
-    // prior to using CView subclasses in the tab view container, there was no issue
-    // with UI updates, but now we must manually invalidate the view to update the UI
-    if( change_tab )
-        wnd->Invalidate();
-
-    return wnd;
-}
-
-
 CompilerOutputView& LogicDialogBar::GetCompilerOutputView()
 {
     return *assert_cast<CompilerOutputView*>(m_tabViewContainer->GetPage(CompilerOutputTabIndex));
@@ -143,17 +122,16 @@ CompilerOutputView& LogicDialogBar::GetCompilerOutputView()
 
 void LogicDialogBar::SelectCompilerOutputTab()
 {
-    SelectTab(CompilerOutputTabIndex);
+    m_tabViewContainer->SetActivePageIndex(CompilerOutputTabIndex);
 }
 
 
 LogicCtrl* LogicDialogBar::SelectMessageEditTab()
 {
     ASSERT(m_messageEditTabIndex != -1);
+    m_tabViewContainer->SetActivePageIndex(m_messageEditTabIndex);
 
-    CWnd* const wnd = SelectTab(m_messageEditTabIndex);
-
-    return assert_cast<MessageEditView*>(wnd)->GetLogicCtrl();
+    return assert_cast<MessageEditView*>(m_tabViewContainer->GetActivePage())->GetLogicCtrl();
 }
 
 

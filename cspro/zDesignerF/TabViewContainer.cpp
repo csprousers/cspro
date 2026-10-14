@@ -2,6 +2,26 @@
 #include "TabViewContainer.h"
 
 
+BOOL TabViewContainer::SetActivePageIndex(const int nIndex)
+{
+    ASSERT(nIndex < GetPageCount());
+
+    BOOL result = ( nIndex == GetActivePageIndex() );
+
+    if( !result )
+    {
+        result = __super::SetActivePageIndex(nIndex);
+
+        // prior to using CView subclasses in the tab view container, there was no issue
+        // with UI updates, but now we must manually invalidate the view to update the UI
+        if( result )
+            GetActivePage()->Invalidate(FALSE);
+    }
+
+    return result;
+}
+
+
 extern  BOOL g_bUpdatingScrollInfo =  FALSE;
 extern  BOOL g_bUpdatingScrollState = FALSE;
 void TabViewContainer::UpdateScrollState()

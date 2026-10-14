@@ -41,8 +41,6 @@ protected:
     void OnSize(UINT nType, int cx, int cy);
 
 private:
-    CWnd* SelectTab(int index);
-
     static CRuntimeClass* GetCompilerOutputRuntimeClass();
     static CRuntimeClass* GetMessageEditRuntimeClass();
 
