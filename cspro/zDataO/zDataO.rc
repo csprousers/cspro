@@ -152,18 +152,6 @@ IDI_CASE_PARTIAL_MODIFY ICON                    "res\\CasePartialModify.ico"
 
 IDI_CASE_PARTIAL_VERIFY ICON                    "res\\CasePartialVerify.ico"
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Accelerator
-//
-
-IDR_CASE_LISTING ACCELERATORS
-BEGIN
-    VK_APPS,        ID_CONTEXT_MENU,        VIRTKEY, NOINVERT
-    VK_F10,         ID_CONTEXT_MENU,        VIRTKEY, SHIFT, NOINVERT
-END
-
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

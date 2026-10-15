@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseListingCtrl.h"
 #include "CaseIterator.h"
 #include "DataRepository.h"
@@ -26,8 +26,7 @@ BEGIN_MESSAGE_MAP(CaseListingCtrl, CListCtrl)
     ON_NOTIFY_REFLECT(LVN_ODFINDITEM, OnFindItem)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnItemChanged)
     ON_NOTIFY_REFLECT(NM_DBLCLK, OnDoubleClick)
-    ON_NOTIFY_REFLECT(NM_RCLICK, OnRightClick)
-    ON_COMMAND(ID_CONTEXT_MENU, OnContextMenu)
+    ON_WM_CONTEXTMENU()
     ON_MESSAGE(UWM::Data::AdjustColumnWidthAndInvalidate, OnAdjustColumnWidthAndInvalidate)
     ON_MESSAGE(UWM::Data::SelectionsChanged, OnSelectionsChanged)
     ON_MESSAGE(UWM::Data::UpdateCaseListing, OnUpdateCaseListing)
@@ -39,7 +38,6 @@ CaseListingCtrl::CaseListingCtrl()
         m_backgroundColors{ GetSysColor(COLOR_WINDOW), GetSysColor(COLOR_HIGHLIGHT) },
         m_columnWidths{ InitialColumnWidth, InitialColumnWidth },
         m_adjustColumnWidthAndInvalidateMessagePosted(false),
-        m_hAccelerators(LoadAccelerators(zDataODLL.hModule, MAKEINTRESOURCE(IDR_CASE_LISTING))),
         m_selectionsChangedMessagePosted(false),
         m_refreshSelectedCaseSummaries(false)
 {
@@ -149,12 +147,7 @@ void CaseListingCtrl::UpdateCaseListingAsync(const CaseListingReselection resele
 
 BOOL CaseListingCtrl::PreTranslateMessage(MSG* const pMsg)
 {
-    if( m_hAccelerators != nullptr && ::TranslateAccelerator(m_hWnd, m_hAccelerators, pMsg) )
-    {
-        return TRUE;
-    }
-
-    else if( pMsg->message == WM_KEYDOWN )
+    if( pMsg->message == WM_KEYDOWN )
     {
         // allow case selection using the Enter key
         if( pMsg->wParam == VK_RETURN )
@@ -332,17 +325,7 @@ void CaseListingCtrl::OnDoubleClick(NMHDR* /*pNMHDR*/, LRESULT* /*pResult*/)
 }
 
 
-void CaseListingCtrl::OnRightClick(NMHDR* const pNMHDR, LRESULT* const pResult)
-{
-    NMITEMACTIVATE* const pNMItemActivate = reinterpret_cast<NMITEMACTIVATE*>(pNMHDR);
-
-    OnCaseListingContextMenu(pNMItemActivate->ptAction);
-
-    *pResult = FALSE;
-}
-
-
-void CaseListingCtrl::OnContextMenu()
+void CaseListingCtrl::OnContextMenu(CWnd* const /*pWnd*/, CPoint /*point*/)
 {
     CRect rect;
     GetClientRect(&rect);

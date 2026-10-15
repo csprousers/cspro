@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/CaseIteratorSettings.h>
@@ -92,9 +92,8 @@ protected:
     void OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
 
     void OnDoubleClick(NMHDR* pNMHDR, LRESULT* pResult);
-    void OnRightClick(NMHDR* pNMHDR, LRESULT* pResult);
 
-    void OnContextMenu();
+    void OnContextMenu(CWnd* pWnd, CPoint point);
 
     LRESULT OnAdjustColumnWidthAndInvalidate(WPARAM wParam, LPARAM lParam);
     LRESULT OnSelectionsChanged(WPARAM wParam, LPARAM lParam);
@@ -124,8 +123,6 @@ private:
 
     int m_columnWidths[2];       // viewing case keys = index 0
     bool m_adjustColumnWidthAndInvalidateMessagePosted;
-
-    HACCEL m_hAccelerators;
 
     bool m_selectionsChangedMessagePosted;
     bool m_refreshSelectedCaseSummaries;
