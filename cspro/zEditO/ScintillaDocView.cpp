@@ -166,6 +166,9 @@ History: PJN / 12-08-2004 1. Made all the remaining non virtual functions relate
                           member variable "m_nLoadSaveBufferSize".
          PJN / 19-11-2024 1. Updated CScintillaView::Serialize to better handle loading a non UTF encoded file.
                           Thanks to Jörg Hellenkamp for reporting this issue.
+         PJN / 14-10-2026 1. Updated the ID_EDIT_CUT ON_UPDATE_COMMAND_UI handler in CScintillaView to take into 
+                          account a read-only scintilla control. Thanks to Gregory Martin for reporting this 
+                          update.
 
 Copyright (c) 2004 - 2026 by PJ Naughter (Web: www.naughter.com, Email: pjna@naughter.com)
 
@@ -289,35 +292,35 @@ const UINT _ScintillaMsgFindReplace{::RegisterWindowMessage(FINDMSGSTRING)};
 #pragma warning(suppress: 26435 26440 26433)
 BEGIN_MESSAGE_MAP(CScintillaView, CView) //NOLINT(modernize-avoid-c-arrays)
   ON_WM_PAINT()
-  ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, &CScintillaView::OnUpdateNeedCut) // CSPRO_SCINTILLA_MOD
+  ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, &CScintillaView::OnUpdateNeedCut)
+  ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, &CScintillaView::OnUpdateNeedSel)
   ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, &CScintillaView::OnUpdateNeedPaste)
+  ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR, &CScintillaView::OnUpdateNeedTextAndFollowingText)
   ON_UPDATE_COMMAND_UI(ID_EDIT_FIND, &CScintillaView::OnUpdateNeedText)
   ON_UPDATE_COMMAND_UI(ID_EDIT_REPEAT, &CScintillaView::OnUpdateNeedFind)
   ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, &CScintillaView::OnUpdateEditUndo)
   ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, &CScintillaView::OnUpdateEditRedo)
+  ON_UPDATE_COMMAND_UI(ID_EDIT_SELECT_ALL, &CScintillaView::OnUpdateNeedText)
+  ON_UPDATE_COMMAND_UI(ID_EDIT_REPLACE, &CScintillaView::OnUpdateNeedText)
   ON_COMMAND(ID_EDIT_CUT, &CScintillaView::OnEditCut)
   ON_COMMAND(ID_EDIT_COPY, &CScintillaView::OnEditCopy)
   ON_COMMAND(ID_EDIT_PASTE, &CScintillaView::OnEditPaste)
   ON_COMMAND(ID_EDIT_CLEAR, &CScintillaView::OnEditClear)
+  ON_COMMAND(ID_EDIT_FIND, &CScintillaView::OnEditFind)
+  ON_COMMAND(ID_EDIT_REPEAT, &CScintillaView::OnEditRepeat)
   ON_COMMAND(ID_EDIT_UNDO, &CScintillaView::OnEditUndo)
   ON_COMMAND(ID_EDIT_REDO, &CScintillaView::OnEditRedo)
   ON_COMMAND(ID_EDIT_SELECT_ALL, &CScintillaView::OnEditSelectAll)
-  ON_COMMAND(ID_EDIT_FIND, &CScintillaView::OnEditFind)
   ON_COMMAND(ID_EDIT_REPLACE, &CScintillaView::OnEditReplace)
-  ON_COMMAND(ID_EDIT_REPEAT, &CScintillaView::OnEditRepeat)
+  ON_COMMAND(ID_FILE_PAGE_SETUP, &CScintillaView::OnFilePageSetup)
+  ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
+  ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
+  ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
   ON_WM_SETFOCUS()
   ON_WM_SIZE()
   ON_WM_ERASEBKGND()
   ON_WM_CREATE()
-  ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, &CScintillaView::OnUpdateNeedSel)
-  ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR, &CScintillaView::OnUpdateNeedTextAndFollowingText)
-  ON_UPDATE_COMMAND_UI(ID_EDIT_SELECT_ALL, &CScintillaView::OnUpdateNeedText)
-  ON_UPDATE_COMMAND_UI(ID_EDIT_REPLACE, &CScintillaView::OnUpdateNeedText)
-  ON_COMMAND(ID_FILE_PAGE_SETUP, &CScintillaView::OnFilePageSetup)
   ON_WM_DESTROY()
-  ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
-  ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
-  ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
   ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, &CScintillaView::OnFindReplaceCmd)
 END_MESSAGE_MAP()
 
@@ -836,6 +839,19 @@ void CScintillaView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 }
 
 #pragma warning(suppress: 26429)
+void CScintillaView::OnUpdateNeedCut(CCmdUI* pCmdUI)
+{
+  //Validate our parameters
+  ASSERT_VALID(this);
+
+  auto& rCtrl{GetCtrl()};
+  if (rCtrl.GetReadOnly())
+      pCmdUI->Enable(FALSE);
+  else
+      OnUpdateNeedSel(pCmdUI);
+}
+
+#pragma warning(suppress: 26429)
 void CScintillaView::OnUpdateNeedSel(CCmdUI* pCmdUI)
 {
   //Validate our parameters
@@ -846,22 +862,6 @@ void CScintillaView::OnUpdateNeedSel(CCmdUI* pCmdUI)
   const Position nEndChar{rCtrl.GetSelectionEnd()};
 #pragma warning(suppress: 26486)
   pCmdUI->Enable(nStartChar != nEndChar);
-}
-
-void CScintillaView::OnUpdateNeedCut(CCmdUI* pCmdUI) // CSPRO_SCINTILLA_MOD
-{
-  //Validate our parameters
-  ASSERT_VALID(this);
-
-  auto& rCtrl{GetCtrl()};
-  if (rCtrl.GetReadOnly())
-  {
-      pCmdUI->Enable(FALSE);
-  }
-  else
-  {
-      OnUpdateNeedSel(pCmdUI);
-  }
 }
 
 void CScintillaView::OnEditCut()
