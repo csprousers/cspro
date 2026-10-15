@@ -53,8 +53,6 @@ void DocSetTreeView::OnInitialUpdate()
 
     if( m_imageList.Create(16, 16, ILC_COLOR32, 0, int32_cast(icon_resource_ids.size())) )
     {
-        m_imageList.SetBkColor(GetSysColor(COLOR_WINDOW));
-
         for( const auto& [icon_type, resource_id] : icon_resource_ids )
         {
             HICON icon = AfxGetApp()->LoadIcon(resource_id);
