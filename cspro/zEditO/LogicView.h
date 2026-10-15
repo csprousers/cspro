@@ -48,8 +48,9 @@ protected:
     virtual void InitializeLogicControl();
 
     // Returns the context menu. The submenu at position 0 is displayed.
-    // If not specified, the IDR_EDIT menu is used.
-    virtual HMENU GetContextMenu();
+    // If not specified, the IDR_EDIT menu is used, or IDR_READ_ONLY_EDIT
+    // for read-only controls.
+    virtual std::unique_ptr<CMenu> GetContextMenu();
 
     // Returns true if the text being edited supports single-line comments
     // triggered using the shortcut Ctrl + /. The default implementation

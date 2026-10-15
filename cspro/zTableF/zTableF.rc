@@ -259,6 +259,22 @@ BEGIN
     END
 END
 
+IDR_TABLE_LOGIC_EDITOR MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "View Table",                  ID_VIEW_TABLE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1372,9 +1388,9 @@ BEGIN
     ID_VIEW_PAGEPRINTVIEW   "Preview the printing of the active document\nPrint Preview"
     ID_VIEW_PREV_PAGE       "Go to previous page"
     ID_VIEW_PREVIOUS_TABLE  "Move backwards through the table set\nPrevious Table"
-    ID_VIEW_TAB_LOGIC       "View Logic \n View Logic "
-    ID_VIEW_TABLE           "View Table \n View Table"
-    ID_VIEW_ZOOM            "Zoom \n Zoom"
+    ID_VIEW_TAB_LOGIC       "View Logic\nView Logic "
+    ID_VIEW_TABLE           "View Table\nView Table"
+    ID_VIEW_ZOOM            "Zoom\nZoom"
     ID_VIEW_ZOOM_IN         "Increase zoom to view details\nZoom In"
 END
 

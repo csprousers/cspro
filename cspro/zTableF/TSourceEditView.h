@@ -9,9 +9,6 @@ class CLASS_DECL_ZTABLEF CTSourceEditView : public LogicView
     DECLARE_DYNCREATE(CTSourceEditView)
 
 protected:
-    DECLARE_MESSAGE_MAP()
-
-    void OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/);
-
-    void OnViewTable();
+    // LogicView override
+    std::unique_ptr<CMenu> GetContextMenu() override;
 };

@@ -131,10 +131,15 @@ void LogicView::OnActivateView(BOOL const bActivate, CView* const pActivateView,
 }
 
 
-HMENU LogicView::GetContextMenu()
+std::unique_ptr<CMenu> LogicView::GetContextMenu()
 {
-    CMenu menu;
-    return menu.LoadMenu(IDR_EDIT) ? menu.Detach() : nullptr;
+    const UINT menu_id = m_logicCtrl->GetReadOnly() ? IDR_READ_ONLY_EDIT : IDR_EDIT;
+    auto menu = std::make_unique<CMenu>();
+
+    if( !menu->LoadMenu(menu_id) )
+        menu.reset();
+
+    return menu;
 }
 
 
@@ -142,8 +147,8 @@ void LogicView::OnContextMenu(CWnd* const pWnd, CPoint point)
 {
     ASSERT(pWnd == m_logicCtrl);
 
-    HMENU menu = GetContextMenu();
-    HMENU submenu = ( menu != nullptr ) ? GetSubMenu(menu, 0) : nullptr;
+    const std::unique_ptr<CMenu> menu = GetContextMenu();
+    CMenu* const submenu = ( menu != nullptr ) ? menu->GetSubMenu(0) : nullptr;
 
     if( submenu == nullptr )
     {
@@ -159,13 +164,11 @@ void LogicView::OnContextMenu(CWnd* const pWnd, CPoint point)
         m_logicCtrl->ClientToScreen(&point);
     }
 
-    TrackPopupMenu(
-        submenu,
+    submenu->TrackPopupMenu(
         TPM_LEFTALIGN | TPM_RIGHTBUTTON,
         point.x, point.y,
-        0, // nReserved
-        AfxGetMainWnd()->m_hWnd, // using the frame will properly update (enable/disable) all of the commands
-        nullptr // prcRect
+        AfxGetMainWnd(), // using the frame will properly update (enable/disable) all of the commands
+        nullptr // lpRect
     );
 }
 

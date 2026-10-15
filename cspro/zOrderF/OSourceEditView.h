@@ -9,9 +9,4 @@ class CLASS_DECL_ZORDERF COSourceEditView : public LogicView
 
 protected:
     COSourceEditView() noexcept = default; // create from serialization only
-
-protected:
-    DECLARE_MESSAGE_MAP()
-
-    void OnShiftF10();
 };
