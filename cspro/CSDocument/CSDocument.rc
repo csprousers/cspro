@@ -357,8 +357,6 @@ BEGIN
     "G",            ID_FORMAT_SYNTAX_ARG,   VIRTKEY, SHIFT, CONTROL, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
-    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
 END
 
 

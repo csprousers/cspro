@@ -29,7 +29,7 @@ protected:
     void OnInitialUpdate() override;
 
     void OnRButtonDown(UINT nFlags, CPoint point);
-    void OnShiftF10();
+    void OnContextMenu(CWnd* pWnd, CPoint point);
 
     void OnDoubleClickAndReturn(NMHDR* pNMHDR, LRESULT* pResult);
 

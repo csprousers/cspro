@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetTreeView.h"
 #include "CSDocument.h"
 
@@ -8,7 +8,7 @@ IMPLEMENT_DYNCREATE(DocSetTreeView, CTreeView)
 BEGIN_MESSAGE_MAP(DocSetTreeView, CTreeView)
 
     ON_WM_RBUTTONDOWN()
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
 
     ON_NOTIFY_REFLECT(NM_DBLCLK, OnDoubleClickAndReturn)
     ON_NOTIFY_REFLECT(NM_RETURN, OnDoubleClickAndReturn)
@@ -343,7 +343,7 @@ void DocSetTreeView::OnRButtonDown(const UINT nFlags, CPoint point)
 }
 
 
-void DocSetTreeView::OnShiftF10()
+void DocSetTreeView::OnContextMenu(CWnd* const /*pWnd*/, CPoint /*point*/)
 {
     CTreeCtrl& tree_ctrl = GetTreeCtrl();
     HTREEITEM selected_tree_item = tree_ctrl.GetSelectedItem();
