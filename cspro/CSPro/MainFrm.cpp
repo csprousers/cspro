@@ -398,8 +398,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     EnableDocking(CBRS_ALIGN_ANY);
 
     // This is a sizeable dialog bar.. that includes gadget resizing
-    m_SizeDlgBar.SetSizeDockStyle(/*SZBARF_STDMOUSECLICKS |*/ SZBARF_DLGAUTOSIZE | SZBARF_NOCLOSEBTN | SZBARF_NORESIZEBTN);  // BMD 07 Mar 2003
-    if (!m_SizeDlgBar.Create(this, IDD_DIALOGBAR, CBRS_LEFT, ID_FIXEDDLGBAR) )
+    m_SizeDlgBar.SetSizeDockStyle(/*SZBARF_STDMOUSECLICKS |*/ SZBARF_NOGRIPPER | SZBARF_NOCLOSEBTN | SZBARF_NORESIZEBTN);  // BMD 07 Mar 2003
+
+    if (!m_SizeDlgBar.Create(this, CBRS_LEFT) )
     {
         TRACE0("Failed to create dialog bar\n");
         return -1;
