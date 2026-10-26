@@ -24,8 +24,6 @@ BEGIN_MESSAGE_MAP(EditCtrl, LogicCtrl)
     ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
 
-    ON_COMMAND(ID_COMMENT_LINE, OnEditCommentLine)
-
 END_MESSAGE_MAP()
 
 
@@ -123,14 +121,4 @@ void EditCtrl::OnEditRedo()
 void EditCtrl::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(CanRedo());
-}
-
-
-void EditCtrl::OnEditCommentLine()
-{
-    if( !CanCommentLine() )
-        return;
-
-    CommentLine();
-    // the above method calls SetModified
 }

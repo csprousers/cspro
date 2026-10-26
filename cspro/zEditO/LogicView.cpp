@@ -24,8 +24,6 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_COMMAND(ID_CODE_PASTE_STRING_LITERAL, OnPasteStringLiteral)
     ON_UPDATE_COMMAND_UI(ID_CODE_PASTE_STRING_LITERAL, OnUpdatePasteStringLiteral)
 
-    ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
-
     ON_COMMAND_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnDeprecationWarnings)
     ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_DEPRECATION_WARNINGS_NONE, ID_CODE_DEPRECATION_WARNINGS_ALL, OnUpdateDeprecationWarnings)
 
@@ -456,29 +454,6 @@ void LogicView::OnUpdatePasteStringLiteral(CCmdUI* const pCmdUI)
     }
 
     pCmdUI->Enable(enable);
-}
-
-
-bool LogicView::CanCommentLine()
-{
-    if( m_logicCtrl->GetReadOnly() )
-        return false;
-
-    const int lexer_language = m_logicCtrl->GetLexer();
-
-    return ( Lexers::IsCSProLogic(lexer_language) ||
-             Lexers::IsCSProMessage(lexer_language) ||
-             lexer_language == SCLEX_JAVASCRIPT );
-}
-
-
-void LogicView::OnCommentLine()
-{
-    if( CanCommentLine() )
-    {
-        ASSERT(!m_logicCtrl->GetReadOnly());
-        m_logicCtrl->CommentLine();
-    }
 }
 
 

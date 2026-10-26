@@ -24,6 +24,8 @@ BEGIN_MESSAGE_MAP(LogicCtrl, CSProScintillaCtrl)
     ON_COMMAND(ID_EDIT_REPEAT, OnEditRepeat)
     ON_MESSAGE(UWM::Edit::RefreshLexer, OnRefreshLexer)
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
+    ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
+    ON_UPDATE_COMMAND_UI(ID_COMMENT_LINE, OnUpdateCommentLine)
 END_MESSAGE_MAP()
 
 
@@ -1168,7 +1170,7 @@ void LogicCtrl::DeleteLine()
 }
 
 
-void LogicCtrl::CommentLine() // 20101215
+void LogicCtrl::OnCommentLine() // 20101215
 {
     int selectionBufferLength = Scintilla::CScintillaCtrl::GetSelText(NULL);
     bool bResetSelection = true;
@@ -1302,6 +1304,23 @@ void LogicCtrl::CommentLine() // 20101215
         SetSelection(selectionStart, selectionStart + finalBlock.GetLength());
     }
     SetModified(); // 20120125 logic file wasn't getting set as modified}
+}
+
+
+void LogicCtrl::OnUpdateCommentLine(CCmdUI* const pCmdUI)
+{
+    bool enable = !GetReadOnly();
+
+    if( enable )
+    {
+        const int lexer_language = GetLexer();
+
+        enable = ( Lexers::IsCSProLogic(lexer_language) ||
+                   Lexers::IsCSProMessage(lexer_language) ||
+                   lexer_language == SCLEX_JAVASCRIPT );
+    }
+
+    pCmdUI->Enable(enable);
 }
 
 
@@ -1778,6 +1797,11 @@ BOOL LogicCtrl::PreTranslateMessage(MSG* pMsg)
 
                 case 'C':
                     PostMessage(WM_COMMAND, 13); // copy
+                    return TRUE;
+
+                // Ctrl + /
+                case VK_OEM_2:
+                    PostMessage(WM_COMMAND, ID_COMMENT_LINE);
                     return TRUE;
             }
         }

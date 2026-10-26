@@ -43,7 +43,6 @@ public:
     // override to false if the reference window does not apply for the subclassed control
     virtual bool ProcessClicksForReferenceWindow() const { return true; }
 
-    void CommentLine();
     void FormatLogic();
 
     void SetLineIndentation(_In_ int line, _In_ int indentation);
@@ -81,18 +80,21 @@ public:
 protected:
     DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnEditFind();
-    afx_msg void OnEditReplace();
-    afx_msg void OnEditRepeat();
-    afx_msg LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
-    afx_msg void OnUpdateNeedSel(CCmdUI* pCmdUI);
-    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+    void OnEditFind();
+    void OnEditReplace();
+    void OnEditRepeat();
+    LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
+    void OnUpdateNeedSel(CCmdUI* pCmdUI);
+    void OnContextMenu(CWnd* pWnd, CPoint point);
 
-    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+    void OnLButtonDown(UINT nFlags, CPoint point);
 
-    afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
+    void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 
-    afx_msg LRESULT OnRefreshLexer(WPARAM wParam, LPARAM lParam);
+    void OnCommentLine();
+    void OnUpdateCommentLine(CCmdUI* pCmdUI);
+
+    LRESULT OnRefreshLexer(WPARAM wParam, LPARAM lParam);
 
 private:
     bool ToggleLexer(int lexer_language, bool force_toggle_even_if_lexer_is_same);

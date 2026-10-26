@@ -52,11 +52,6 @@ protected:
     // for read-only controls.
     virtual std::unique_ptr<CMenu> GetContextMenu();
 
-    // Returns true if the text being edited supports single-line comments
-    // triggered using the shortcut Ctrl + /. The default implementation
-    // uses the lexer language to determine if this is supported
-    virtual bool CanCommentLine();
-
     // Return true if the context-sensitive help was handled.
     virtual bool OnHandleHelp() { return false; }
 

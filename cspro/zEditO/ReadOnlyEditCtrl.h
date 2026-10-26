@@ -8,6 +8,4 @@ class CLASS_DECL_ZEDITO ReadOnlyEditCtrl : public EditCtrl
 {
 protected:
     void InitializeControl() override;
-
-    bool CanCommentLine() override { return false; }
 };

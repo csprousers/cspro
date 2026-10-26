@@ -36,12 +36,8 @@ protected:
     void OnEditRedo();
     void OnUpdateEditRedo(CCmdUI* pCmdUI);
 
-    void OnEditCommentLine();
-
 protected:
     virtual void InitializeControl() = 0;
-
-    virtual bool CanCommentLine() = 0;
 
 private:
     HACCEL m_hAccel;
