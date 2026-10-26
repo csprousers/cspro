@@ -59,23 +59,22 @@
 #define IDC_RELATIVE_TO_PATH_SELECT     9536
 #define IDC_QUESTIONNAIRE_HTML          9537
 #define IDC_RECURSIVE                   9538
-#define IDC_REFERENCE_WINDOW_EDIT       9539
-#define IDC_RELATIVE_PATH               9540
-#define IDC_RELATIVE_PATH_LOGIC         9541
-#define IDC_RELATIVE_TO_PATH            9542
-#define IDC_REMOVE_FILE                 9543
-#define IDC_RESOURCE_FILES              9544
-#define IDC_SPECIAL_OUTPUT              9545
-#define IDC_SPLIT_NEWLINES              9546
-#define IDC_STRING_TEXT                 9547
-#define IDC_STRING_LOGIC                9548
-#define IDC_STRING_JSON                 9549
-#define IDC_STRING_PERCENT_ENCODING     9550
-#define IDC_TEXT                        9551
-#define IDC_TYPE                        9552
-#define IDC_USE_FORWARD_SLASHES         9553
-#define IDC_USE_VERBATIM_STRING_LITERALS 9554
-#define IDC_WORKING                     9555
+#define IDC_RELATIVE_PATH               9539
+#define IDC_RELATIVE_PATH_LOGIC         9540
+#define IDC_RELATIVE_TO_PATH            9541
+#define IDC_REMOVE_FILE                 9542
+#define IDC_RESOURCE_FILES              9543
+#define IDC_SPECIAL_OUTPUT              9544
+#define IDC_SPLIT_NEWLINES              9545
+#define IDC_STRING_TEXT                 9546
+#define IDC_STRING_LOGIC                9547
+#define IDC_STRING_JSON                 9548
+#define IDC_STRING_PERCENT_ENCODING     9549
+#define IDC_TEXT                        9550
+#define IDC_TYPE                        9551
+#define IDC_USE_FORWARD_SLASHES         9552
+#define IDC_USE_VERBATIM_STRING_LITERALS 9553
+#define IDC_WORKING                     9554
 #define ID_ADD_CODE                     44501
 #define ID_ADD_DICTIONARY_EXTERNAL      44502
 #define ID_ADD_DICTIONARY_WORKING       44503
@@ -91,7 +90,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        9023
 #define _APS_NEXT_COMMAND_VALUE         44572
-#define _APS_NEXT_CONTROL_VALUE         9556
+#define _APS_NEXT_CONTROL_VALUE         9555
 #define _APS_NEXT_SYMED_VALUE           9023
 #endif
 #endif

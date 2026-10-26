@@ -1763,7 +1763,7 @@ namespace
 
             m_applicationWindow->ShowControlBar(m_logicReferenceWindow, TRUE, FALSE);
 
-            ReadOnlyEditCtrl* reference_control = m_logicReferenceWindow->GetEditCtrl();
+            LogicCtrl* const reference_control = m_logicReferenceWindow->GetLogicCtrl();
 
             if( !reference_text.IsEmpty() )
             {
@@ -1812,7 +1812,7 @@ namespace
                 {
                     reference_control->ToggleLexer(Lexers::GetLexer_Logic(application));
 
-                    int length_before_logic_text = reference_control->GetLength();
+                    Sci_Position length_before_logic_text = reference_control->GetLength();
 
                     reference_control->AppendReadOnlyText(UTF8_TODO::GetUtf8(logic_text));
 
@@ -2333,7 +2333,7 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     // allow auto complete to work when a symbol_name/namespace. is entered
     if( selected_words.empty() )
     {
-        int buffer_position_of_previous_word = logic_control->GetCurrentPos() - 2;
+        const Sci_Position buffer_position_of_previous_word = logic_control->GetCurrentPos() - 2;
 
         if( buffer_position_of_previous_word >= 0 && logic_control->GetCharAt(buffer_position_of_previous_word + 1) == '.' )
             selected_words = logic_control->ReturnWordsAtCursorWithDotNotation(buffer_position_of_previous_word);

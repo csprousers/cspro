@@ -219,7 +219,7 @@ BOOL CFormChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD 
     m_logicDlgBar.ShowWindow(SW_HIDE);
 
     // create the reference window
-    if( !m_logicReferenceWnd.CreateAndDock(this) )
+    if( !m_logicReferenceWnd.CreateAndDock(this, pContext->m_pCurrentDoc) )
         return FALSE;
 
     return TRUE;
