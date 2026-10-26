@@ -55,7 +55,6 @@
     </ClCompile>
     <ClCompile Include="StringEncoderDlg.cpp" />
     <ClCompile Include="TableSpecPropertiesPageDlg.cpp" />
-    <ClCompile Include="TabViewContainer.cpp" />
     <ClCompile Include="TextDisplayPageDlg.cpp" />
     <ClCompile Include="TextTemplatePreviewer.cpp" />
     <ClCompile Include="UnfloatableDialogBar.cpp" />
@@ -104,7 +103,6 @@
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="StringEncoderDlg.h" />
     <ClInclude Include="TableSpecPropertiesPageDlg.h" />
-    <ClInclude Include="TabViewContainer.h" />
     <ClInclude Include="TextDisplayPageDlg.h" />
     <ClInclude Include="TextTemplatePreviewer.h" />
     <ClInclude Include="UnfloatableDialogBar.h" />
