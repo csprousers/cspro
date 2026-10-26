@@ -13,7 +13,7 @@
 
 class MessageEditView : public LogicView
 {
-    DECLARE_DYNAMIC(MessageEditView)
+    DECLARE_DYNCREATE(MessageEditView)
 
 protected:
     MessageEditView() noexcept;

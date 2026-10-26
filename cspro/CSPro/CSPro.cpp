@@ -275,8 +275,8 @@ BOOL CCSProApp::InitInstance()
 
     LoadStdProfileSettings(10);  // Load standard INI file options (including MRU)
 
-    // set the look and feel of the property grids to the Office 2007 style
-    CMFCVisualManagerOffice2007::SetStyle(CMFCVisualManagerOffice2007::Office2007_ObsidianBlack);
+    // set the look and feel of the tab controls and property grids to the Office 2007 style
+    CMFCVisualManagerOffice2007::SetStyle(CMFCVisualManagerOffice2007::Office2007_Silver);
     CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2007));
 
     // gsf

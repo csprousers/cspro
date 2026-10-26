@@ -7,7 +7,7 @@
 
 class CLASS_DECL_ZDESIGNERF CompilerOutputView : public LogicView
 {
-    DECLARE_DYNAMIC(CompilerOutputView)
+    DECLARE_DYNCREATE(CompilerOutputView)
 
     class DoubleClickProcessingLogicCtrl;
 

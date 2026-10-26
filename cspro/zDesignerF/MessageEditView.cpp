@@ -2,7 +2,7 @@
 #include "MessageEditView.h"
 
 
-IMPLEMENT_DYNAMIC(MessageEditView, LogicView)
+IMPLEMENT_DYNCREATE(MessageEditView, LogicView)
 
 
 MessageEditView::MessageEditView() noexcept

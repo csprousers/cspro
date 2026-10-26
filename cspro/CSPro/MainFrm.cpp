@@ -1727,8 +1727,6 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
         pView->ProcessCodeFolding(bAppSrcCode);
-
-    pWnd->GetLogicDialogBar().UpdateScrollState();
 }
 
 
@@ -1886,8 +1884,6 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
     // fold procs only when viewing PROC GLOBAL
     if( Lexers::CanFoldCode(lexer_language) )
         logic_view->ProcessCodeFolding(bAppSrcCode);
-
-    pOrderChildWnd->GetLogicDialogBar().UpdateScrollState();
 }
 
 
@@ -1937,7 +1933,7 @@ namespace
         bool has_errors = false;
         std::optional<std::map<std::string, int>> proc_line_number_map;
 
-        CompilerOutputView& const compiler_output_view = logic_dialog_bar.GetCompilerOutputView();
+        CompilerOutputView& compiler_output_view = logic_dialog_bar.GetCompilerOutputView();
 
         for( Logic::ParserMessage parser_message : CCompiler::GetCurrentSession()->GetParserMessages() )
         {
@@ -2115,7 +2111,6 @@ namespace
         compiler_output_view.GetLogicCtrl()->SetReadOnlyText(all_messages);
 
         logic_dialog_bar.SelectCompilerOutputTab();
-        logic_dialog_bar.UpdateScrollState();
 
         if( has_errors )
         {
@@ -4693,8 +4688,6 @@ void CMainFrame::SetTblSourceCode(CAplDoc* pAplDoc)
 
         pTabDoc->SetModifiedFlag(modFlag1); // 20100316
         pView->GetLogicCtrl()->SetModified(modFlag2);
-
-        pWnd->GetLogicDialogBar().UpdateScrollState();
     }
 }
 

@@ -7,7 +7,7 @@
 // CompilerOutputView
 // --------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC(CompilerOutputView, LogicView)
+IMPLEMENT_DYNCREATE(CompilerOutputView, LogicView)
 
 
 CompilerOutputView::CompilerOutputView() noexcept
