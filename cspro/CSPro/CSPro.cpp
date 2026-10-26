@@ -11,7 +11,6 @@
 #include "SelectDocsDlg.h"
 #include "StartDlg.h"
 #include "VersionShifterDlg.h"
-#include <zUToolO/oxtbvw.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/FileUtil.h>
 #include <zUtilO/TreeCtrlHelpers.h>
@@ -23,11 +22,11 @@
 #include <zListingO/Lister.h>
 #include <zDesignerF/ManageFilesDlg.h>
 #include <zDictF/Ddgview.h>
-#include <zFormO/DragOptions.h>
 #include <zTableF/TabView.h>
 #include <zTableF/TabChWnd.h>
 #include <zNetwork/SyncLog.h>
 #include <afxvisualmanageroffice2007.h>
+#include <../src/mfc/afximpl.h>
 
 
 #define SOFTWARE_DEVELOPER _T("U.S. Census Bureau")
@@ -126,7 +125,7 @@ CCSProApp::CCSProApp()
 // Need one of these for each of the types of windows that you want to switch focus between.
 
 // focus switcher for batch edit source view
-struct COSourceEditViewFocusSwitcher : public CViewFocusSwitcher
+struct COSourceEditViewFocusSwitcher : public ViewIgnoringTabbedViewsFocusSwitcher
 {
     virtual bool MatchWindow(CWnd* pWnd) const
     {
@@ -136,7 +135,7 @@ struct COSourceEditViewFocusSwitcher : public CViewFocusSwitcher
     virtual void SetFocus(CWnd* pWnd)
     {
         ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(COSourceEditView)));
-        CViewFocusSwitcher::SetFocus(pWnd);
+        __super::SetFocus(pWnd);
         COSourceEditView* pView = DYNAMIC_DOWNCAST(COSourceEditView, pWnd);
         pView->GetLogicCtrl()->SetFocus();
     }
@@ -144,7 +143,7 @@ struct COSourceEditViewFocusSwitcher : public CViewFocusSwitcher
 
 
 // focus switcher for tab source view
-struct CTSourceEditViewFocusSwitcher : public CViewFocusSwitcher
+struct CTSourceEditViewFocusSwitcher : public ViewIgnoringTabbedViewsFocusSwitcher
 {
     virtual bool MatchWindow(CWnd* pWnd) const
     {
@@ -154,14 +153,14 @@ struct CTSourceEditViewFocusSwitcher : public CViewFocusSwitcher
     virtual void SetFocus(CWnd* pWnd)
     {
         ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTSourceEditView)));
-        CViewFocusSwitcher::SetFocus(pWnd);
+        __super::SetFocus(pWnd);
         CTSourceEditView* pView = DYNAMIC_DOWNCAST(CTSourceEditView, pWnd);
         pView->GetLogicCtrl()->SetFocus();
     }
 };
 
 // focus switcher for tab grid view
-struct CTabViewFocusSwitcher : public CViewFocusSwitcher
+struct CTabViewFocusSwitcher : public ViewIgnoringTabbedViewsFocusSwitcher
 {
     virtual bool MatchWindow(CWnd* pWnd) const
     {
@@ -171,7 +170,7 @@ struct CTabViewFocusSwitcher : public CViewFocusSwitcher
     virtual void SetFocus(CWnd* pWnd)
     {
         ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTabView)));
-        CViewFocusSwitcher::SetFocus(pWnd);
+        __super::SetFocus(pWnd);
         CTabView* pView = DYNAMIC_DOWNCAST(CTabView, pWnd);
         pView->GetGrid()->SetFocus();
     }
@@ -209,40 +208,6 @@ struct CMDlgTabFocusSwitcher : public CWindowFocusSwitcher
     }
 };
 
-// focus switcher for edit windows in tab view (messages, compile output)
-struct CTabViewContainerFocusSwitcher : public CWindowFocusSwitcher
-{
-    virtual void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd)
-    {
-        CFrameWnd* pMainFrame = DYNAMIC_DOWNCAST(CFrameWnd, pAppMainWnd);
-        pMgr->AddWindowsRec(pMainFrame->GetActiveFrame(), this);
-    }
-
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return ( pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(COXTabViewContainer)) &&
-                 pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) );
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        COXTabViewContainer* pParentDlg = DYNAMIC_DOWNCAST(COXTabViewContainer, pWnd->GetParent());
-        if (!pParentDlg->IsActivePage(pWnd)) {
-            int nIndex;
-            if (pParentDlg->FindPage(pWnd, nIndex)) {
-                pParentDlg->SetActivePageIndex(nIndex);
-            }
-        }
-        pWnd->SetFocus();
-    }
-
-    virtual bool MustBeVisible() const
-    {
-        return false;
-    }
-};
-
-
 
 BOOL CCSProApp::InitInstance()
 {
@@ -258,8 +223,8 @@ BOOL CCSProApp::InitInstance()
     m_pWindowFocusMgr->AddSwitcher(new COSourceEditViewFocusSwitcher);
     m_pWindowFocusMgr->AddSwitcher(new CTSourceEditViewFocusSwitcher);
     m_pWindowFocusMgr->AddSwitcher(new CTabViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CTabViewContainerFocusSwitcher);
+    m_pWindowFocusMgr->AddSwitcher(new ViewIgnoringTabbedViewsFocusSwitcher);
+    m_pWindowFocusMgr->AddSwitcher(LogicDialogBar::CreateWindowFocusSwitcher().release());
     m_pWindowFocusMgr->AddSwitcher(new CMDlgTabFocusSwitcher);
 
     // Standard initialization

@@ -2,6 +2,7 @@
 #include "LogicDialogBar.h"
 #include "CompilerOutputView.h"
 #include "MessageEditView.h"
+#include <zUtilO/WindowFocusMgr.h>
 #include <afxtabctrl.h>
 
 
@@ -16,6 +17,9 @@ namespace
 
     constexpr size_t CompilerOutputTabIndex = 0;
 }
+
+
+IMPLEMENT_DYNAMIC(LogicDialogBar, UnfloatableDialogBar)
 
 
 BEGIN_MESSAGE_MAP(LogicDialogBar, UnfloatableDialogBar)
@@ -157,4 +161,57 @@ LogicCtrl* LogicDialogBar::SelectMessageEditTab()
     m_tabCtrl->SetActiveTab(m_messageEditTabIndex);
 
     return m_messageEditView->GetLogicCtrl();
+}
+
+
+
+// --------------------------------------------------------------------------
+// LogicDialogBar::LDB_WindowFocusSwitcher
+// --------------------------------------------------------------------------
+
+class LogicDialogBar::LDB_WindowFocusSwitcher : public CWindowFocusSwitcher
+{
+protected:
+    void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd) override
+    {
+        CFrameWnd* pMainFrame = DYNAMIC_DOWNCAST(CFrameWnd, pAppMainWnd);
+        pMgr->AddWindowsRec(pMainFrame->GetActiveFrame(), this);
+    }
+
+    bool MatchWindow(CWnd* pWnd) const override
+    {
+        if( pWnd->IsKindOf(RUNTIME_CLASS(CompilerOutputView)) ||
+            pWnd->IsKindOf(RUNTIME_CLASS(MessageEditView)) )
+        {
+            ASSERT(pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(CMFCTabCtrl)));
+            ASSERT(pWnd->GetParent()->GetParent()->IsKindOf(RUNTIME_CLASS(LogicDialogBar)));
+            return true;
+        }
+
+        return false;
+    }
+
+    void SetFocus(CWnd* pWnd) override
+    {
+        CMFCTabCtrl* const tab_ctrl = assert_cast<CMFCTabCtrl*>(pWnd->GetParent());
+
+        if( pWnd != tab_ctrl->GetActiveWnd() )
+        {
+            const int tab_index = tab_ctrl->GetTabFromHwnd(pWnd->m_hWnd);
+            tab_ctrl->SetActiveTab(tab_index);
+        }
+
+        pWnd->SetFocus();
+    }
+
+    bool MustBeVisible() const override
+    {
+        return false;
+    }
+};
+
+
+std::unique_ptr<CWindowFocusSwitcher> LogicDialogBar::CreateWindowFocusSwitcher()
+{
+    return std::make_unique<LDB_WindowFocusSwitcher>();
 }

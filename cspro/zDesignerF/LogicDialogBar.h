@@ -4,6 +4,7 @@
 #include <zDesignerF/UnfloatableDialogBar.h>
 
 class CMFCTabCtrl;
+class CWindowFocusSwitcher;
 class CompilerOutputView;
 class LogicCtrl;
 class MessageEditView;
@@ -20,6 +21,10 @@ class MessageEditView;
 
 class CLASS_DECL_ZDESIGNERF LogicDialogBar : public UnfloatableDialogBar
 {
+    DECLARE_DYNAMIC(LogicDialogBar)
+
+    class LDB_WindowFocusSwitcher;
+
 public:
     LogicDialogBar();
     ~LogicDialogBar();
@@ -32,6 +37,10 @@ public:
 
     // Selects the "Messages" tab and returns the control used to edit messages.
     LogicCtrl* SelectMessageEditTab();
+
+    // Creates a CWindowFocusSwitcher subclass that manages switching focus
+    // between the tabs managed by the LogicDialogBar.
+    static std::unique_ptr<CWindowFocusSwitcher> CreateWindowFocusSwitcher();
 
 protected:
     DECLARE_MESSAGE_MAP()
