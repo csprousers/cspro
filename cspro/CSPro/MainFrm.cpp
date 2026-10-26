@@ -5872,8 +5872,8 @@ LRESULT CMainFrame::OnRedrawPropertyGrid(WPARAM wParam, LPARAM /*lParam*/)
         CDictChildWnd* pDictChildWnd = (CDictChildWnd*)pWnd;
         CDDDoc* pDoc = (CDDDoc*)pDictChildWnd->GetActiveDocument();
 
-        if( pDictChildWnd->GetDictDlgBar()->GetSafeHwnd() && pDictChildWnd->GetDictDlgBar()->GetPropCtrl()->GetSafeHwnd() )
-            pDictChildWnd->GetDictDlgBar()->GetPropCtrl()->Initialize(pDoc, pDictBase);
+        if( pDictChildWnd->GetDictDlgBar()->GetSafeHwnd() && pDictChildWnd->GetDictDlgBar()->GetPropCtrl().GetSafeHwnd() )
+            pDictChildWnd->GetDictDlgBar()->GetPropCtrl().Initialize(pDoc, pDictBase);
     }
 
     else
