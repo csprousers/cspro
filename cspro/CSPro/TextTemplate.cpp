@@ -49,16 +49,22 @@ std::variant<std::monostate,
     {
         CFormID* pFormID = GetNodeIdForSourceCode<CFormID>();
 
-        if( pFormID != nullptr && pFormID->GetItemType() == eFFT_REPORT && set_report_text_source(pFormID, [&]() { return CS2WS(ValueOrDefault(pFormID->GetName())); }) )
+        if( pFormID != nullptr && pFormID->GetItemType() == eFFT_REPORT &&
+            set_report_text_source(pFormID, [&]() { return CS2WS(ValueOrDefault(pFormID->GetName())); }) )
+        {
             PutSourceCode(pFormID, false);
+        }
     }
 
-    else if( pActiveView->IsKindOf(RUNTIME_CLASS(LogicView)) )
+    else if( pActiveView->IsKindOf(RUNTIME_CLASS(COSourceEditView)) )
     {
         AppTreeNode* app_tree_node = GetNodeIdForSourceCode<AppTreeNode>();
 
-        if( app_tree_node != nullptr && app_tree_node->GetAppFileType() == AppFileType::Report && set_report_text_source(app_tree_node, [&]() { return app_tree_node->GetName(); }) )
+        if( app_tree_node != nullptr && app_tree_node->GetAppFileType() == AppFileType::Report &&
+            set_report_text_source(app_tree_node, [&]() { return app_tree_node->GetName(); }) )
+        {
             PutOSourceCode(app_tree_node, false);
+        }
     }
 
     if( report_text_source != nullptr )
