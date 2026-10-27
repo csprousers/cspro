@@ -43,6 +43,7 @@
     <ClInclude Include="LogicCtrl.h" />
     <ClInclude Include="LogicView.h" />
     <ClInclude Include="LogicViewTextSourceModifier.h" />
+    <ClInclude Include="MarginProperties.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="resource_win32.h" />

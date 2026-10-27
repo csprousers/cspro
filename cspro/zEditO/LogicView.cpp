@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LogicView.h"
 #include "LogicViewTextSourceModifier.h"
+#include "MarginProperties.h"
 #include <zScintilla/src/Position.h>
 #include <zToolsO/NumberToString.h>
 #include <zUtilO/UWM.h>
@@ -43,9 +44,7 @@ LogicView::LogicView()
 }
 
 
-LogicView::~LogicView() noexcept
-{
-}
+LogicView::~LogicView() noexcept = default;
 
 
 void LogicView::RegisterTextSourceModifier(std::shared_ptr<TextSourceEditable> text_source)
@@ -328,7 +327,9 @@ void LogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
     if( force_margin_width_update || m_lineCountNumberDigitsAtLastUpdateMarginWidth != line_count_number_digits )
     {
         m_lineCountNumberDigitsAtLastUpdateMarginWidth = line_count_number_digits;
-        m_logicCtrl->SetMarginWidthN(0, m_logicCtrl->TextWidth(STYLE_LINENUMBER, FormatText("_%d", line_count).c_str()));
+
+        const auto pixels = m_logicCtrl->TextWidth(STYLE_LINENUMBER, FormatText("_%d", line_count).c_str());
+        m_logicCtrl->SetMarginWidthN(MarginProperties::LineNumberMargin, pixels);
     }
 }
 
@@ -493,23 +494,24 @@ namespace CodeFolding
 
 void LogicView::ProcessCodeFolding(const std::optional<bool> fold_procs/* = std::nullopt*/)
 {
-    constexpr int FoldingMargin = 2;
-    ASSERT(m_logicCtrl->GetMargins() >= FoldingMargin);
-
     const bool enable_folding = ( CodeFolding::GetLevel() != CodeFolding::Level::None );
 
     if( m_codeFoldingEnabled != enable_folding )
     {
         m_codeFoldingEnabled = enable_folding;
 
-        m_logicCtrl->SetMarginWidthN(FoldingMargin, *m_codeFoldingEnabled ? 16 : 0);
+        // add the margin if it has not already been added
+        if( m_logicCtrl->GetMargins() <= MarginProperties::CodeFoldingMargin )
+            m_logicCtrl->SetMargins(MarginProperties::CodeFoldingMargin + 1);
+
+        m_logicCtrl->SetMarginWidthN(MarginProperties::CodeFoldingMargin, *m_codeFoldingEnabled ? MarginProperties::CodeFoldingWidth : 0);
         m_logicCtrl->SetIdleStyling(*m_codeFoldingEnabled ? Scintilla::IdleStyling::AfterVisible : Scintilla::IdleStyling::None);
 
         if( *m_codeFoldingEnabled )
         {
-            m_logicCtrl->SetMarginSensitiveN(FoldingMargin, TRUE);
-            m_logicCtrl->SetMarginTypeN(FoldingMargin, Scintilla::MarginType::Symbol);
-            m_logicCtrl->SetMarginMaskN(FoldingMargin, Scintilla::MaskFolders);
+            m_logicCtrl->SetMarginSensitiveN(MarginProperties::CodeFoldingMargin, TRUE);
+            m_logicCtrl->SetMarginTypeN(MarginProperties::CodeFoldingMargin, Scintilla::MarginType::Symbol);
+            m_logicCtrl->SetMarginMaskN(MarginProperties::CodeFoldingMargin, Scintilla::MaskFolders);
 
             m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDEROPEN, Scintilla::MarkerSymbol::BoxMinus, RGB(255, 255, 255), RGB(0, 0, 0));
             m_logicCtrl->DefineMarker(SC_MARKNUM_FOLDER, Scintilla::MarkerSymbol::BoxPlus, RGB(255, 255, 255), RGB(0, 0, 0));

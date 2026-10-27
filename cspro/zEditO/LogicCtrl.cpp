@@ -3,6 +3,7 @@
 #include "CSProScintillaFindReplaceDlg.h"
 #include "GoToDlg.h"
 #include "LexerProperties.h"
+#include "MarginProperties.h"
 #include "ScintillaColorizer.h"
 #include <zScintilla/CSPro/CSPro.h>
 
@@ -104,7 +105,8 @@ bool LogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_ev
 }
 
 
-void LogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers, std::optional<int> lexer_language/* = std::nullopt*/)
+void LogicCtrl::InitLogicControl(const bool show_line_numbers, const bool show_error_markers,
+                                 std::optional<int> lexer_language/* = std::nullopt*/)
 {
     // if not specified, send a message to get the lexer language, using the default for logic if the message is not handled
     if( !lexer_language.has_value() )
@@ -115,25 +117,22 @@ void LogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers
 
     BaseInitControl(*lexer_language);
 
-    const int LineNumberMargin = 0;
-    const int MarkerMargin = 1;
-    const int MarkerWidth = 16;
-
-    int margins_needed = show_error_markers ? ( MarkerMargin + 1 ) :
-                         show_line_numbers  ? ( LineNumberMargin + 1 ) :
-                                              0;
+    const int margins_needed =
+        show_error_markers ? ( MarginProperties::MarkerMargin + 1 ) :
+        show_line_numbers  ? ( MarginProperties::LineNumberMargin + 1 ) :
+                             0;
 
     if( GetMargins() != margins_needed )
         SetMargins(margins_needed);
 
     // optionally make room for line numbers
-    SetMarginWidthN(LineNumberMargin, show_line_numbers ? TextWidth(STYLE_LINENUMBER, "_9999") : 0);
+    SetMarginWidthN(MarginProperties::LineNumberMargin, show_line_numbers ? TextWidth(STYLE_LINENUMBER, "_9999") : 0);
 
     if( show_line_numbers )
         StyleSetFore(STYLE_LINENUMBER, RGB(128, 128, 128));
 
     // optionally make room for error and warning markers
-    SetMarginWidthN(MarkerMargin, show_error_markers ? MarkerWidth : 0);
+    SetMarginWidthN(MarginProperties::MarkerMargin, show_error_markers ? MarginProperties::MarkerWidth : 0);
 
     if( show_error_markers )
     {
