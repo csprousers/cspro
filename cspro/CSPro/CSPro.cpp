@@ -124,58 +124,6 @@ CCSProApp::CCSProApp()
 // Helper classes to be used with the window focus manager (see InitInstance below)
 // Need one of these for each of the types of windows that you want to switch focus between.
 
-// focus switcher for batch edit source view
-struct COSourceEditViewFocusSwitcher : public ViewIgnoringTabbedViewsFocusSwitcher
-{
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return pWnd->IsKindOf(RUNTIME_CLASS(COSourceEditView));
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(COSourceEditView)));
-        __super::SetFocus(pWnd);
-        COSourceEditView* pView = DYNAMIC_DOWNCAST(COSourceEditView, pWnd);
-        pView->GetLogicCtrl()->SetFocus();
-    }
-};
-
-
-// focus switcher for tab source view
-struct CTSourceEditViewFocusSwitcher : public ViewIgnoringTabbedViewsFocusSwitcher
-{
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return pWnd->IsKindOf(RUNTIME_CLASS(CTSourceEditView));
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTSourceEditView)));
-        __super::SetFocus(pWnd);
-        CTSourceEditView* pView = DYNAMIC_DOWNCAST(CTSourceEditView, pWnd);
-        pView->GetLogicCtrl()->SetFocus();
-    }
-};
-
-// focus switcher for tab grid view
-struct CTabViewFocusSwitcher : public ViewIgnoringTabbedViewsFocusSwitcher
-{
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return pWnd->IsKindOf(RUNTIME_CLASS(CTabView));
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTabView)));
-        __super::SetFocus(pWnd);
-        CTabView* pView = DYNAMIC_DOWNCAST(CTabView, pWnd);
-        pView->GetGrid()->SetFocus();
-    }
-};
-
 // focus switcher for tree control tabs (dictionary, forms, tables,...)
 struct CMDlgTabFocusSwitcher : public CWindowFocusSwitcher
 {
@@ -220,9 +168,6 @@ BOOL CCSProApp::InitInstance()
     // main app windows on a hotkey (for accessibility)
     // Called in PreTranslateMessage
     m_pWindowFocusMgr = new CWindowFocusMgr;
-    m_pWindowFocusMgr->AddSwitcher(new COSourceEditViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CTSourceEditViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CTabViewFocusSwitcher);
     m_pWindowFocusMgr->AddSwitcher(new ViewIgnoringTabbedViewsFocusSwitcher);
     m_pWindowFocusMgr->AddSwitcher(LogicDialogBar::CreateWindowFocusSwitcher().release());
     m_pWindowFocusMgr->AddSwitcher(new CMDlgTabFocusSwitcher);
