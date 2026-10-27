@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <CSCode/HtmlDialogTemplates.h>
-#include <zEditO/ReadOnlyEditCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 class DynamicLayoutControlResizer;
 
@@ -54,7 +54,7 @@ private:
     CTreeCtrl m_samplesTreeCtrl;
     CStatic m_filenameCaption;
     CStatic m_descriptionCaption;
-    ReadOnlyEditCtrl m_inputLogicCtrl;
+    LogicCtrl m_inputLogicCtrl;
     CWnd m_showDialogButton;
     CWnd m_replaceHtmlButton;
     CWnd m_replaceInputButton;

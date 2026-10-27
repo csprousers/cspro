@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "HtmlDialogTemplatesDlg.h"
 #include <zToolsO/FileIO.h>
 #include <zUtilO/DynamicLayoutControlResizer.h>
@@ -85,6 +85,7 @@ BOOL HtmlDialogTemplatesDlg::OnInitDialog()
 
     // set up the read-only Scintilla control to show the JSON input text
     m_inputLogicCtrl.ReplaceCEdit(this, false, false, SCLEX_JSON);
+    m_inputLogicCtrl.SetReadOnly(TRUE);
 
     // select the initial node
     m_samplesTreeCtrl.SelectItem(initial_node_to_select);

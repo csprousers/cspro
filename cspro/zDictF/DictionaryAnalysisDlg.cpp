@@ -60,7 +60,7 @@ void DictionaryAnalysisDlg::DoDataExchange(CDataExchange* const pDX)
 
     DDX_Control(pDX, IDC_ANALYSIS_TYPE, m_analysisTypeTreeCtrl);
     DDX_Radio(pDX, IDC_DICTIONARY, m_analysisOrder);
-    DDX_Control(pDX, IDC_RESULTS, m_resultsEditCtrl);
+    DDX_Control(pDX, IDC_RESULTS, m_resultsLogicCtrl);
 }
 
 
@@ -75,8 +75,9 @@ BOOL DictionaryAnalysisDlg::OnInitDialog()
     TreeCtrlHelpers::ExpandAllNodes(m_analysisTypeTreeCtrl);
 
     // set up the read-only Scintilla control to show the results
-    m_resultsEditCtrl.ReplaceCEdit(this, false, false, SCLEX_NULL);
-    m_resultsEditCtrl.SetWrapMode(Scintilla::Wrap::WhiteSpace);
+    m_resultsLogicCtrl.ReplaceCEdit(this, false, false, SCLEX_NULL);
+    m_resultsLogicCtrl.SetWrapMode(Scintilla::Wrap::WhiteSpace);
+    m_resultsLogicCtrl.SetReadOnly(TRUE);
 
     // run the analysis for the selected item
     if( initial_node_to_select != nullptr )
@@ -88,7 +89,7 @@ BOOL DictionaryAnalysisDlg::OnInitDialog()
 
 std::vector<std::tuple<CWnd*, SizingDirection>> DictionaryAnalysisDlg::GetDynamicLayoutControls()
 {
-    return { { &m_resultsEditCtrl, SizingDirection::XY } };
+    return { { &m_resultsLogicCtrl, SizingDirection::XY } };
 }
 
 
@@ -175,7 +176,7 @@ void DictionaryAnalysisDlg::OnCopyToClipboard()
 
 void DictionaryAnalysisDlg::SetResultsText(const std::string& results_text)
 {
-    m_resultsEditCtrl.SetText(results_text);
+    m_resultsLogicCtrl.SetReadOnlyText(results_text);
 
     GetDlgItem(IDC_COPY_TO_CLIPBOARD)->EnableWindow(!m_resultsTextForClipboard.empty());
 }

@@ -10,8 +10,6 @@ namespace Logic { struct ParserMessage; }
 
 class CLASS_DECL_ZDESIGNERF BuildWnd : public CDockablePane
 {
-    friend class BuildWndReadOnlyEditCtrl;
-
 public:
     BuildWnd();
     virtual ~BuildWnd();
@@ -43,7 +41,7 @@ public:
     const std::vector<std::string>& GetErrors() const { return m_errors; }
 
 protected:
-    LogicCtrl* GetSourceLogicSource() { return m_sourceLogicSource; }
+    LogicCtrl* GetSourceLogicCtrl() { return m_sourceLogicCtrl; }
 
     // subclasses must override
     virtual LogicCtrl* ActivateDocumentAndGetLogicCtrl(std::variant<const LogicCtrl*, const std::string*> source_logic_ctrl_or_file_path) = 0;
@@ -63,12 +61,13 @@ private:
     void ProgressMessageClick(int build_wnd_line_number_base0);
 
 private:
-    std::unique_ptr<BuildWndReadOnlyEditCtrl> m_editCtrl;
+    class BuildWndLogicCtrl;
+    std::unique_ptr<BuildWndLogicCtrl> m_buildWndLogicCtrl;
 
     bool m_addNewlinesBetweenErrorsAndWarnings;
     bool m_indentMessageLinesAfterFirstLine;
 
-    LogicCtrl* m_sourceLogicSource;
+    LogicCtrl* m_sourceLogicCtrl;
     std::string m_sourceDocFilePath;
     std::string m_currentAction;
     size_t m_currentSeparatorWideLength;
