@@ -1168,7 +1168,7 @@ void COrderTreeCtrl::OnGetdispinfo(NMHDR* pNMHDR, LRESULT* pResult)
                 CRect rectItem;
 
                 if( GetItemRect(pTVDispInfo->item.hItem, &rectItem, FALSE) )
-                    return ( AfxGetMainWnd()->SendMessage(UWM::Order::HasLogic, 0, reinterpret_cast<LPARAM>(app_tree_node)) != 0 );
+                    return ( WindowsDesktopMessage::Send(UWM::Order::HasLogic, app_tree_node) != 0 );
             }
 
             return false;

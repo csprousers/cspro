@@ -93,8 +93,8 @@ public:
 
     LRESULT OnSetStatusBarText(WPARAM wParam, LPARAM lParam);
     LRESULT OnIMSASetFocus(WPARAM wParam, LPARAM lParam);
-    LRESULT OnIsCode(WPARAM wParam, LPARAM lParam);
-    LRESULT OnFIsCode(WPARAM wParam, LPARAM lParam);
+    LRESULT OnOrderHasLogic(WPARAM wParam, LPARAM lParam);
+    LRESULT OnFormHasLogic(WPARAM wParam, LPARAM lParam);
     LRESULT OnUpdateSymbolTblFlag(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnGetApplicationBeingLoaded(WPARAM wParam, LPARAM lParam);
@@ -208,6 +208,9 @@ private:
     void OnViewLogic(int position_in_buffer);
     void GotoExternalLogicOrReportNode(const CDocument* pDoc, LogicCtrl* logic_control, NullTerminatedString filename,
                                        bool using_line_number, int line_number_or_position_in_buffer);
+
+    // Returns the symbol name for the selected item, returning a blank string for the form file (PROC GLOBAL).
+    static std::optional<CString> GetSymbolName(const CDEFormBase* form_base, const CFormID* pFormID);
 
 protected:
     void OnViewTopLogic();

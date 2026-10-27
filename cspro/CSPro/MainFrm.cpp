@@ -94,7 +94,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Form::RunActiveApplicationAsBatch, OnLaunchActiveAppAsBch)
     ON_MESSAGE(UWM::Form::PublishApplication, OnGenerateBinary)
     ON_MESSAGE(UWM::Form::PublishAndDeployApplication, OnPublishAndDeploy)
-    ON_MESSAGE(UWM::Form::HasLogic, OnFIsCode)
+    ON_MESSAGE(UWM::Form::HasLogic, OnFormHasLogic)
     ON_MESSAGE(UWM::Form::HasQuestionText, OnIsQuestion)
     ON_MESSAGE(UWM::Form::IsNameUnique, IsNameUnique)
     ON_MESSAGE(UWM::Form::UpdateStatusBar, OnFormUpdateStatusBar)
@@ -105,7 +105,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Order::ShowSourceCode, ShowOSrcCode)
     ON_MESSAGE(UWM::Order::PutSourceCode, UpdateOSrcCode)
     ON_MESSAGE(UWM::Order::RunActiveApplication, OnRunBatch)
-    ON_MESSAGE(UWM::Order::HasLogic, OnIsCode)
+    ON_MESSAGE(UWM::Order::HasLogic, OnOrderHasLogic)
 
     ON_MESSAGE(UWM::Table::ShowSourceCode, ShowTblSrcCode)
     ON_MESSAGE(UWM::Table::PutSourceCode, UpdateTabSrcCode)
@@ -1565,6 +1565,56 @@ int CMainFrame::GetLexerLanguageForSourceCode(const Application& application, co
 }
 
 
+std::optional<CString> CMainFrame::GetSymbolName(const CDEFormBase* form_base, const CFormID* const pFormID)
+{
+    if( pFormID != nullptr && pFormID->GetItemType() == eFTT_GRIDFIELD )
+    {
+        CDERoster* pRoster = DYNAMIC_DOWNCAST(CDERoster, form_base);
+        ASSERT(pRoster != nullptr);
+
+        form_base = pRoster->GetCol(pFormID->GetColumnIndex())->GetField(pFormID->GetRosterField());
+        ASSERT(form_base != nullptr);
+    }
+
+    if( form_base == nullptr )
+    {
+    }
+
+    else if( form_base->IsKindOf(RUNTIME_CLASS(CDEFormFile)) )
+    {
+        // a blank string will indicate PROC GLOBAL
+        return CString();
+    }
+
+    else if( form_base->IsKindOf(RUNTIME_CLASS(CDEField)) )
+    {
+        return assert_cast<const CDEField*>(form_base)->GetItemName();
+    }
+
+    else if( form_base->IsKindOf(RUNTIME_CLASS(CDEGroup)) )
+    {
+        return assert_cast<const CDEGroup*>(form_base)->GetName();
+    }
+
+    else if( form_base->IsKindOf(RUNTIME_CLASS(CDEBlock)) )
+    {
+        return assert_cast<const CDEBlock*>(form_base)->GetName();
+    }
+
+    else if( form_base->IsKindOf(RUNTIME_CLASS(CDELevel)) )
+    {
+        return assert_cast<const CDELevel*>(form_base)->GetName();
+    }
+
+    else
+    {
+        ASSERT(false);
+    }
+
+    return std::nullopt;
+}
+
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
@@ -1612,47 +1662,20 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
     // logic from the main file
     else
     {
-        CDEFormBase* pBase = nullptr;
-
-        if(nType == eFTT_GRIDFIELD){
-            CDERoster* pRoster = DYNAMIC_DOWNCAST(CDERoster,pFormID->GetItemPtr());
-            ASSERT(pRoster);
-            pBase = pRoster->GetCol(pFormID->GetColumnIndex())->GetField(pFormID->GetRosterField());
-        }
-        else {
-            pBase = pFormID->GetItemPtr();
-        }
+        const std::optional<CString> symbol_name = GetSymbolName(pFormID->GetItemPtr(), pFormID);
 
         pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
         pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
-        if(pFormDoc && !pBase) { // if it is a form file show entire source code
-            bAppSrcCode = true;
-        }
-
-        if(pBase || bAppSrcCode) {
-            CString sSymbolName;
-            if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEField))) {
-                sSymbolName = assert_cast<CDEField*>(pBase)->GetItemName();
-            }
-            else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEGroup))) {
-                sSymbolName = assert_cast<CDEGroup*>(pBase)->GetName();
-            }
-            else if (pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-                sSymbolName = assert_cast<CDEBlock*>(pBase)->GetName();
-            }
-            else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDELevel))) {
-                sSymbolName = assert_cast<CDELevel*>(pBase)->GetName();
-            }
-
+        if(symbol_name.has_value()) {
             CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
             CStringArray arrProcLines;
 
-            pSourceCode->GetProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
+            pSourceCode->GetProc(arrProcLines,*symbol_name,CSourceCode_AllEvents); //Get all events for now
 
             //Get the view and set the text with the proclines
             CString sText;
-            if(sSymbolName.IsEmpty()){
+            if(symbol_name->IsEmpty()){
                 bAppSrcCode = true;
                 if(!pSourceCode->IsProcAvailable(_T("GLOBAL"))){
                     sText = _T("PROC GLOBAL\r\n\r\n");
@@ -1703,8 +1726,8 @@ void CMainFrame::SetSourceCode(CAplDoc* pAplDoc)
             }
             main_source_code.ReleaseBuffer();
 
-            if(main_source_code.IsEmpty() && !sSymbolName.IsEmpty()) {
-                main_source_code = _T("PROC ") + sSymbolName;
+            if(main_source_code.IsEmpty() && !symbol_name->IsEmpty()) {
+                main_source_code = _T("PROC ") + *symbol_name;
                 main_source_code += _T("\r\n");
             }
             if(!sText.IsEmpty()){
@@ -1776,95 +1799,81 @@ void CMainFrame::SetOSourceCode(CAplDoc* pAplDoc)
     // logic from the main file
     else
     {
-        CDEFormBase* form_base = app_tree_node->GetFormBase();
+        const std::optional<CString> symbol_name = GetSymbolName(app_tree_node->GetFormBase(), nullptr);
 
-        if(form_base == nullptr) { // if it is a form file show entire source code
+        if( !symbol_name.has_value() )
+        {
+            ASSERT(false);
+            return;
+        }
+
+        CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
+        CStringArray arrProcLines;
+
+        pSourceCode->GetProc(arrProcLines, *symbol_name, CSourceCode_AllEvents); //Get all events for now
+
+        //Get the view and set the text with the proclines
+        CString sText;
+        if(symbol_name->IsEmpty()){
             bAppSrcCode = true;
+            if(!pSourceCode->IsProcAvailable(_T("GLOBAL"))){
+                sText = _T("PROC GLOBAL\r\n\r\n");
+            }
+            if(!pSourceCode->IsProcAvailable(pOrderDoc->GetFormFile().GetName())){
+                //if the order file is not the primary order file
+                CString sOrderFName = UTF8_TODO::GetCString(pApplication->GetFormFilePaths().front());//get primary order file
+                if(pOrderDoc->GetPathName().CompareNoCase(sOrderFName) ==0 ){
+                    sText += _T("PROC ")+ pOrderDoc->GetFormFile().GetName() + _T("\r\n\r\n");
+                }
+            }
         }
 
-        if(form_base != nullptr || bAppSrcCode) {
-            CString sSymbolName;
-            if(form_base != nullptr && form_base->IsKindOf(RUNTIME_CLASS(CDEField))) {
-                sSymbolName = assert_cast<CDEField*>(form_base)->GetItemName();
-            }
-            else if(form_base != nullptr && form_base->IsKindOf(RUNTIME_CLASS(CDEGroup))) {
-                sSymbolName = assert_cast<CDEGroup*>(form_base)->GetName();
-            }
-            else if(form_base != nullptr && form_base->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-                sSymbolName = assert_cast<CDEBlock*>(form_base)->GetName();
-            }
-            else if(form_base != nullptr && form_base->IsKindOf(RUNTIME_CLASS(CDELevel))) {
-                sSymbolName = assert_cast<CDELevel*>(form_base)->GetName();
-            }
+        //Get the total memory to allocate
+        UINT uAlloc = 0;
+        int iNumLines = arrProcLines.GetSize();
+        for(int iIndex =0; iIndex <iNumLines ;iIndex++){
+            uAlloc  +=  arrProcLines.ElementAt(iIndex).GetLength();
+            uAlloc += 2; // for the "\r\n"
+        }
+        uAlloc++; //for the "\0" @ the end
 
-            CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
-            CStringArray arrProcLines;
+        uAlloc += sText.GetLength(); //U need to allocate this extra length for the text that is to be appended;
+        CString main_source_code;
+        LPTSTR pString = main_source_code.GetBufferSetLength(uAlloc);
+        _tmemset(pString ,_T('\0'),uAlloc);
 
-            pSourceCode->GetProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
-
-            //Get the view and set the text with the proclines
-            CString sText;
-            if(sSymbolName.IsEmpty()){
-                bAppSrcCode = true;
-                if(!pSourceCode->IsProcAvailable(_T("GLOBAL"))){
-                    sText = _T("PROC GLOBAL\r\n\r\n");
-                }
-                if(!pSourceCode->IsProcAvailable(pOrderDoc->GetFormFile().GetName())){
-                    //if the order file is not the primary order file
-                    CString sOrderFName = UTF8_TODO::GetCString(pApplication->GetFormFilePaths().front());//get primary order file
-                    if(pOrderDoc->GetPathName().CompareNoCase(sOrderFName) ==0 ){
-                        sText += _T("PROC ")+ pOrderDoc->GetFormFile().GetName() + _T("\r\n\r\n");
-                    }
-                }
-            }
-
-            //Get the total memory to allocate
-            UINT uAlloc = 0;
-            int iNumLines = arrProcLines.GetSize();
-            for(int iIndex =0; iIndex <iNumLines ;iIndex++){
-                uAlloc  +=  arrProcLines.ElementAt(iIndex).GetLength();
-                uAlloc += 2; // for the "\r\n"
-            }
-            uAlloc++; //for the "\0" @ the end
-
-            uAlloc += sText.GetLength(); //U need to allocate this extra length for the text that is to be appended;
-            CString main_source_code;
-            LPTSTR pString = main_source_code.GetBufferSetLength(uAlloc);
-            _tmemset(pString ,_T('\0'),uAlloc);
-
-            for (int iIndex = 0 ; iIndex < iNumLines ; iIndex++) {
-                if(!sText.IsEmpty()){
-                    CString sLine = arrProcLines[iIndex];
-                    sLine.Trim();
-                    if(sLine.Mid(0,4).CompareNoCase(_T("PROC"))==0){
-                        int iLength = sText.GetLength();
-                        _tmemcpy(pString,sText.GetBuffer(iLength),iLength);
-                        pString += iLength;
-                        sText.ReleaseBuffer();
-                        sText =_T("");
-                    }
-                }
-
-                CString& csLine = arrProcLines[iIndex];
-                int iLength = csLine.GetLength();
-                _tmemcpy(pString,csLine.GetBuffer(iLength),iLength);
-                pString += iLength;
-                csLine.ReleaseBuffer();
-                _tmemcpy(pString,_T("\r\n"),2);
-                pString += 2;
-            }
-            main_source_code.ReleaseBuffer();
-
-            if(main_source_code.IsEmpty() && !sSymbolName.IsEmpty()) {
-                main_source_code = _T("PROC ") + sSymbolName;
-                main_source_code += _T("\r\n");
-            }
+        for (int iIndex = 0 ; iIndex < iNumLines ; iIndex++) {
             if(!sText.IsEmpty()){
-                main_source_code += sText;
+                CString sLine = arrProcLines[iIndex];
+                sLine.Trim();
+                if(sLine.Mid(0,4).CompareNoCase(_T("PROC"))==0){
+                    int iLength = sText.GetLength();
+                    _tmemcpy(pString,sText.GetBuffer(iLength),iLength);
+                    pString += iLength;
+                    sText.ReleaseBuffer();
+                    sText =_T("");
+                }
             }
 
-            source_code = UTF8_TODO::GetUtf8(main_source_code);
+            CString& csLine = arrProcLines[iIndex];
+            int iLength = csLine.GetLength();
+            _tmemcpy(pString,csLine.GetBuffer(iLength),iLength);
+            pString += iLength;
+            csLine.ReleaseBuffer();
+            _tmemcpy(pString,_T("\r\n"),2);
+            pString += 2;
         }
+        main_source_code.ReleaseBuffer();
+
+        if(main_source_code.IsEmpty() && !symbol_name->IsEmpty()) {
+            main_source_code = _T("PROC ") + *symbol_name;
+            main_source_code += _T("\r\n");
+        }
+        if(!sText.IsEmpty()){
+            main_source_code += sText;
+        }
+
+        source_code = UTF8_TODO::GetUtf8(main_source_code);
     }
 
     ASSERT(source_code.IsSet());
@@ -2151,9 +2160,9 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
     CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
     pSourceCode->SetOrder(pAplDoc->GetOrder());
 
-    BOOL bAppSrcCode = FALSE;
+    bool bAppSrcCode = false;
     TextSource* external_logic_or_report_text_source = nullptr;
-    CString sSymbolName;
+    std::optional<CString> symbol_name;
     CStringArray arrProcLines;
 
     // external code and reports...
@@ -2175,41 +2184,12 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
     // logic from the main file...
     else
     {
-        CDEFormBase* pBase = nullptr;
-        if(pFormID->GetItemType() == eFTT_GRIDFIELD){
-            CDERoster* pRoster = DYNAMIC_DOWNCAST(CDERoster,pFormID->GetItemPtr());
-            ASSERT(pRoster);
-            pBase = pRoster->GetCol(pFormID->GetColumnIndex())->GetField(pFormID->GetRosterField());
-        }
-        else {
-            pBase = pFormID->GetItemPtr();
-        }
+        symbol_name = GetSymbolName(pFormID->GetItemPtr(), pFormID);
 
         pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
         pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
-        if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEFormFile))) {
-            // if it is a form file show entire source code
-            bAppSrcCode = TRUE;
-        }
-
-        if( !pBase && !bAppSrcCode )
-            return bRet;
-
-        if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEField))) {
-            sSymbolName = assert_cast<CDEField*>(pBase)->GetItemName();
-        }
-        else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEGroup))) {
-            sSymbolName = assert_cast<CDEGroup*>(pBase)->GetName();
-        }
-        else if (pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-            sSymbolName = assert_cast<CDEBlock*>(pBase)->GetName();
-        }
-        else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDELevel))) {
-            sSymbolName = assert_cast<CDELevel*>(pBase)->GetName();
-        }
-
-        if(sSymbolName.IsEmpty() && !bAppSrcCode)
+        if( !symbol_name.has_value() )
             return bRet;
 
         CIMSAString sString = UTF8_TODO::GetCString(pView->GetLogicCtrl()->GetText());
@@ -2223,7 +2203,8 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
         }
         arrProcLines.FreeExtra(); //Free Extra SAVY 09/27/00
 
-        if(sSymbolName.IsEmpty()) {
+        if(symbol_name->IsEmpty()) {
+            bAppSrcCode = true;
             pSourceCode->PutProc(arrProcLines);
         }
         else
@@ -2232,7 +2213,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
             // in these cases, we'll move to the global logic view instead of staying in the changed proc; the error also occurred when two procs were added to the same
             // local (not global) proc section
 
-            if( !m_bRemovingPossibleDuplicateProcs && !pSourceCode->IsOnlyThisProcPresent(arrProcLines,sSymbolName) ) // 20120613
+            if( !m_bRemovingPossibleDuplicateProcs && !pSourceCode->IsOnlyThisProcPresent(arrProcLines,*symbol_name) ) // 20120613
             {
                 CFormTreeCtrl * pFTC = pFormDoc->GetFormTreeCtrl();
                 CFormNodeID* pRootID = pFTC->GetFormNode(pFormDoc);
@@ -2247,7 +2228,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
                 return FALSE;
             }
 
-            pSourceCode->PutProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
+            pSourceCode->PutProc(arrProcLines,*symbol_name,CSourceCode_AllEvents); //Get all events for now
         }
 
         if(pView->GetLogicCtrl()->IsModified()) {
@@ -2270,12 +2251,14 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
 
         if( bAppSrcCode )
         {
+            ASSERT(symbol_name.has_value() && symbol_name->IsEmpty());
             bRet = designer_compiler.CompileAll();
         }
 
         else if( external_logic_or_report_text_source == nullptr )
         {
-            bRet = designer_compiler.CompileProc(sSymbolName, arrProcLines);
+            ASSERT(symbol_name.has_value() && !symbol_name->IsEmpty());
+            bRet = designer_compiler.CompileProc(*symbol_name, arrProcLines);
         }
 
         else if( pFormID->GetItemType() == eFFT_EXTERNALCODE )
@@ -2403,9 +2386,9 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
     CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
     pSourceCode->SetOrder(pAplDoc->GetOrder());
 
-    BOOL bAppSrcCode = FALSE;
+    bool bAppSrcCode = false;
     TextSource* external_logic_or_report_text_source = nullptr;
-    CString sSymbolName;
+    std::optional<CString> symbol_name;
     CStringArray arrProcLines;
 
     // external code and reports...
@@ -2427,33 +2410,12 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
     // logic from the main file...
     else
     {
-        CDEFormBase* pBase = app_tree_node->GetFormBase();
+        symbol_name = GetSymbolName(app_tree_node->GetFormBase(), nullptr);
 
-        if(pBase != nullptr && pBase->IsKindOf(RUNTIME_CLASS(CDEFormFile))) {
-            // if it is a form file show entire source code
-            bAppSrcCode = TRUE;
-        }
-
-        if( pBase == nullptr && !bAppSrcCode )
+        if( !symbol_name.has_value() )
             return bRet;
 
-        if(pBase != nullptr && pBase->IsKindOf(RUNTIME_CLASS(CDEField))) {
-            sSymbolName = assert_cast<CDEField*>(pBase)->GetItemName();
-        }
-        else if(pBase != nullptr && pBase->IsKindOf(RUNTIME_CLASS(CDEGroup))) {
-            sSymbolName = assert_cast<CDEGroup*>(pBase)->GetName();
-        }
-        else if(pBase != nullptr && pBase->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-            sSymbolName = assert_cast<CDEBlock*>(pBase)->GetName();
-        }
-        else if(pBase != nullptr && pBase->IsKindOf(RUNTIME_CLASS(CDELevel))) {
-            sSymbolName = assert_cast<CDELevel*>(pBase)->GetName();
-        }
-
-        if(sSymbolName.IsEmpty() && !bAppSrcCode)
-            return bRet;
-
-        CIMSAString sString = UTF8_TODO::GetCString(pView->GetLogicCtrl()->GetText());
+        CIMSAString sString = UTF8_TODO::GetCString(logic_view->GetLogicCtrl()->GetText());
         CString sLine;
 
         // gsf 23-mar-00: make sure GetToken does not strip off leading quote marks
@@ -2463,7 +2425,8 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             arrProcLines.Add(sLine);
         }
         arrProcLines.FreeExtra(); //Freeextra SAVY 09/27/00
-        if(sSymbolName.IsEmpty()) {
+        if(symbol_name->IsEmpty()) {
+            bAppSrcCode = true;
             pSourceCode->PutProc(arrProcLines);
         }
         else
@@ -2472,7 +2435,7 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             // in these cases, we'll move to the global logic view instead of staying in the changed proc; the error also occurred when two procs were added to the same
             // local (not global) proc section
 
-            if( !m_bRemovingPossibleDuplicateProcs && !pSourceCode->IsOnlyThisProcPresent(arrProcLines,sSymbolName) ) // 20120613
+            if( !m_bRemovingPossibleDuplicateProcs && !pSourceCode->IsOnlyThisProcPresent(arrProcLines,*symbol_name) ) // 20120613
             {
                 COrderTreeCtrl* pOTC = pOrderDoc->GetOrderTreeCtrl();
                 const FormOrderAppTreeNode* const form_order_app_tree_node = pOTC->GetFormOrderAppTreeNode(*pOrderDoc);
@@ -2487,7 +2450,7 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
                 return FALSE;
             }
 
-            pSourceCode->PutProc(arrProcLines,sSymbolName,CSourceCode_AllEvents); //Get all events for now
+            pSourceCode->PutProc(arrProcLines,*symbol_name,CSourceCode_AllEvents); //Get all events for now
         }
 
         if(pView->GetLogicCtrl()->IsModified()) {
@@ -2510,12 +2473,14 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
 
         if( bAppSrcCode )
         {
+            ASSERT(symbol_name.has_value() && symbol_name->IsEmpty());
             bRet = designer_compiler.CompileAll();
         }
 
         else if( external_logic_or_report_text_source == nullptr )
         {
-            bRet = designer_compiler.CompileProc(sSymbolName, arrProcLines);
+            ASSERT(symbol_name.has_value() && !symbol_name->IsEmpty());
+            bRet = designer_compiler.CompileProc(*symbol_name, arrProcLines);
         }
 
         else if( app_tree_node->GetAppFileType() == AppFileType::Code )
@@ -2857,126 +2822,70 @@ void CMainFrame::OnEndSession(BOOL bEnding)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LRESULT CMainFrame::OnIsCode(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnOrderHasLogic(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LRESULT CMainFrame::OnIsCode(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::OnOrderHasLogic(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    AppTreeNode* app_tree_node = reinterpret_cast<AppTreeNode*>(lParam);
-    COrderDoc* pOrderDoc = ( app_tree_node != nullptr ) ? app_tree_node->GetOrderDocument() : nullptr;
-    CAplDoc* pAplDoc = ( pOrderDoc != nullptr ) ? ProcessFOForSrcCode(*pOrderDoc) : nullptr;
+    AppTreeNode* const app_tree_node = reinterpret_cast<AppTreeNode*>(wParam);
+    ASSERT(app_tree_node != nullptr);
+
+    CDocument* document;
+    CDEFormBase* form_base;
+
+    if( ( document = app_tree_node->GetDocument() ) == nullptr ||
+        ( form_base = app_tree_node->GetFormBase() ) == nullptr )
+    {
+        return 0;
+    }
+
+    const std::optional<CString> symbol_name = GetSymbolName(form_base, nullptr);
+
+    if( !symbol_name.has_value() )
+        return 0;
+
+    CAplDoc* const pAplDoc = ProcessFOForSrcCode(*document);
 
     if( pAplDoc == nullptr )
         return 0;
 
-    Application* pApplication = &pAplDoc->GetAppObject();
-    CDEFormBase* pBase = app_tree_node->GetFormBase();
+    CSourceCode* const pSourceCode = pAplDoc->GetAppObject().GetAppSrcCode();
 
-    POSITION pos = pOrderDoc->GetFirstViewPosition();
-    CView* pOrderView = pOrderDoc->GetNextView(pos);
-    ASSERT(pOrderView);
-
-    COSourceEditView* pView = (COSourceEditView*)pOrderView;
-
-    if( pView == nullptr )
-        return 0;
-
-    BOOL bAppSrcCode = FALSE;
-    if(pOrderDoc && pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEFormFile))) { // if it is a form file show entire source code
-        bAppSrcCode = TRUE;
-    }
-
-    if(pBase || bAppSrcCode) {
-        CString sSymbolName;
-        if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEField))) {
-            sSymbolName = assert_cast<CDEField*>(pBase)->GetItemName();
-        }
-        else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEGroup))) {
-            sSymbolName = assert_cast<CDEGroup*>(pBase)->GetName();
-        }
-        else if (pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-            sSymbolName = assert_cast<CDEBlock*>(pBase)->GetName();
-        }
-        else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDELevel))) {
-            sSymbolName = assert_cast<CDELevel*>(pBase)->GetName();
-        }
-
-        if(sSymbolName.IsEmpty() && !bAppSrcCode)
-            return 0;
-        CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
-        bool bRet = pSourceCode->IsProcAvailable(sSymbolName);
-        if(bRet){
-            return 1;
-        }
-    }
-
-    return 0;
+    return pSourceCode->IsProcAvailable(*symbol_name);
 }
 
+
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LRESULT CMainFrame::OnFIsCode(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnFormHasLogic(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LRESULT CMainFrame::OnFIsCode(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::OnFormHasLogic(WPARAM wParam, LPARAM /*lParam*/)
 {
-    CFormID* pFormID = (CFormID*)lParam;
-    if(!pFormID)
+    CFormID* pFormID;
+    CFormDoc* pFormDoc;
+    CDEFormBase* form_base;
+
+    if( ( pFormID = reinterpret_cast<CFormID*>(wParam) ) == nullptr ||
+        ( pFormDoc = pFormID->GetFormDoc() ) == nullptr ||
+        ( form_base = pFormID->GetItemPtr() ) == nullptr )
+    {
         return 0;
-    CFormDoc* pFormDoc = pFormID->GetFormDoc();
+    }
 
-    if(!pFormDoc)
+    const std::optional<CString> symbol_name = GetSymbolName(form_base, pFormID);
+
+    if( !symbol_name.has_value() )
         return 0;
 
-    CAplDoc* pAplDoc = ProcessFOForSrcCode(*pFormID->GetFormDoc());
-    if(pAplDoc == nullptr)
+    CAplDoc* const pAplDoc = ProcessFOForSrcCode(*pFormDoc);
+
+    if( pAplDoc == nullptr )
         return 0;
 
-    Application* pApplication = &pAplDoc->GetAppObject();
-    CDEFormBase* pBase = nullptr;
+    CSourceCode* const pSourceCode = pAplDoc->GetAppObject().GetAppSrcCode();
 
-    eNodeType nType = pFormID->GetItemType();
-    if(nType == eFTT_GRIDFIELD){
-        CDERoster* pRoster = DYNAMIC_DOWNCAST(CDERoster,pFormID->GetItemPtr());
-        ASSERT(pRoster);
-        pBase = pRoster->GetCol(pFormID->GetColumnIndex())->GetField(pFormID->GetRosterField());
-    }
-    else {
-        pBase = pFormID->GetItemPtr();
-    }
-
-
-    BOOL bAppSrcCode = FALSE;
-    if (pFormDoc && pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEFormFile))) { // if it is a form file show entire source code
-        bAppSrcCode = TRUE;
-    }
-
-    if(pBase || bAppSrcCode) {
-        CString sSymbolName;
-        if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEField))) {
-            sSymbolName = assert_cast<CDEField*>(pBase)->GetItemName();
-        }
-        else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEGroup))) {
-            sSymbolName = assert_cast<CDEGroup*>(pBase)->GetName();
-        }
-        else if (pBase && pBase->IsKindOf(RUNTIME_CLASS(CDEBlock))) {
-            sSymbolName = assert_cast<CDEBlock*>(pBase)->GetName();
-        }
-        else if(pBase && pBase->IsKindOf(RUNTIME_CLASS(CDELevel))) {
-            sSymbolName = assert_cast<CDELevel*>(pBase)->GetName();
-        }
-
-        if(sSymbolName.IsEmpty() && !bAppSrcCode)
-            return 0;
-        CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
-
-        bool bRet = pSourceCode->IsProcAvailable(sSymbolName);
-        if(bRet){
-            return 1;
-        }
-    }
-
-    return 0;
+    return pSourceCode->IsProcAvailable(*symbol_name);
 }
 
 

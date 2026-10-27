@@ -559,7 +559,7 @@ void CFormTreeCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
             CRect rectItem;
             if( GetItemRect(pTVDispInfo->item.hItem, &rectItem, FALSE) )
             {
-                has_logic = ( AfxGetMainWnd()->SendMessage(UWM::Form::HasLogic, 0,(LPARAM)pID) != 0 );
+                has_logic = ( WindowsDesktopMessage::Send(UWM::Form::HasLogic, pID) != 0 );
                 has_question = ( AfxGetMainWnd()->SendMessage(UWM::Form::HasQuestionText, 0, (LPARAM)pID) != 0 );
             }
         }
