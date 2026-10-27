@@ -3,10 +3,10 @@
 #include <zUtilO/BCMenu.h>
 
 
-IMPLEMENT_DYNCREATE(CFSourceEditView, LogicView)
+IMPLEMENT_DYNCREATE(CFSourceEditView, ApplicationLogicView)
 
 
-BEGIN_MESSAGE_MAP(CFSourceEditView, LogicView)
+BEGIN_MESSAGE_MAP(CFSourceEditView, ApplicationLogicView)
     ON_COMMAND(ID_VIEW_FORM, OnViewForm)
     ON_COMMAND(ID_QSF_EDITOR, OnQsfEditor)
     ON_WM_SETFOCUS()

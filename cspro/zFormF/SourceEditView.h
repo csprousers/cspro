@@ -1,10 +1,10 @@
 #pragma once
 
 #include <zFormF/zFormF.h>
-#include <zEditO/LogicView.h>
+#include <zDesignerF/ApplicationLogicView.h>
 
 
-class CLASS_DECL_ZFORMF CFSourceEditView : public LogicView
+class CLASS_DECL_ZFORMF CFSourceEditView : public ApplicationLogicView
 {
     DECLARE_DYNCREATE(CFSourceEditView)
 

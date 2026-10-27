@@ -2,7 +2,7 @@
 #include "TSourceEditView.h"
 
 
-IMPLEMENT_DYNCREATE(CTSourceEditView, LogicView)
+IMPLEMENT_DYNCREATE(CTSourceEditView, ApplicationLogicView)
 
 
 std::unique_ptr<CMenu> CTSourceEditView::GetContextMenu()

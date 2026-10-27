@@ -24,6 +24,9 @@
     <ClCompile Include="ApplicationDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ApplicationLogicView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ApplicationPropertiesPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,6 +147,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ApplicationDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ApplicationLogicView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ApplicationPropertiesPageDlg.h">

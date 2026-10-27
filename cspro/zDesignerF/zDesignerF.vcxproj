@@ -20,6 +20,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ApplicationDoc.cpp" />
+    <ClCompile Include="ApplicationLogicView.cpp" />
     <ClCompile Include="ApplicationPropertiesPageDlg.cpp" />
     <ClCompile Include="AppMessageFilePropertiesPageDlg.cpp" />
     <ClCompile Include="AppTreeNode.cpp" />
@@ -64,6 +65,7 @@
     <ClInclude Include="AppFileTypeImageList.h" />
     <ClInclude Include="ApplicationChildWnd.h" />
     <ClInclude Include="ApplicationDoc.h" />
+    <ClInclude Include="ApplicationLogicView.h" />
     <ClInclude Include="ApplicationPropertiesPageDlg.h" />
     <ClInclude Include="AppMessageFilePropertiesPageDlg.h" />
     <ClInclude Include="AppTreeNode.h" />

@@ -2,4 +2,4 @@
 #include "OSourceEditView.h"
 
 
-IMPLEMENT_DYNCREATE(COSourceEditView, LogicView)
+IMPLEMENT_DYNCREATE(COSourceEditView, ApplicationLogicView)

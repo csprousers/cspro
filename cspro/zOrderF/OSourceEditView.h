@@ -1,9 +1,9 @@
 #pragma once
 
-#include <zEditO/LogicView.h>
+#include <zDesignerF/ApplicationLogicView.h>
 
 
-class CLASS_DECL_ZORDERF COSourceEditView : public LogicView
+class CLASS_DECL_ZORDERF COSourceEditView : public ApplicationLogicView
 {
     DECLARE_DYNCREATE(COSourceEditView)
 
