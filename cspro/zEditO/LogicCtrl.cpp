@@ -34,7 +34,6 @@ LogicCtrl::LogicCtrl()
         m_bChangeFindRange(FALSE),
         m_lInitialSearchPos(0),
         m_modified(false),
-        m_nCtxMenuId(0),
         m_autoCompleteActive(false),
         m_replacedCEdit(false),
         m_logicTooltips(nullptr)
@@ -1063,26 +1062,39 @@ void LogicCtrl::OnGoToLine()
 }
 
 
-void LogicCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
+void LogicCtrl::OnContextMenu(CWnd* const pWnd, CPoint point)
 {
-    if (m_nCtxMenuId > 0) {
-        if (point.x < 0 || point.y < 0) {
-            point.x = point.y = 5;
-            ClientToScreen(&point);
-        }
+    const UINT evaluated_id =
+        m_contextMenuId.has_value() ? *m_contextMenuId :
+        GetReadOnly()               ? IDR_READ_ONLY_EDIT :
+                                      IDR_EDIT;
 
-        CMenu menu;
-        if (menu.LoadMenu(m_nCtxMenuId)) {
-            CMenu* pPopup = menu.GetSubMenu(0);
-            ASSERT(pPopup != NULL);
-            UpdatePopupMenu(this, pPopup);
-
-            pPopup->TrackPopupMenu(TPM_RIGHTBUTTON | TPM_LEFTALIGN, point.x, point.y,this);
-        }
-    }
-    else {
+    if( evaluated_id == 0 )
+    {
         __super::OnContextMenu(pWnd, point);
+        return;
     }
+
+    CMenu menu;
+
+    if( !menu.LoadMenu(evaluated_id) )
+    {
+        ASSERT(false);
+        return;
+    }
+
+    CMenu* pPopup = menu.GetSubMenu(0);
+    ASSERT(pPopup != nullptr);
+
+    UpdatePopupMenu(this, pPopup);
+
+    if( point.x < 0 || point.y < 0 )
+    {
+        point.x = point.y = 5;
+        ClientToScreen(&point);
+    }
+
+    pPopup->TrackPopupMenu(TPM_RIGHTBUTTON | TPM_LEFTALIGN, point.x, point.y,this);
 }
 
 

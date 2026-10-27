@@ -37,8 +37,9 @@ public:
 
     void DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_symbol, COLORREF fore, COLORREF back);
 
-    void SetCtxMenuId(UINT nId) { m_nCtxMenuId = nId; }
-    void UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu);
+    // If not specified, the IDR_EDIT menu is used, or IDR_READ_ONLY_EDIT for read-only controls.
+    // To use the control's base context menu handling, specify 0.
+    void SetContextMenuId(std::optional<UINT> id) { m_contextMenuId = id; }
 
     // override to false if the reference window does not apply for the subclassed control
     virtual bool ProcessClicksForReferenceWindow() const { return true; }
@@ -104,11 +105,13 @@ private:
     void Copy(Sci_Position start_pos, Sci_Position end_pos, std::string_view text_sv);
     void CopyForCSProUsers(bool for_forum);
 
+    void UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu);
+
     void DuplicateLineOrSelection();
     void DeleteLine();
 
 private:
-    UINT            m_nCtxMenuId;
+    std::optional<UINT> m_contextMenuId;
     bool            m_modified;
     BOOL            m_bFirstSearch;                     //Is this the first search
     BOOL            m_bChangeFindRange;                 //Should search start again from beginning

@@ -5,7 +5,6 @@
 void ReadOnlyEditCtrl::InitializeControl()
 {
     SetAccelerators(IDR_READ_ONLY_EDIT);
-    SetCtxMenuId(IDR_READ_ONLY_EDIT);
 
     BaseInitControl(SCLEX_NULL);
 
