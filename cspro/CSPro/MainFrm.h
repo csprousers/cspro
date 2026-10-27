@@ -158,7 +158,7 @@ protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnActivateApp(BOOL bActive, DWORD dwThreadID);
     afx_msg void OnClose();
-    afx_msg void OnUpdateKeyOvr(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateKeyOvertype(CCmdUI* pCmdUI);
     afx_msg void OnEndSession(BOOL bEnding);
     afx_msg LRESULT OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu);
     afx_msg void OnAbout1();

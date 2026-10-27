@@ -53,7 +53,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_WM_CLOSE()
     ON_WM_ACTIVATEAPP()
     ON_COMMAND(ID_ABOUT1, OnAbout1)
-    ON_UPDATE_COMMAND_UI(ID_INDICATOR_OVR, OnUpdateKeyOvr)
+    ON_UPDATE_COMMAND_UI(ID_INDICATOR_OVR, OnUpdateKeyOvertype)
     ON_WM_ENDSESSION()
     ON_WM_DROPFILES()
 
@@ -2684,36 +2684,23 @@ LRESULT CMainFrame::IsTabNameUnique(WPARAM wParam, LPARAM lParam)
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                             CMainFrame::OnUpdateKeyOvr
+//                             CMainFrame::OnUpdateKeyOvertype
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CMainFrame::OnUpdateKeyOvr(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateKeyOvertype(CCmdUI* const pCmdUI)
 {
-    LogicCtrl* logic_ctrl = nullptr;
+    CMDIChildWnd* active_wnd;
+    CView* active_view;
+    LogicCtrl* logic_ctrl;
 
-    //Get the active child window
-    //if it is CFormChildWnd and the view is logic
-    //Get it from the edit control
-    CMDIFrameWnd* pWnd = (CMDIFrameWnd*)MDIGetActive();
-    if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(CFormChildWnd)) && pWnd->GetSafeHwnd()){
-        CFormChildWnd* pFormFrame = (CFormChildWnd*)pWnd;
-        CView* pView = pFormFrame->GetActiveView();
-        if(pView && pView->GetSafeHwnd() && pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView))){
-            logic_ctrl = assert_cast<CFSourceEditView*>(pView)->GetLogicCtrl();
-        }
-    }
-
-    else if(pWnd && pWnd->IsKindOf(RUNTIME_CLASS(COrderChildWnd)) && pWnd->GetSafeHwnd()){
-        COrderChildWnd* pFormFrame = (COrderChildWnd*)pWnd;
-        CView* pView = pFormFrame->GetActiveView();
-        if(pView && pView->GetSafeHwnd() && pView->IsKindOf(RUNTIME_CLASS(COSourceEditView))){
-            logic_ctrl = assert_cast<COSourceEditView*>(pView)->GetLogicCtrl();
-        }
-    }
-    //Should not do it for other frames // do it on a need basis
-    //   pCmdUI->Enable (::GetKeyState (VK_INSERT) % 2 == 0);
-    pCmdUI->Enable(logic_ctrl != nullptr && logic_ctrl->GetOvertype());
+    pCmdUI->Enable(
+        ( active_wnd = MDIGetActive() ) != nullptr &&
+        ( active_view = active_wnd->GetActiveView() ) != nullptr &&
+        ( active_view->IsKindOf(RUNTIME_CLASS(LogicView)) ) &&
+        ( logic_ctrl = assert_cast<LogicView*>(active_view)->GetLogicCtrl() ) != nullptr &&
+        logic_ctrl->GetOvertype()
+    );
 }
 
 
