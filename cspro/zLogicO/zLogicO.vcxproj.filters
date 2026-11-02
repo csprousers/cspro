@@ -50,6 +50,9 @@
     <ClInclude Include="LocalSymbolStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LogicFormatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LogicScanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -134,6 +137,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KeywordTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicFormatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor.cpp">
