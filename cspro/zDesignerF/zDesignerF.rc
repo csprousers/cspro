@@ -650,7 +650,6 @@ END
 STRINGTABLE
 BEGIN
     ID_FILE_MANAGE_FILES    "Add, remove, or manage properties related to application properties\nManage Application Properties"
-    ID_LOGIC_FORMAT         "Formats the logic using a defined style\nFormat Logic"
 END
 
 STRINGTABLE

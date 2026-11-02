@@ -138,7 +138,7 @@ BEGIN
         MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
         MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
         MENUITEM SEPARATOR
-        MENUITEM "Format Logic",                ID_LOGIC_FORMAT
+        MENUITEM "Format Logic",                ID_FORMAT_CSPRO_LOGIC
     END
     POPUP "&View"
     BEGIN

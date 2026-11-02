@@ -75,8 +75,6 @@ protected:
     void OnPasteStringLiteral();
     void OnUpdatePasteStringLiteral(CCmdUI* pCmdUI);
 
-    void OnCommentLine();
-
     void OnDeprecationWarnings(UINT nID);
     void OnUpdateDeprecationWarnings(CCmdUI* pCmdUI);
 
@@ -84,6 +82,9 @@ protected:
     void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI);
     void OnCodeFoldingAction(UINT nID);
     void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI);
+
+    void OnFormatLogic();
+    void OnUpdateFormatLogic(CCmdUI* pCmdUI);
 
     void OnHelp();
 

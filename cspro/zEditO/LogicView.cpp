@@ -6,6 +6,7 @@
 #include <zToolsO/NumberToString.h>
 #include <zUtilO/UWM.h>
 #include <zLogicO/DeprecationWarnings.h>
+#include <zLogicO/LogicFormatter.h>
 #include <zLogicO/StringEscaper.h>
 
 
@@ -32,6 +33,9 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
     ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_LEVEL_NONE, ID_CODE_FOLDING_LEVEL_ALL, OnUpdateCodeFoldingLevel)
     ON_COMMAND_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnCodeFoldingAction)
     ON_UPDATE_COMMAND_UI_RANGE(ID_CODE_FOLDING_FOLD_ALL, ID_CODE_FOLDING_TOGGLE, OnUpdateCodeFoldingAction)
+
+    ON_COMMAND(ID_FORMAT_CSPRO_LOGIC, OnFormatLogic)
+    ON_UPDATE_COMMAND_UI(ID_FORMAT_CSPRO_LOGIC, OnUpdateFormatLogic)
 
     ON_COMMAND(ID_HELP, OnHelp)
 
@@ -597,4 +601,38 @@ void LogicView::OnHelp()
     {
         __super::OnHelp();
     }
+}
+
+
+void LogicView::OnFormatLogic()
+{
+    const bool using_crlf = ( m_logicCtrl->GetEOLMode() == Scintilla::EndOfLine::CrLf );
+
+    std::string original_logic = m_logicCtrl->GetText();
+
+    if( using_crlf )
+        SO::MakeNewlineLF(original_logic);
+
+    const LogicSettings::Version logic_version = Lexers::IsNotV0(m_logicCtrl->GetLexer())
+        ? LogicSettings::Version::V8_0
+        : LogicSettings::Version::V0;
+
+    const LogicFormatter logic_formatter(logic_version);
+
+    std::string formatted_logic = logic_formatter.FormatLogic(original_logic);
+
+    if( original_logic == formatted_logic )
+        return;
+
+    if( using_crlf )
+        SO::MakeNewlineCRLF(formatted_logic);
+
+    m_logicCtrl->SetText(formatted_logic);
+}
+
+
+void LogicView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(( !m_logicCtrl->GetReadOnly() &&
+                     Lexers::IsCSProLogic(m_logicCtrl->GetLexer()) ));
 }

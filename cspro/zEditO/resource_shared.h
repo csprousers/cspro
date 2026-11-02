@@ -12,3 +12,4 @@
 #define ID_CODE_FOLDING_LEVEL_ALL       45011
 #define ID_CODE_PASTE_STRING_LITERAL    45012
 #define ID_COMMENT_LINE                 45013
+#define ID_FORMAT_CSPRO_LOGIC           45014

@@ -10,8 +10,6 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, ApplicationLogicView)
     ON_COMMAND(ID_VIEW_FORM, OnViewForm)
     ON_COMMAND(ID_QSF_EDITOR, OnQsfEditor)
     ON_WM_SETFOCUS()
-    ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
-    ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
 END_MESSAGE_MAP()
 
 
@@ -46,20 +44,4 @@ void CFSourceEditView::OnSetFocus(CWnd* pOldWnd)
     if(GetLogicCtrl() && GetLogicCtrl()->GetSafeHwnd()){
         GetLogicCtrl()->SetFocus();
     }
-}
-
-
-void CFSourceEditView::OnFormatLogic()
-{
-    GetDocument()->SetModifiedFlag(true);
-    GetLogicCtrl()->FormatLogic();
-}
-
-
-void CFSourceEditView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
-{
-    LogicCtrl* const logic_ctrl = GetLogicCtrl();
-
-    pCmdUI->Enable(( logic_ctrl == GetFocus() &&
-                     Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));
 }

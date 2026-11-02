@@ -6,7 +6,6 @@
 #include "MarginProperties.h"
 #include "ScintillaColorizer.h"
 #include <zScintilla/CSPro/CSPro.h>
-#include <zLogicO/LogicFormatter.h>
 
 
 // CSPro Scintilla Logic Control
@@ -1333,28 +1332,6 @@ void LogicCtrl::OnUpdateCommentLine(CCmdUI* const pCmdUI)
     }
 
     pCmdUI->Enable(enable);
-}
-
-
-void LogicCtrl::FormatLogic() // 20101208
-{
-    const LogicSettings::Version logic_version = Lexers::IsNotV0(GetLexer())
-        ? LogicSettings::Version::V8_0
-        : LogicSettings::Version::V0;
-
-    const LogicFormatter logic_formatter(logic_version);
-
-    std::string original_logic = GetText();
-    SO::MakeNewlineLF(original_logic);
-
-    std::string formatted_logic = logic_formatter.FormatLogic(original_logic);
-
-    if( original_logic == formatted_logic )
-        return;
-
-    SO::MakeNewlineCRLF(formatted_logic); //For scintilla
-
-    SetModified(); // 20120125 logic file wasn't getting set as modified
 }
 
 

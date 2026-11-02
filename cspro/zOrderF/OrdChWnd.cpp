@@ -23,8 +23,6 @@ BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_COMMAND(ID_RUNBATCH, OnRun)
     ON_COMMAND(ID_ORD_COMPILE, OnCompile)
     ON_UPDATE_COMMAND_UI(ID_ORD_COMPILE, OnUpdateCompile)
-    ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
-    ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
     ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, OnUpdateViewQuestionnaire)
     ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
@@ -311,43 +309,6 @@ void COrderChildWnd::OnCompile()
 void COrderChildWnd::OnUpdateCompile(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_viewingQuestionnaire);
-}
-
-
-template<typename CF>
-void COrderChildWnd::ModifyDocumentAndDoWithLogicCtrl(CF callback_function)
-{
-    CView* pView = GetActiveView();
-
-    if( pView != nullptr && pView->IsKindOf(RUNTIME_CLASS(COSourceEditView)) )
-    {
-        COrderDoc* pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
-
-        if( pOrderDoc != nullptr )
-        {
-            pOrderDoc->SetModifiedFlag();
-            callback_function(((COSourceEditView*)pView)->GetLogicCtrl());
-        }
-    }
-}
-
-
-void COrderChildWnd::OnFormatLogic()
-{
-    ModifyDocumentAndDoWithLogicCtrl(
-        [](LogicCtrl* const logic_ctrl)
-        {
-            logic_ctrl->FormatLogic();
-        });
-}
-
-
-void COrderChildWnd::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
-{
-    LogicCtrl* const logic_ctrl = COrderChildWnd::GetSourceLogicCtrl();
-
-    pCmdUI->Enable(( logic_ctrl != nullptr &&
-                     Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));
 }
 
 

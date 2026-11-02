@@ -277,6 +277,11 @@ BEGIN
     IDS_SCINTILLA_DEFAULT_PRINT_HEADER "%1 - Printed on %2"
 END
 
+STRINGTABLE
+BEGIN
+    ID_FORMAT_CSPRO_LOGIC   "Formats CSPro logic using a defined style\nFormat Logic"
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

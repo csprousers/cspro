@@ -57,9 +57,6 @@ protected:
     void OnCompile();
     void OnUpdateCompile(CCmdUI* pCmdUI);
 
-    void OnFormatLogic();
-    void OnUpdateFormatLogic(CCmdUI* pCmdUI);
-
     void OnViewQuestionnaire();
     void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);
 
@@ -68,9 +65,6 @@ protected:
 
 private:
     COSourceEditView* GetOSourceView();
-
-    template<typename CF>
-    void ModifyDocumentAndDoWithLogicCtrl(CF callback_function);
 
 private:
     CString m_applicationName;

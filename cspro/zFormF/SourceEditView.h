@@ -17,6 +17,4 @@ protected:
     void OnViewForm();
     void OnQsfEditor();
     void OnSetFocus(CWnd* pOldWnd);
-    void OnFormatLogic();
-    void OnUpdateFormatLogic(CCmdUI* pCmdUI);
 };

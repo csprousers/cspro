@@ -44,8 +44,6 @@ public:
     // override to false if the reference window does not apply for the subclassed control
     virtual bool ProcessClicksForReferenceWindow() const { return true; }
 
-    void FormatLogic();
-
     void SetLineIndentation(_In_ int line, _In_ int indentation);
 
     //search and replace support
