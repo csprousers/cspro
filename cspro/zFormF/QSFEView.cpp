@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "QSFEView.h"
 #include "QuestionTextProperties.h"
 #include "TableToolbarButton.h"
@@ -27,8 +27,6 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
     ON_WM_CONTEXTMENU()
     ON_WM_TIMER()
 
-    ON_COMMAND(ID_VIEW_FORM, OnViewForm)
-    ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
     ON_COMMAND(ID_TOGGLE_QSF_SECOND_VIEW, OnToggleSecondView)
 
     ON_EN_SETFOCUS(IDC_HTML_EDIT, OnEditorSetFocus)
@@ -181,7 +179,7 @@ void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pH
         lHint == Hint::CapiEditorUpdateCondition )
     {
         UpdateDisplayText();
-    }    
+    }
 }
 
 
@@ -520,20 +518,6 @@ void CQSFEView::StopIdleTimer()
         KillTimer(CompilationTimerId);
         m_idleTimer.reset();
     }
-}
-
-
-void CQSFEView::OnViewForm()
-{
-    CFormChildWnd* const pParentFrame = assert_cast<CFormChildWnd*>(GetParentFrame());
-    pParentFrame->OnViewForm();
-}
-
-
-void CQSFEView::OnViewLogic()
-{
-    CFormChildWnd* const pParentFrame = assert_cast<CFormChildWnd*>(GetParentFrame());
-    pParentFrame->OnViewLogic();
 }
 
 

@@ -848,7 +848,6 @@ void CFormChildWnd::OnUpdateViewForm(CCmdUI* pCmdUI)
 void CFormChildWnd::OnViewForm()
 {
     // in the event the form tree ctrl is up, but somebody else is in the view, do this
-    // in the event the form tree ctrl is up, but somebody else is in the view, do this
     CFormDoc* pDoc = (CFormDoc*) GetActiveDocument();
     if(m_viewMode == FormViewMode::Form){
         DisplayActiveMode();
