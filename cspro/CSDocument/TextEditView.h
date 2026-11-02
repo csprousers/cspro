@@ -23,8 +23,6 @@ protected:
     void OnSavePointReached(Scintilla::NotificationData* pSCNotification) override;
     void OnSavePointLeft(Scintilla::NotificationData* pSCNotification) override;
 
-    bool OnHandleHelp() override;
-
     void OnWordWrap();
     void OnUpdateWordWrap(CCmdUI* pCmdUI);
 };

@@ -19,6 +19,7 @@ IMPLEMENT_DYNCREATE(LogicView, CScintillaView)
 BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
 
     ON_WM_CREATE()
+
     ON_WM_CONTEXTMENU()
 
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
@@ -36,6 +37,9 @@ BEGIN_MESSAGE_MAP(LogicView, CScintillaView)
 
     ON_COMMAND(ID_FORMAT_CSPRO_LOGIC, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_CSPRO_LOGIC, OnUpdateFormatLogic)
+
+    ON_COMMAND(ID_SHOW_LOGIC_REFERENCE, OnShowLogicReference)
+    ON_COMMAND(ID_GOTO_LOGIC_DECLARATION, OnGoToLogicDeclaration)
 
     ON_COMMAND(ID_HELP, OnHelp)
 
@@ -195,6 +199,31 @@ BOOL LogicView::PreTranslateMessage(MSG* const pMsg)
                 else if( pMsg->wParam == '4' ) // $ is on the 4 key on a U.S. keyboard
                 {
                     if( WindowsDesktopMessage::Send(UWM::Edit::InsertProcName, m_logicCtrl) != 0 )
+                        return TRUE;
+                }
+            }
+        }
+
+        else if( pMsg->message == WM_LBUTTONDOWN )
+        {
+            // the reference window is invoked with Ctrl + Alt + Click or Ctrl + Click
+            if( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) >= 0 )
+            {
+                const bool alt_pressed = ( GetKeyState(VK_MENU) < 0 );
+
+                // override the handling of any change of position so that nothing gets selected
+                CPoint point(pMsg->pt);
+                m_logicCtrl->ScreenToClient(&point);
+
+                const Sci_Position current_position = m_logicCtrl->CharPositionFromPoint(point.x, point.y);
+
+                if( current_position >= 0 )
+                {
+                    m_logicCtrl->GotoPos(current_position);
+
+                    const unsigned message = alt_pressed ? UWM::Edit::ShowLogicReference : UWM::Edit::GoToDeclaration;
+
+                    if( WindowsDesktopMessage::Send(message, m_logicCtrl) != 0 )
                         return TRUE;
                 }
             }
@@ -561,25 +590,6 @@ void LogicView::OnUpdateCodeFoldingAction(CCmdUI* const pCmdUI)
 }
 
 
-void LogicView::OnHelp()
-{
-    // if the logic control has focus, override F1 because it sometimes
-    // will just active the reference window
-    CWnd* pWnd = GetActiveWindow()->GetFocus();
-
-    if( pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) )
-    {
-        if( !OnHandleHelp() )
-            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_HELP, reinterpret_cast<LPARAM>(pWnd));
-    }
-
-    else
-    {
-        __super::OnHelp();
-    }
-}
-
-
 void LogicView::OnFormatLogic()
 {
     const bool using_crlf = ( m_logicCtrl->GetEOLMode() == Scintilla::EndOfLine::CrLf );
@@ -611,4 +621,32 @@ void LogicView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(( !m_logicCtrl->GetReadOnly() &&
                      Lexers::IsCSProLogic(m_logicCtrl->GetLexer()) ));
+}
+
+
+void LogicView::OnShowLogicReference()
+{
+    WindowsDesktopMessage::Post(UWM::Edit::ShowLogicReference, m_logicCtrl);
+}
+
+
+void LogicView::OnGoToLogicDeclaration()
+{
+    WindowsDesktopMessage::Post(UWM::Edit::GoToDeclaration, m_logicCtrl);
+}
+
+
+void LogicView::OnHelp()
+{
+    // if the logic control has focus, override F1 because it sometimes
+    // will just active the reference window
+    CWnd* const pWnd = GetActiveWindow()->GetFocus();
+
+    if( pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) &&
+        WindowsDesktopMessage::Send(UWM::Edit::ShowLogicHelp, pWnd) != 0 )
+    {
+        return;
+    }
+
+    __super::OnHelp();
 }

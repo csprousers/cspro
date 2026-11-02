@@ -1,5 +1,6 @@
 #pragma once
 
+#include <zDesignerF/zDesignerF.h>
 #include <zEditO/LogicView.h>
 
 
@@ -11,7 +12,7 @@
 // The view is hosted in a tab page, MessageEditTabViewPage.
 // --------------------------------------------------------------------------
 
-class MessageEditView : public LogicView
+class CLASS_DECL_ZDESIGNERF MessageEditView : public LogicView
 {
     DECLARE_DYNCREATE(MessageEditView)
 

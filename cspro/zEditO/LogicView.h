@@ -52,9 +52,6 @@ protected:
     // for read-only controls.
     virtual std::unique_ptr<CMenu> GetContextMenu();
 
-    // Return true if the context-sensitive help was handled.
-    virtual bool OnHandleHelp() { return false; }
-
     // Updates the margin width based on the line count.
     void UpdateMarginWidth(bool force_margin_width_update = false);
 
@@ -85,6 +82,9 @@ protected:
 
     void OnFormatLogic();
     void OnUpdateFormatLogic(CCmdUI* pCmdUI);
+
+    void OnShowLogicReference();
+    void OnGoToLogicDeclaration();
 
     void OnHelp();
 

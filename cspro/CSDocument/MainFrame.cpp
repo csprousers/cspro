@@ -6,6 +6,7 @@
 #include <zUtilO/UWM.h>
 #include <zUtilF/resource_shared.h>
 #include <zUtilF/WindowsMenuManager.h>
+#include <zEditO/UWM.h>
 #include <zDesignerF/UWM.h>
 
 
@@ -60,6 +61,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     ON_MESSAGE(UWM::Designer::FindOpenTextSourceEditable, OnFindOpenTextSourceEditable)
     ON_MESSAGE(UWM::CSDocument::GetOpenTextSourceEditables, OnGetOpenTextSourceEditables)
     ON_MESSAGE(UWM::Designer::TEXT_ENCODING_TODO_UseNewSettings, OnTEXT_ENCODING_TODO_UseNewSettings)
+    ON_MESSAGE(UWM::Edit::ShowLogicHelp, OnShowLogicHelp)
 
     // interapp communication
     ON_MESSAGE(WM_IMSA_FILEOPEN, OnIMSAFileOpen)
@@ -716,6 +718,22 @@ LRESULT CMainFrame::OnTEXT_ENCODING_TODO_UseNewSettings(WPARAM /*wParam*/, LPARA
 {
     return 1;
 }
+
+
+LRESULT CMainFrame::OnShowLogicHelp(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    const TextEditDoc* const active_doc = GetActiveDoc();
+
+    // when editing a CSPro Document, show its help topic
+    if( active_doc != nullptr && active_doc->GetLexerLanguage() == SCLEX_CSPRO_DOCUMENT )
+    {
+        HtmlHelp(reinterpret_cast<DWORD_PTR>(L"cspro_document.html"), HH_DISPLAY_TOPIC);
+        return 1;
+    }
+
+    return 0;
+}
+
 
 LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {

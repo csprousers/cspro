@@ -214,8 +214,10 @@ private:
 
 protected:
     void OnViewTopLogic();
-    LRESULT OnLogicReference(WPARAM wParam, LPARAM lParam);
-    void OnLogicGotoPeekWord(UINT nID);
+    bool OnLogicReference(LogicCtrl* const logic_ctrl, bool activated_by_f1, bool goto_declaration);
+    LRESULT OnShowLogicReference(WPARAM wParam, LPARAM lParam);
+    LRESULT OnShowLogicHelp(WPARAM wParam, LPARAM lParam);
+    LRESULT OnGoToDeclaration(WPARAM wParam, LPARAM lParam);
     LRESULT OnSymbolsAdded(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicAutoComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicInsertProcName(WPARAM wParam, LPARAM lParam);

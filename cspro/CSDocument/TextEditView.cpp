@@ -61,13 +61,6 @@ void TextEditView::OnSavePointLeft(Scintilla::NotificationData* /*pSCNotificatio
 }
 
 
-bool TextEditView::OnHandleHelp()
-{
-    HtmlHelp(reinterpret_cast<DWORD_PTR>(nullptr), HH_DISPLAY_TOPIC);
-    return true;
-}
-
-
 void TextEditView::OnWordWrap()
 {
     LogicCtrl* const logic_ctrl = GetLogicCtrl();

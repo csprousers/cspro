@@ -16,7 +16,6 @@ extern const UINT _ScintillaMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRI
 IMPLEMENT_DYNCREATE(LogicCtrl, CSProScintillaCtrl)
 
 BEGIN_MESSAGE_MAP(LogicCtrl, CSProScintillaCtrl)
-    ON_WM_LBUTTONDOWN()
     ON_WM_CHAR()
     ON_WM_CONTEXTMENU()
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateNeedSel)
@@ -385,30 +384,6 @@ void LogicCtrl::DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_s
     MarkerDefine(marker_number, marker_symbol);
     MarkerSetFore(marker_number, fore);
     MarkerSetBack(marker_number, back);
-}
-
-
-void LogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    // for invoking the reference window with Ctrl+Alt+Click or Ctrl+Click
-
-    if( ( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) >= 0 ) && ProcessClicksForReferenceWindow() )
-    {
-        // override the handling of any change of position so that nothing get selected
-        int current_position = CharPositionFromPoint(point.x, point.y);
-
-        if( current_position >= 0 )
-        {
-            GotoPos(current_position);
-
-            int message_type = ( GetKeyState(VK_MENU) < 0 ) ? ZEDITO_LOGIC_REFERENCE : ZEDITO_LOGIC_REFERENCE_GOTO;
-            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, message_type, (LPARAM)this);
-
-            return;
-        }
-    }
-
-    __super::OnLButtonDown(nFlags, point);
 }
 
 

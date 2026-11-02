@@ -103,11 +103,6 @@ public:
     {
     }
 
-    bool ProcessClicksForReferenceWindow() const override
-    {
-        return false;
-    }
-
 protected:
     DECLARE_MESSAGE_MAP()
 

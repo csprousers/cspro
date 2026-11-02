@@ -41,9 +41,6 @@ public:
     // To use the control's base context menu handling, specify 0.
     void SetContextMenuId(std::optional<UINT> id) { m_contextMenuId = id; }
 
-    // override to false if the reference window does not apply for the subclassed control
-    virtual bool ProcessClicksForReferenceWindow() const { return true; }
-
     void SetLineIndentation(_In_ int line, _In_ int indentation);
 
     //search and replace support
@@ -85,8 +82,6 @@ protected:
     LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
     void OnUpdateNeedSel(CCmdUI* pCmdUI);
     void OnContextMenu(CWnd* pWnd, CPoint point);
-
-    void OnLButtonDown(UINT nFlags, CPoint point);
 
     void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 

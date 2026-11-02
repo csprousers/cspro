@@ -69,6 +69,7 @@ protected:
     LRESULT OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetOpenTextSourceEditables(WPARAM wParam, LPARAM lParam);
     LRESULT OnTEXT_ENCODING_TODO_UseNewSettings(WPARAM wParam, LPARAM lParam);
+    LRESULT OnShowLogicHelp(WPARAM wParam, LPARAM lParam);
 
     // interapp communication
     LRESULT OnIMSAFileOpen(WPARAM wParam, LPARAM lParam);
