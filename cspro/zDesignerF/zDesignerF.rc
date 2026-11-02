@@ -622,10 +622,6 @@ BEGIN
                             "Deprecation warning settings\nDeprecation Warnings"
     ID_CODE_DEPRECATION_WARNINGS_NONE 
                             "Show no deprecation warnings\nNo Deprecation Warnings"
-END
-
-STRINGTABLE
-BEGIN
     ID_CODE_DEPRECATION_WARNINGS_MOST 
                             "Show most deprecation warnings\nMost Deprecation Warnings"
     ID_CODE_DEPRECATION_WARNINGS_ALL 
@@ -634,6 +630,10 @@ BEGIN
     ID_CODE_FOLDING_FOLD_ALL "Collapses all levels of code folding\nFold All"
     ID_CODE_FOLDING_UNFOLD_ALL 
                             "Uncollapses all levels of code folding\nFormat Logic"
+END
+
+STRINGTABLE
+BEGIN
     ID_CODE_FOLDING_TOGGLE  "Collapses or uncollapses the current level of code folding\nToggle Current Level"
     ID_CODE_FOLDING_LEVEL_NONE "Disables code folding\nFold None"
     ID_CODE_FOLDING_LEVEL_PROCS_FUNCS 
@@ -641,14 +641,19 @@ BEGIN
     ID_CODE_FOLDING_LEVEL_ALL "Enables all code folding\nFold All"
     ID_CODE_PASTE_STRING_LITERAL 
                             "Pastes the text on the clipboard as a string literal\nPaste as String Literal"
-    ID_CODE_PATH_ADJUSTER   "Create relative paths and get paths as string literals\nPath Adjuster"
-    ID_CODE_STRING_ENCODER  "Encode strings in various formats used by CSPro\tString Encoder"
-    ID_CODE_SYMBOL_ANALYSIS "Analyze the symbols used in logic\nSymbol Analyis"
-    ID_COPY_FULL_PATH       "Copy full path of document to clipboard\nCopy Full Path"
 END
 
 STRINGTABLE
 BEGIN
+    ID_CODE_PATH_ADJUSTER   "Create relative paths and get paths as string literals\nPath Adjuster"
+    ID_CODE_STRING_ENCODER  "Encode strings in various formats used by CSPro\tString Encoder"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CODE_SYMBOL_ANALYSIS "Analyze the symbols used in logic\nSymbol Analyis"
+    ID_COMPILE              "Compile the application\nCompile"
+    ID_COPY_FULL_PATH       "Copy full path of document to clipboard\nCopy Full Path"
     ID_FILE_MANAGE_FILES    "Add, remove, or manage properties related to application properties\nManage Application Properties"
 END
 
@@ -656,15 +661,12 @@ STRINGTABLE
 BEGIN
     ID_OPEN_CONTAINING_FOLDER 
                             "Open the folder containing this document in Windows Explorer\nOpen Containing Folder"
+    ID_RUN                  "Run the application\nRun"
 END
 
 STRINGTABLE
 BEGIN
     ID_VIEW_LOGIC           "View currently-selected procedure\nLogic"
-END
-
-STRINGTABLE
-BEGIN
     ID_VIEW_ONKEY_CHAR_MAP  "Find a key mapping for the OnKey and OnChar functions\nOnKey Character Map"
     ID_VIEW_PREVIEW_TEXT_TEMPLATE 
                             "Preview the text template\nPreview Text Template"

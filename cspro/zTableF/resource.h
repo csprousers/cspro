@@ -252,20 +252,18 @@
 #define ID_INSERT_TABLE                 46035
 #define ID_PRTVIEW_PAGENUM              46037
 #define ID_RUN_PCS                      46039
-#define ID_RUNTAB                       46040
-#define ID_TBL_COMPILE                  46042
-#define ID_TBL_RUN                      46043
-#define ID_TOGGLE_TREE                  46044
-#define ID_TOOLS_EXPORTTFT              46045
-#define ID_TOOLS_IMPORTTFT              46046
-#define ID_VIEW_ZOOM                    46058
+#define ID_TBL_RUN                      46041
+#define ID_TOGGLE_TREE                  46042
+#define ID_TOOLS_EXPORTTFT              46043
+#define ID_TOOLS_IMPORTTFT              46044
+#define ID_VIEW_ZOOM                    46056
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        12053
-#define _APS_NEXT_COMMAND_VALUE         46061
+#define _APS_NEXT_COMMAND_VALUE         46059
 #define _APS_NEXT_CONTROL_VALUE         12670
 #define _APS_NEXT_SYMED_VALUE           12053
 #endif

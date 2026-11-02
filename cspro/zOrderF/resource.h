@@ -15,15 +15,13 @@
 #define IDI_ORD_ROSTER32C               11011
 #define IDI_ORD_ORDERC                  11012
 #define ID_CUSTOMORDER                  45501
-#define ID_ORD_COMPILE                  45502
-#define ID_RUNBATCH                     45503
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11013
-#define _APS_NEXT_COMMAND_VALUE         45504
+#define _APS_NEXT_COMMAND_VALUE         45502
 #define _APS_NEXT_CONTROL_VALUE         11500
 #define _APS_NEXT_SYMED_VALUE           11013
 #endif

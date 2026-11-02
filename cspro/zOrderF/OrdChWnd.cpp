@@ -20,9 +20,10 @@ IMPLEMENT_DYNCREATE(COrderChildWnd, ApplicationChildWnd)
 BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_WM_SYSCOMMAND()
     ON_WM_MDIACTIVATE()
-    ON_COMMAND(ID_RUNBATCH, OnRun)
-    ON_COMMAND(ID_ORD_COMPILE, OnCompile)
-    ON_UPDATE_COMMAND_UI(ID_ORD_COMPILE, OnUpdateCompile)
+    ON_COMMAND(ID_RUN, OnRun)
+    ON_UPDATE_COMMAND_UI(ID_RUN, OnUpdateRunCompile)
+    ON_COMMAND(ID_COMPILE, OnCompile)
+    ON_UPDATE_COMMAND_UI(ID_COMPILE, OnUpdateRunCompile)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
     ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, OnUpdateViewQuestionnaire)
     ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
@@ -262,51 +263,44 @@ LogicCtrl* COrderChildWnd::GetSourceLogicCtrl()
 
 void COrderChildWnd::OnRun()
 {
-    COrderDoc* pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
-    if(!pOrderDoc)
+    COrderDoc* const pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
+
+    if( pOrderDoc == nullptr )
         return;
 
-    CView* pView = GetActiveView();
-    if(!pView)
-        return;
+    HTREEITEM hItem = pOrderDoc->GetOrderTreeCtrl()->GetSelectedItem();
+    AppTreeNode* app_tree_node = pOrderDoc->GetOrderTreeCtrl()->GetTreeNode(hItem);
 
-    if(pView->IsKindOf(RUNTIME_CLASS(COSourceEditView))) {
-
-        HTREEITEM hItem = pOrderDoc->GetOrderTreeCtrl()->GetSelectedItem();
-        AppTreeNode* app_tree_node = pOrderDoc->GetOrderTreeCtrl()->GetTreeNode(hItem);
-
-        if(app_tree_node != nullptr && app_tree_node->GetDocument() == pOrderDoc) {
-
-            if(AfxGetMainWnd()->SendMessage(UWM::Order::PutSourceCode, 0, reinterpret_cast<LPARAM>(app_tree_node)) == -1)
-                return;
-        }
-
-        AfxGetMainWnd()->SendMessage(UWM::Order::RunActiveApplication, 0, reinterpret_cast<LPARAM>(pOrderDoc));
-        return;
+    if( app_tree_node != nullptr && app_tree_node->GetDocument() == pOrderDoc )
+    {
+        if( WindowsDesktopMessage::Send(UWM::Order::PutSourceCode, 0, app_tree_node) == -1 )
+            return;
     }
+
+    WindowsDesktopMessage::Send(UWM::Order::RunActiveApplication, 0, pOrderDoc);
 }
 
 
 void COrderChildWnd::OnCompile()
 {
-    COrderDoc* pDoc = assert_cast<COrderDoc*>(GetActiveDocument());
+    COrderDoc* const pOrderDoc = assert_cast<COrderDoc*>(GetActiveDocument());
 
-    if( pDoc != nullptr )
+    if( pOrderDoc == nullptr )
+        return;
+
+    HTREEITEM hItem = pOrderDoc->GetOrderTreeCtrl()->GetSelectedItem();
+    AppTreeNode* const app_tree_node = pOrderDoc->GetOrderTreeCtrl()->GetTreeNode(hItem);
+
+    if( app_tree_node != nullptr && app_tree_node->GetDocument() == pOrderDoc )
     {
-        HTREEITEM hItem = pDoc->GetOrderTreeCtrl()->GetSelectedItem();
-        AppTreeNode* app_tree_node = pDoc->GetOrderTreeCtrl()->GetTreeNode(hItem);
-
-        if( app_tree_node != nullptr && app_tree_node->GetDocument() == pDoc )
-        {
-            constexpr WPARAM ForceCompile = 1;
-            WindowsDesktopMessage::Send(UWM::Order::PutSourceCode, ForceCompile, app_tree_node);
-            GetSourceLogicCtrl()->SetFocus();
-        }
+        constexpr WPARAM ForceCompile = 1;
+        WindowsDesktopMessage::Send(UWM::Order::PutSourceCode, ForceCompile, app_tree_node);
+        GetSourceLogicCtrl()->SetFocus();
     }
 }
 
 
-void COrderChildWnd::OnUpdateCompile(CCmdUI* const pCmdUI)
+void COrderChildWnd::OnUpdateRunCompile(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(!m_viewingQuestionnaire);
 }

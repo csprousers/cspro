@@ -9,42 +9,25 @@
 #include <zDictF/UWM.h>
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
 /////////////////////////////////////////////////////////////////////////////
 // CTableChildWnd
 #define TABTOOLBAR     997         //this is defined in the CSPro CMainFrame class create
 
+
 IMPLEMENT_DYNCREATE(CTableChildWnd, ApplicationChildWnd)
-
-CTableChildWnd::CTableChildWnd()
-{
-    m_pSourceEditView = nullptr;
-    m_pPrintView = nullptr;
-    m_pOldView = nullptr;
-    m_bDesignView = true;
-}
-
-CTableChildWnd::~CTableChildWnd()
-{
-}
 
 
 BEGIN_MESSAGE_MAP(CTableChildWnd, ApplicationChildWnd)
     //{{AFX_MSG_MAP(CTableChildWnd)
     ON_WM_CREATE()
     ON_WM_MDIACTIVATE()
-    ON_COMMAND(ID_RUNTAB, OnRuntab)
-    ON_UPDATE_COMMAND_UI(ID_RUNTAB, OnUpdateRuntab)
+    ON_COMMAND(ID_RUN, OnRunTab)
+    ON_UPDATE_COMMAND_UI(ID_RUN, OnUpdateRunTab)
     ON_COMMAND(ID_VIEW_TAB_LOGIC, OnViewLogic)
     ON_UPDATE_COMMAND_UI(ID_VIEW_TAB_LOGIC, OnUpdateViewLogic)
     ON_UPDATE_COMMAND_UI(ID_VIEW_TABLE, OnUpdateViewTable)
-    ON_COMMAND(ID_TBL_COMPILE, OnTblCompile)
-    ON_UPDATE_COMMAND_UI(ID_TBL_COMPILE, OnUpdateTblCompile)
+    ON_COMMAND(ID_COMPILE, OnCompile)
+    ON_UPDATE_COMMAND_UI(ID_COMPILE, OnUpdateCompile)
     ON_COMMAND(ID_EDIT_TBL_TALLYATTRIB, OnEditTableTallyAttributes)
     ON_UPDATE_COMMAND_UI(ID_EDIT_TBL_TALLYATTRIB, OnUpdateEditTableTallyAttributes)
     ON_COMMAND(ID_VIEW_PAGEPRINTVIEW, OnViewPageprintview)
@@ -81,12 +64,23 @@ BEGIN_MESSAGE_MAP(CTableChildWnd, ApplicationChildWnd)
     ON_UPDATE_COMMAND_UI(ID_EDIT_INCLUDEALL, &CTableChildWnd::OnUpdateEditIncludeAll)
 END_MESSAGE_MAP()
 
+
+CTableChildWnd::CTableChildWnd()
+    :   m_bIsViewer(false),
+        m_pSourceEditView(nullptr),
+        m_pPrintView(nullptr),
+        m_pOldView(nullptr),
+        m_bDesignView(true)
+{
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CTableChildWnd message handlers
 
 int CTableChildWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if (COXMDIChildWndSizeDock::OnCreate(lpCreateStruct) == -1)
+    if (__super::OnCreate(lpCreateStruct) == -1)
         return -1;
 
     // TODO: Add your specialized creation code here
@@ -166,7 +160,7 @@ BOOL CTableChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD
 
 void CTableChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd)
 {
-    COXMDIChildWndSizeDock::OnMDIActivate(bActivate, pActivateWnd, pDeactivateWnd);
+    __super::OnMDIActivate(bActivate, pActivateWnd, pDeactivateWnd);
     AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, (WPARAM)FrameType::Table);
     CTabulateDoc* pTabDoc = (CTabulateDoc*)GetActiveDocument();
 
@@ -488,62 +482,52 @@ void CTableChildWnd::OnUpdateViewTable(CCmdUI* pCmdUI)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  void CTableChildWnd::OnTblCompile()
+//  void CTableChildWnd::OnCompile()
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CTableChildWnd::OnTblCompile()
+void CTableChildWnd::OnCompile()/// need to allow in more than CTSourceEditView
 {
-    CTabulateDoc* pDoc = (CTabulateDoc*)GetActiveDocument();
-    CView* pView = GetActiveView();
+    CTabulateDoc* const pDoc = assert_cast<CTabulateDoc*>(GetActiveDocument());
+    HTREEITEM hItem;
 
-    if (pDoc && pView->IsKindOf(RUNTIME_CLASS(CTSourceEditView)))
+    if( ( pDoc == nullptr ) ||
+        ( ( hItem = pDoc->GetTabTreeCtrl()->GetSelectedItem() ) == nullptr ) )
     {
-        HTREEITEM hItem = pDoc->GetTabTreeCtrl()->GetSelectedItem();
-        if(!hItem)
-            return;
-
-        TableElementTreeNode* table_element_tree_node = pDoc->GetTabTreeCtrl()->GetTreeNode(hItem);
-
-        if(table_element_tree_node != nullptr && table_element_tree_node->GetTabDoc() == pDoc){
-            //wParam 1 implies force compile
-            if(AfxGetMainWnd()->SendMessage(UWM::Table::PutSourceCode, 1, reinterpret_cast<LPARAM>(table_element_tree_node)) == -1) {
-                ((CTSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
-                return;
-            }
-            ((CTSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
-
-        }
-    }
-
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  void CTableChildWnd::OnUpdateTblCompile(CCmdUI* pCmdUI)
-//
-/////////////////////////////////////////////////////////////////////////////////
-void CTableChildWnd::OnUpdateTblCompile(CCmdUI* pCmdUI)
-{
-    CView* pView = GetActiveView();
-    if(!pView)
         return;
-
-    if(pView->IsKindOf(RUNTIME_CLASS(CTabView))) {
-
-        pCmdUI->Enable(FALSE);
     }
-    else {
 
-        pCmdUI->Enable(TRUE);
+    TableElementTreeNode* const table_element_tree_node = pDoc->GetTabTreeCtrl()->GetTreeNode(hItem);
+
+    if( table_element_tree_node != nullptr && table_element_tree_node->GetTabDoc() == pDoc )
+    {
+        constexpr WPARAM ForceCompile = 1;
+        WindowsDesktopMessage::Send(UWM::Table::PutSourceCode, ForceCompile, table_element_tree_node);
+        GetSourceLogicCtrl()->SetFocus();
     }
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+//  void CTableChildWnd::OnUpdateCompile(CCmdUI* pCmdUI)
+//
+/////////////////////////////////////////////////////////////////////////////////
+void CTableChildWnd::OnUpdateCompile(CCmdUI* const pCmdUI)
+{
+    const bool enable = ( m_pPrintView == nullptr &&
+                          !GetActiveView()->IsKindOf(RUNTIME_CLASS(CTabView)) );
+
+    ASSERT(!enable || GetActiveView()->IsKindOf(RUNTIME_CLASS(LogicView)));
+
+    pCmdUI->Enable(enable);
+}
+
 
 void CTableChildWnd::ActivateFrame(int nCmdShow)
 {
     // TODO: Add your specialized code here and/or call the base class
     nCmdShow = SW_SHOWMAXIMIZED;
-    COXMDIChildWndSizeDock::ActivateFrame(nCmdShow);
+    __super::ActivateFrame(nCmdShow);
 }
 
 
@@ -1671,34 +1655,25 @@ void CTableChildWnd::DynamicMenu4Logic(bool bDelete /*= true*/)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  void CTableChildWnd::OnUpdateRuntab(CCmdUI* pCmdUI)
+//  void CTableChildWnd::OnUpdateRunTab(CCmdUI* pCmdUI)
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CTableChildWnd::OnUpdateRuntab(CCmdUI* pCmdUI)
+void CTableChildWnd::OnUpdateRunTab(CCmdUI* const pCmdUI)
 {
-    CTabulateDoc* pDoc = (CTabulateDoc*)GetActiveDocument();
-    if(pDoc->GetTableSpec()->GetNumTables() > 0 && !m_pPrintView) {
-        pCmdUI->Enable(TRUE);
-    }
-    else {
-        pCmdUI->Enable(FALSE);
-    }
+    CTabulateDoc* const pDoc = assert_cast<CTabulateDoc*>(GetActiveDocument());
+    pCmdUI->Enable(( m_pPrintView == nullptr &&
+                     pDoc->GetTableSpec()->GetNumTables() > 0 ));
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  void CTableChildWnd::OnRuntab()
+//  void CTableChildWnd::OnRunTab()
 //
 /////////////////////////////////////////////////////////////////////////////////
-void CTableChildWnd::OnRuntab()
+void CTableChildWnd::OnRunTab()
 {
-    // TODO: Add your command handler code here
-   CTabulateDoc* pDoc = (CTabulateDoc*)GetActiveDocument();
-//    AfxMessageBox("Do Reconcile");
-//    m_pGrid->SetCurSelArea(0);
-    AfxGetMainWnd()->SendMessage(UWM::Table::RunActiveApplication, 1, reinterpret_cast<LPARAM>(pDoc));
-
-    //Save Everything
+    CTabulateDoc* const pDoc = assert_cast<CTabulateDoc*>(GetActiveDocument());
+    WindowsDesktopMessage::Send(UWM::Table::RunActiveApplication, 1, pDoc);
 }
 
 void CTableChildWnd::OnEditExcludeAllButThis()

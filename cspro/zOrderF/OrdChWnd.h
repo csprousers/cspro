@@ -53,9 +53,8 @@ protected:
     void OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd);
 
     void OnRun();
-
     void OnCompile();
-    void OnUpdateCompile(CCmdUI* pCmdUI);
+    void OnUpdateRunCompile(CCmdUI* pCmdUI);
 
     void OnViewQuestionnaire();
     void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);
