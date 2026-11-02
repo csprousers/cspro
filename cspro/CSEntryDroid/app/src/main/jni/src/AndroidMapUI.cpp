@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidMapUI.h"
 #include "GeometryJni.h"
 #include "JNIHelpers.h"
@@ -112,6 +112,17 @@ jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* const pEnv, const BaseM
     return pEnv->NewObject(JNIReferences::classBaseMapSelection,
                            JNIReferences::methodBaseMapSelectionConstructor,
                            jType, jFilePath.get());
+}
+
+
+bool AndroidMapUI::SetShowCompass(const bool show)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetShowCompass,
+                         show);
+
+    return true;
 }
 
 

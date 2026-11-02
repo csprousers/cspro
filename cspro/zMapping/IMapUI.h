@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zMapping/Geometry.h>
 #include <zAppO/MappingDefines.h>
@@ -37,6 +37,9 @@ public:
 
     // Sets the map's base map.
     virtual bool SetBaseMap(BaseMapSelection base_map_selection) = 0;
+
+    // Sets whether to show a compass on the map.
+    virtual bool SetShowCompass(bool show) = 0;
 
     // Sets whether to show the current location on the map.
     virtual bool SetShowCurrentLocation(bool show) = 0;

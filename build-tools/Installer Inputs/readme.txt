@@ -116,6 +116,7 @@ CSPro 8.1.5                                                28 September 2026
           * Image functions: getExif
           * JS functions: eval, getValue, getValueJson, hasValue, invoke,
               setValue, setValueFromJson
+          * Map functions: showCompass
           * Report functions: writeEncoded, writeEncodedLine, writeLine
           * StringWriter functions: clear, toString, write, writeEncoded,
               writeEncodedLine, writeLine

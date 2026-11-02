@@ -545,6 +545,7 @@ public:
     double ex_Map_getMarkerLatitude_getMarkerLongitude(int program_index);
     double ex_Map_removeMarker(int program_index);
     double ex_Map_setOnClick(int program_index);
+    double ex_Map_showCompass(int program_index);
     double ex_Map_showCurrentLocation(int program_index);
     double ex_Map_addTextButton(int program_index);
     double ex_Map_addImageButton(int program_index);

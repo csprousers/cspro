@@ -191,8 +191,10 @@ int LogicCompiler::CompileLogicMapFunctions()
         symbol_va_node.arguments[1] = CompileUserFunctionCall(true);
     }
 
+    // map_name.showCompass(show_condition)
     // map_name.showCurrentLocation(show_condition)
-    else if( function_code == FunctionCode::MAPFN_SHOW_CURRENT_LOCATION_CODE )
+    else if( function_code == FunctionCode::MAPFN_SHOW_COMPASS_CODE ||
+             function_code == FunctionCode::MAPFN_SHOW_CURRENT_LOCATION_CODE )
     {
         symbol_va_node.arguments[0] = exprlog();
     }
