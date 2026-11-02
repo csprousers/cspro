@@ -2315,15 +2315,15 @@ LRESULT CMainFrame::OnSymbolsAdded(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::OnLogicAutoComplete(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    LogicCtrl* logic_control = reinterpret_cast<LogicCtrl*>(lParam);
+    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(wParam);
 
     // compile up to the current buffer to look for any new symbols
     LogicReferenceWorker logic_reference_worker(this);
 
     if( !logic_reference_worker.IsValid() )
-        return 0;
+        return 1;
 
     logic_reference_worker.CompileToCurrentLocation();
 
@@ -2339,7 +2339,7 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
             selected_words = logic_control->ReturnWordsAtCursorWithDotNotation(buffer_position_of_previous_word);
 
         if( selected_words.empty() )
-            return 0;
+            return 1;
 
         // add a blank entry to signify that nothing has been added after symbol_name/namespace.
         selected_words.emplace_back();
@@ -2370,8 +2370,8 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     // on a fuzzy match, replace the entire word (because the beginning of the word may not match the beginning of the suggested word)
     if( word_comes_from_fuzzy_matching )
     {
-        Sci_Position current_pos = logic_control->GetCurrentPos();
-        Sci_Position start_pos = logic_control->WordStartPosition(current_pos, TRUE);
+        const Sci_Position current_pos = logic_control->GetCurrentPos();
+        const Sci_Position start_pos = logic_control->WordStartPosition(current_pos, TRUE);
 
         logic_control->SetTargetRange(start_pos, logic_control->WordEndPosition(current_pos, TRUE));
         logic_control->ReplaceTarget(suggested_words.length(), suggested_words.c_str());
@@ -2388,19 +2388,19 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
         logic_control->AutoCShow(word_to_complete.length(), suggested_words.c_str());
     }
 
-    return 0;
+    return 1;
 }
 
 
-LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam)
+LRESULT CMainFrame::OnLogicInsertProcName(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(lParam);
+    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(wParam);
 
     LogicReferenceWorker logic_reference_worker(this);
 
     // this will not work for tabulation applications
     if( !logic_reference_worker.IsValid() || logic_reference_worker.IsTabulationApplication() )
-        return 0;
+        return 1;
 
 
     std::string proc_or_function_name;
@@ -2425,7 +2425,7 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam
 
         auto source_buffer = std::make_shared<Logic::SourceBuffer>(std::move(buffer_text_up_to_cursor));
 
-        auto background_compiler = logic_reference_worker.CreateCompiler();
+        const std::unique_ptr<BackgroundCompiler> background_compiler = logic_reference_worker.CreateCompiler();
         background_compiler->Compile(source_buffer);
         const std::vector<Logic::BasicToken>& basic_tokens = source_buffer->GetTokens();
 
@@ -2484,7 +2484,7 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam
     if( !proc_or_function_name.empty() )
         logic_control->AddText(proc_or_function_name);
 
-    return 0;
+    return 1;
 }
 
 

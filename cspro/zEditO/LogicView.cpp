@@ -174,52 +174,28 @@ void LogicView::OnContextMenu(CWnd* const pWnd, CPoint point)
 }
 
 
-BOOL LogicView::PreTranslateMessage(MSG* pMsg)
+BOOL LogicView::PreTranslateMessage(MSG* const pMsg)
 {
     // TODO: Add your specialized code here and/or call the base class
-    if (m_logicCtrl != nullptr && pMsg->hwnd == m_logicCtrl->GetSafeHwnd()) {
-        if (pMsg->message == WM_KEYDOWN) {
-            // Control+ALT is same as AltGr on French keyboards which is used for other characters like "{" (AltGr+4)) so only consider CTRL without ALT
+    if( pMsg->hwnd == m_logicCtrl->GetSafeHwnd() )
+    {
+        if( pMsg->message == WM_KEYDOWN )
+        {
+            // Control + Alt is the same as AltGr on French keyboards,
+            // which is used for other characters like "{" (AltGr + 4),
+            // so only consider Control without Alt
             if( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_MENU) >= 0 )
             {
                 if( pMsg->wParam == VK_SPACE )
                 {
-                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_AUTO_COMPLETE, 0, (LPARAM)m_logicCtrl);
-                    return TRUE;
+                    if( WindowsDesktopMessage::Send(UWM::Edit::AutoComplete, m_logicCtrl) != 0 )
+                        return TRUE;
                 }
 
                 else if( pMsg->wParam == '4' ) // $ is on the 4 key on a U.S. keyboard
                 {
-                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_INSERT_PROC_NAME, 0, (LPARAM)m_logicCtrl);
-                    return TRUE;
-                }
-
-                int nID = 0;
-                //these codes are from the IDs in scintilla control
-                /*  idcmdUndo=10,
-                    idcmdRedo=11,
-                    idcmdCut=12,
-                    idcmdCopy=13,
-                    idcmdPaste=14,
-                    idcmdDelete=15,
-                    idcmdSelectAll=16*/
-                //without this pretranslate processing some accelerators get
-                //handled by parent frames.
-
-                switch (pMsg->wParam)
-                {
-                    case 'A': nID = 16; break;
-                    case 'V': nID = 14; break;
-                    case 'C': nID = 13; break;
-                    case 'X': nID = 12; break;
-                    case 'Y': nID = 11; break;
-                    case 'Z': nID = 10; break;
-                }
-
-                if( nID != 0 )
-                {
-                    m_logicCtrl->PostMessage(WM_COMMAND, nID, 0);
-                    return TRUE;
+                    if( WindowsDesktopMessage::Send(UWM::Edit::InsertProcName, m_logicCtrl) != 0 )
+                        return TRUE;
                 }
             }
         }
