@@ -1338,8 +1338,22 @@ void LogicCtrl::OnUpdateCommentLine(CCmdUI* const pCmdUI)
 
 void LogicCtrl::FormatLogic() // 20101208
 {
-    const std::wstring logic = UTF8_TODO::GetWide(GetText());
-    SetText(UTF8_TODO::GetUtf8(LogicFormatter::FormatLogic(GetLexer(), logic)));
+    const LogicSettings::Version logic_version = Lexers::IsNotV0(GetLexer())
+        ? LogicSettings::Version::V8_0
+        : LogicSettings::Version::V0;
+
+    const LogicFormatter logic_formatter(logic_version);
+
+    std::string original_logic = GetText();
+    SO::MakeNewlineLF(original_logic);
+
+    std::string formatted_logic = logic_formatter.FormatLogic(original_logic);
+
+    if( original_logic == formatted_logic )
+        return;
+
+    SO::MakeNewlineCRLF(formatted_logic); //For scintilla
+
     SetModified(); // 20120125 logic file wasn't getting set as modified
 }
 

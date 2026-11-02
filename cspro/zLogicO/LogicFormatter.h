@@ -1,10 +1,17 @@
 #pragma once
 
 #include <zLogicO/zLogicO.h>
+#include <zAppO/LogicSettings.h>
 
 
 class ZLOGICO_API LogicFormatter
 {
 public:
-    static CString FormatLogic(int lexer, const std::wstring& logic);
+    LogicFormatter(LogicSettings::Version logic_version) noexcept;
+
+    std::string FormatLogic(const std::string& logic) const;
+
+private:
+    std::string_view m_multilineCommentStart_sv;
+    std::string_view m_multilineCommentEnd_sv;
 };
