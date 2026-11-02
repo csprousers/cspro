@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MainFrame.h"
 #include "CaseListingView.h"
 #include "DataSourceFrame.h"
@@ -169,7 +169,7 @@ LRESULT CMainFrame::DefWindowProc(const UINT nMsg, const WPARAM wParam, const LP
 void CMainFrame::OnUpdateFrameTitle(const BOOL bAddToTitle)
 {
     // as in DefWindowProc above, to properly set the window title, even when the MDI window is maximized,
-    // this method is overriden (and copied from CMDIFrameWnd::OnUpdateFrameTitle), with the
+    // this method is overridden (and copied from CMDIFrameWnd::OnUpdateFrameTitle), with the
     // line checking for maximization commented out
 
     if( ( GetStyle() & FWS_ADDTOTITLE) == 0 )

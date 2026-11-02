@@ -1933,10 +1933,12 @@ LRESULT CMainFrame::UpdateSrcCode(WPARAM wParam, LPARAM lParam)
 
 namespace
 {
-    template<typename view_type>
-    bool ProcessParserMessages(CAplDoc* pAplDoc, CSourceCode* pSourceCode, view_type* pView, LogicDialogBar& logic_dialog_bar,
+    bool ProcessParserMessages(CAplDoc* pAplDoc, CSourceCode* pSourceCode, LogicView& logic_view, LogicDialogBar& logic_dialog_bar,
                                TextSource* external_logic_or_report_text_source = nullptr)
     {
+        LogicCtrl* const logic_ctrl = logic_view.GetLogicCtrl();
+        ASSERT(logic_ctrl !=  nullptr);
+
         std::string all_messages;
         bool processed_first_error = false;
         bool has_errors = false;
@@ -2000,8 +2002,8 @@ namespace
             if( !processed_first_error && parser_message.type == Logic::ParserMessage::Type::Error )
             {
                 // 20120613 if the proc name existed in the main and external dictionaries, an invalid argument error occurred
-                if( line_number_for_bookmark < pView->GetLogicCtrl()->GetLineCount() )
-                    pView->GetLogicCtrl()->GotoLine(line_number_for_bookmark);
+                if( line_number_for_bookmark < logic_ctrl->GetLineCount() )
+                    logic_ctrl->GotoLine(line_number_for_bookmark);
 
                 processed_first_error = true;
             }
@@ -2088,7 +2090,7 @@ namespace
             auto add_error_or_warning = [&](const int line_number)
             {
                 const bool error = ( parser_message.type == Logic::ParserMessage::Type::Error );
-                pView->GetLogicCtrl()->AddErrorOrWarningMarker(error, line_number);
+                logic_ctrl->AddErrorOrWarningMarker(error, line_number);
             };
 
             if( external_logic_or_report_text_source != nullptr )
@@ -2276,7 +2278,7 @@ bool CMainFrame::PutSourceCode(CFormID* pFormID, bool bForceCompile)
             ASSERT(false);
         }
 
-        if( !ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source) )
+        if( !ProcessParserMessages(pAplDoc, pSourceCode, *pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source) )
             return false;
 
         return bRet;
@@ -2324,7 +2326,7 @@ bool CMainFrame::CompileAll(CFormDoc* form_doc)
 
         PutSourceCode(form_node, false); // Updates the proc/line number mapping for error messages
         CFSourceEditView* source_view = parent_frame->GetSourceView();
-        ProcessParserMessages(pAplDoc, pSourceCode, source_view, parent_frame->GetLogicDialogBar());
+        ProcessParserMessages(pAplDoc, pSourceCode, *source_view, parent_frame->GetLogicDialogBar());
     }
 
     catch( const CSProException& exception )
@@ -2371,17 +2373,12 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
         return bRet;
 
     Application* pApplication = &pAplDoc->GetAppObject();
-
     COrderDoc* pOrderDoc = app_tree_node->GetOrderDocument();
-    POSITION pos = pOrderDoc->GetFirstViewPosition();
-    CView* pOrderView = pOrderDoc->GetNextView(pos);
-    ASSERT(pOrderView);
 
-    COrderChildWnd* pWnd = (COrderChildWnd*)pOrderView->GetParentFrame();
-    COSourceEditView* pView = (COSourceEditView*)pOrderView;
+    ApplicationLogicView* const logic_view = GetFirstView<ApplicationLogicView>(pOrderDoc);
+    ASSERT(logic_view != nullptr);
 
-    if( pView == nullptr )
-        return bRet;
+    COrderChildWnd* const pOrderChildWnd = assert_cast<COrderChildWnd*>(logic_view->GetParentFrame());
 
     CSourceCode* pSourceCode = pApplication->GetAppSrcCode();
     pSourceCode->SetOrder(pAplDoc->GetOrder());
@@ -2398,12 +2395,13 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
         external_logic_or_report_text_source = app_tree_node->GetTextSource();
         ASSERT(external_logic_or_report_text_source != nullptr);
 
-        if( pView->GetLogicCtrl()->IsModified() )
+        if( logic_view->GetLogicCtrl()->IsModified() )
         {
-            std::wstring source_code = UTF8_TODO::GetWide(pView->GetLogicCtrl()->GetText());
-            external_logic_or_report_text_source->SetText(UTF8_TODO::GetUtf8(std::move(source_code)));
+            external_logic_or_report_text_source->SetText(
+                logic_view->GetLogicCtrl()->GetText()
+            );
 
-            pView->GetLogicCtrl()->SetModified(FALSE);
+            logic_view->GetLogicCtrl()->SetModified(FALSE);
         }
     }
 
@@ -2453,15 +2451,15 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             pSourceCode->PutProc(arrProcLines,*symbol_name,CSourceCode_AllEvents); //Get all events for now
         }
 
-        if(pView->GetLogicCtrl()->IsModified()) {
+        if(logic_view->GetLogicCtrl()->IsModified()) {
             pSourceCode->SetModifiedFlag(true);
-            pView->GetLogicCtrl()->SetModified(FALSE);
+            logic_view->GetLogicCtrl()->SetModified(FALSE);
         }
     }
 
 
-    pView->GetLogicCtrl()->ClearErrorAndWarningMarkers();
-    pWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
+    logic_view->GetLogicCtrl()->ClearErrorAndWarningMarkers();
+    pOrderChildWnd->GetLogicDialogBar().GetCompilerOutputView().ClearLogicErrors();
 
     if( !bForceCompile )
         return bRet;
@@ -2498,8 +2496,11 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
             ASSERT(false);
         }
 
-        if( !ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar(), external_logic_or_report_text_source) )
+        if( !ProcessParserMessages(pAplDoc, pSourceCode, *logic_view, pOrderChildWnd->GetLogicDialogBar(),
+                                   external_logic_or_report_text_source) )
+        {
             return false;
+        }
 
         return bRet;
     }
@@ -4339,7 +4340,7 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
             return false;
         }
 
-        if( !ProcessParserMessages(pAplDoc, pSourceCode, pView, pWnd->GetLogicDialogBar()) )
+        if( !ProcessParserMessages(pAplDoc, pSourceCode, *pView, pWnd->GetLogicDialogBar()) )
             err = CCompiler::Result::SomeErrors;
 
         UndoEmulateBCHApp(&pAplDoc->GetAppObject());
@@ -5699,9 +5700,9 @@ LRESULT CMainFrame::OnGoToLogicError(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
+LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM /*wParam*/, const LPARAM lParam)
 {
-    const LogicCtrl* const logic_ctrl = reinterpret_cast<const LogicCtrl*>(wParam);
+    // const LogicCtrl* const logic_ctrl = reinterpret_cast<const LogicCtrl*>(wParam);
     int& lexer_language = *reinterpret_cast<int*>(lParam);
 
     CMDIChildWnd* const pWnd = this->MDIGetActive();

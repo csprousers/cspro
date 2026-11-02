@@ -1120,7 +1120,7 @@ BOOL CAplDoc::OpenAllDocuments()
         m_bSrcLoaded = pSourceCode->Load();
     }
 
-    ASSERT(m_applicationChildWnd == nullptr);
+    const bool first_time_opening_document = ( m_applicationChildWnd == nullptr );
 
     if( engine_app_type == EngineAppType::Entry )
     {
@@ -1197,7 +1197,8 @@ BOOL CAplDoc::OpenAllDocuments()
 
     // let any views created while opening CFormDoc / OrderDoc / CTabulateDoc
     // know that this is its associated DesignerDoc
-    m_applicationChildWnd->GetActiveDocument()->UpdateAllViews(nullptr, Hint::DesignerDocLoaded, this);
+    if( first_time_opening_document )
+        m_applicationChildWnd->GetActiveDocument()->UpdateAllViews(nullptr, Hint::DesignerDocLoaded, this);
 
     return TRUE;
 }

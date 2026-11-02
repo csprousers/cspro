@@ -25,9 +25,9 @@ namespace
 
         CView* pView = pFrame->GetActiveView();
 
-        LogicCtrl* logic_ctrl = ( pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView)) ) ? assert_cast<CFSourceEditView*>(pView)->GetLogicCtrl() :
-                                ( pView->IsKindOf(RUNTIME_CLASS(COSourceEditView)) ) ? assert_cast<COSourceEditView*>(pView)->GetLogicCtrl() :
-                                                                                       nullptr;
+        LogicCtrl* logic_ctrl = pView->IsKindOf(RUNTIME_CLASS(ApplicationLogicView))
+            ? assert_cast<ApplicationLogicView*>(pView)->GetLogicCtrl()
+            : nullptr;
 
         return { pFrame->GetActiveDocument(), logic_ctrl };
     }

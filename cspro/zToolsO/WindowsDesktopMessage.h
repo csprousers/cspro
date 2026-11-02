@@ -24,8 +24,9 @@ class WindowsDesktopMessage
 {
 public:
     // Sends a message to the Windows main window.
-    template<typename WT = WPARAM, typename LT = LPARAM>
-    static LRESULT Send(UINT message, WT wparam_value = 0, LT lparam_value = 0);
+    // If RT is not LRESULT, the response will be cast to RT using reinterpret_cast.
+    template<typename RT = LRESULT, typename WT = WPARAM, typename LT = LPARAM>
+    static RT Send(UINT message, WT wparam_value = 0, LT lparam_value = 0);
 
     // Posts a message to the Windows main window.
     template<typename WT = WPARAM, typename LT = LPARAM>
@@ -89,10 +90,20 @@ inline CWnd* WindowsDesktopMessage::GetMainWindow()
 }
 
 
-template<typename WT/* = WPARAM*/, typename LT/* = LPARAM*/>
-LRESULT WindowsDesktopMessage::Send(const UINT message, WT wparam_value/* = 0*/, LT lparam_value/* = 0*/)
+template<typename RT/* = LRESULT*/, typename WT/* = WPARAM*/, typename LT/* = LPARAM*/>
+RT WindowsDesktopMessage::Send(const UINT message, WT wparam_value/* = 0*/, LT lparam_value/* = 0*/)
 {
-    return Worker<LRESULT, WT, LT>(GetMainWindow(), message, wparam_value, lparam_value);
+    LRESULT result = Worker<LRESULT, WT, LT>(GetMainWindow(), message, wparam_value, lparam_value);
+
+    if constexpr(std::is_same_v<RT, LRESULT>)
+    {
+        return result;
+    }
+
+    else
+    {
+        return reinterpret_cast<RT>(result);
+    }
 }
 
 

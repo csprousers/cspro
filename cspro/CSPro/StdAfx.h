@@ -21,6 +21,7 @@
 #include <zUtilO/TextSourceExternal.h>
 #include <zUtilO/Viewers.h>
 #include <zUtilO/WindowsWS.h>
+#include <zUtilF/DocViewIterators.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zDictF/DDChWnd.h>
 #include <zDictF/DDDoc.h>

@@ -1128,7 +1128,7 @@ public:
 
 protected:
     // timer for checking scroll info of currently active page
-    int m_nCheckScrollInfoTimer;
+    UINT_PTR m_nCheckScrollInfoTimer;
     BOOL m_bCurrentlyScrolling;
     BOOL m_bHasInternalScrollBars;
     BOOL m_bNeedsInternalRedrawing;
@@ -1153,7 +1153,7 @@ protected:
 template<class PARENTWND>
 COXTabViewPage<PARENTWND>::COXTabViewPage()
 {
-    m_nCheckScrollInfoTimer=-1;
+    m_nCheckScrollInfoTimer=0;
     m_bCurrentlyScrolling=FALSE;
     m_bHasInternalScrollBars=PARENTWND::IsKindOf(RUNTIME_CLASS(CEdit)) ||
         PARENTWND::IsKindOf(RUNTIME_CLASS(CEditView)) ||
@@ -1231,7 +1231,7 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
             {
                 m_nCheckScrollInfoTimer=PARENTWND::SetTimer(IDT_CHECKSCROLLINFO_TIMER,
                     ID_CHECKSCROLLINFO_PERIOD,NULL);
-                if(m_nCheckScrollInfoTimer==-1)
+                if(m_nCheckScrollInfoTimer==0)
                 {
                     return -1;
                 }
@@ -1242,10 +1242,10 @@ LRESULT COXTabViewPage<PARENTWND>::WindowProc(UINT msg, WPARAM wp, LPARAM lp)
 
     case WM_DESTROY:
         {
-            if(m_nCheckScrollInfoTimer!=-1)
+            if(m_nCheckScrollInfoTimer!=0)
             {
                 PARENTWND::KillTimer(m_nCheckScrollInfoTimer);
-                m_nCheckScrollInfoTimer=-1;
+                m_nCheckScrollInfoTimer=0;
             }
             break;
         }

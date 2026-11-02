@@ -36,9 +36,6 @@ protected:
 
         template<typename T>
         static T Text(const std::string& text_value, const char* description, std::optional<T> value_if_text_is_blank = std::nullopt);
-
-        template<>
-        static int Text<int>(const std::string& text_value, const char* description, std::optional<int> value_if_text_is_blank/* = std::nullopt*/);
     };
 };
 

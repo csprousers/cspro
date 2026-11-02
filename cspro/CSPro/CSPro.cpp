@@ -16,7 +16,6 @@
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zUtilO/WindowFocusMgr.h>
 #include <zUtilF/CommonControls.h>
-#include <zUtilF/DocViewIterators.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/resource_shared.h>
 #include <zListingO/Lister.h>

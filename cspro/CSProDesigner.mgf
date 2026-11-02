@@ -84,7 +84,7 @@ Language=EN
 170    Language syntax must be specified as: Language=[language name]
 171    Language name '%s' is not a valid name
 172    Message lines must be specified as: [message number] [message text]
-173    Translation lines must be specified as: [language name] ( [message number or text ] ) [message text]
+173    Translation lines must be specified as: [language name] ( [message number or text] ) [message text]
 174    Message number '%s' is invalid as numbers must be integers in the range 1-%d
 175    Verbatim string literals cannot be specified in this logic version: %s
 176    Message text is not specified; is this intentional?
