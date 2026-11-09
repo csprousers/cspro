@@ -1,4 +1,4 @@
-CSPro 8.1.5                                                28 September 2026
+CSPro 8.1.6                                                  9 November 2026
 
 ============================================================================
 
@@ -21,7 +21,7 @@ CSPro 8.1.5                                                28 September 2026
 
     [7]  What was New in CSPro 7.7
 
-    [9]  What was New in CSPro 7.6
+    [8]  What was New in CSPro 7.6
 
     [9]  What was New in CSPro 7.5
 
@@ -249,7 +249,7 @@ CSPro 8.1.5                                                28 September 2026
 
 ============================================================================
 
-    [7]  What was New in CSPro 8.0
+    [6]  What was New in CSPro 8.0
 
     -  Many specification files have been redesigned using JSON formats,
        which facilitates working with them in other programming languages or
