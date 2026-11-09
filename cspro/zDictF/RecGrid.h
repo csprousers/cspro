@@ -61,7 +61,7 @@ protected:
     afx_msg void OnEditModify();
     afx_msg void OnEditNotes();
     afx_msg void OnEditOccLabels();
-    afx_msg void OnShiftF10();
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 
     //***** Over-ridable Notify Functions *****
     void OnSetup() override;

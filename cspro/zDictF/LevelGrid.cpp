@@ -37,7 +37,7 @@ BEGIN_MESSAGE_MAP(CLevelGrid, CDDGrid)
     ON_COMMAND(ID_EDIT_MODIFY, OnEditModify)
     ON_COMMAND(ID_EDIT_NOTES, OnEditNotes)
     ON_COMMAND(ID_EDIT_OCCURRENCELABELS, OnEditOccLabels)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -1482,15 +1482,15 @@ void CLevelGrid::OnEditOccLabels()
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                        CLevelGrid::OnShiftF10
+//                        CLevelGrid::OnContextMenu
 //
 /////////////////////////////////////////////////////////////////////////////
-void CLevelGrid::OnShiftF10()
+void CLevelGrid::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
     int col = 0;
     long row = 0;
     RECT rect = RECT();
-    POINT point = POINT();
+    point = CPoint();
     int processed = 0;
 
     // 20130412 now simulates the actions of starting and ending a right-click

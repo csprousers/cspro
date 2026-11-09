@@ -276,8 +276,6 @@ BEGIN
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
     "V",            ID_PASTE_VS_LINK,       VIRTKEY, CONTROL, ALT, NOINVERT
-    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
-    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
     "L",            ID_VIEW_LAYOUT,         VIRTKEY, CONTROL, NOINVERT
     "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
     VK_RETURN,      ID_VIEW_PROPERTIES,     VIRTKEY, ALT, NOINVERT

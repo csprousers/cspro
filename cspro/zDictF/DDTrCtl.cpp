@@ -43,7 +43,7 @@ BEGIN_MESSAGE_MAP(CDDTreeCtrl, CTreeCtrl)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
     ON_COMMAND(ID_VIEW_DICTIONARY, OnViewDictionary)
     ON_COMMAND(ID_DICTIONARY_MACROS, OnDictionaryMacros)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
     ON_COMMAND(ID_EDIT_LANGUAGES, OnEditLanguages)
     ON_COMMAND_RANGE(ID_OPEN_WITH_CSDIFF, ID_OPEN_WITH_CSSORT, OnOpenTool)
     ON_COMMAND_RANGE(ID_OPEN_DATA_FILE0, ID_OPEN_DATA_FILE9, OnOpenDataFile)
@@ -1206,7 +1206,7 @@ void CDDTreeCtrl::ReleaseDoc(DictionaryDictTreeNode& dictionary_dict_tree_node)
 }
 
 
-void CDDTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
+void CDDTreeCtrl::OnRButtonUp(UINT /*nFlags*/, CPoint point)
 {
     bool isQuestionnaireView = false;
 
@@ -1416,8 +1416,6 @@ void CDDTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
     CRect rect;
     GetWindowRect(rect);
     popup_menu.TrackPopupMenu(TPM_RIGHTBUTTON, rect.left + point.x + 5, rect.top + point.y + 5, this);
-
-    CTreeCtrl::OnRButtonUp(nFlags, point);
 }
 
 
@@ -1559,7 +1557,7 @@ void CDDTreeCtrl::OnEditRelation()
 }
 
 
-void CDDTreeCtrl::OnShiftF10()
+void CDDTreeCtrl::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/)
 {
     PostMessage(WM_RBUTTONUP);
 }

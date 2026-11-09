@@ -46,7 +46,7 @@ protected:
     afx_msg void OnEditUndo();
     afx_msg void OnEditModify();
     afx_msg void OnEditNotes();
-    afx_msg void OnShiftF10();
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 
     //***** Over-ridable Notify Functions (derived from CUGCtrl)
     void OnSetup() override;

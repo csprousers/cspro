@@ -56,7 +56,6 @@ BEGIN_MESSAGE_MAP(CDDGView, CView)
     ON_MESSAGE(UWM::Dictionary::Find, OnFind)        // Find text
     ON_COMMAND(ID_EDIT_GEN_VALUE_SET, OnEditGenValueSet)
     ON_UPDATE_COMMAND_UI(ID_EDIT_GEN_VALUE_SET, OnUpdateEditGenValueSet)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_PASTE_VS_LINK, OnEditPasteValueSetLink)
     ON_UPDATE_COMMAND_UI(ID_PASTE_VS_LINK, OnUpdateEditPasteValueSetLink)
     ON_COMMAND(ID_RESET_COLUMN_WIDTHS, OnResetColumnsWidths)
@@ -3038,17 +3037,6 @@ void CDDGView::OnUpdateEditGenValueSet(CCmdUI* pCmdUI)
         bEnable = IsNumeric(*pDictItem);
     }
     pCmdUI->Enable(bEnable);
-}
-
-void CDDGView::OnShiftF10()
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd->IsKindOf(RUNTIME_CLASS(CDDTreeCtrl))) {
-        pWnd->PostMessage(WM_COMMAND, ID_SHIFT_F10);
-    }
-    else {
-        GetCurrentGrid().PostMessage(WM_COMMAND, ID_SHIFT_F10);
-    }
 }
 
 
