@@ -24,6 +24,7 @@ public class MapData
     private int m_nextButtonId;
     private final SparseArray<FeatureCollection> m_geometry = new SparseArray<>();
     private int m_nextGeometryId;
+    private boolean m_showCompass;
     private boolean m_showCurrentLocation;
     private String m_title;
     private BaseMapSelection m_baseMapSelection;
@@ -51,6 +52,7 @@ public class MapData
             m_geometry.put(rhs.m_geometry.keyAt(i), rhs.m_geometry.valueAt(i));
         }
         m_nextGeometryId = rhs.m_nextGeometryId;
+        m_showCompass = rhs.m_showCompass;
         m_showCurrentLocation = rhs.m_showCurrentLocation;
         m_title = rhs.m_title;
         m_baseMapSelection = rhs.m_baseMapSelection;
@@ -76,6 +78,16 @@ public class MapData
     public List<MapButton> getButtons()
     {
         return Util.sparseArrayValues(m_buttons);
+    }
+
+    boolean isShowCompass()
+    {
+        return m_showCompass;
+    }
+
+    void setShowCompass(boolean showCompass)
+    {
+        m_showCompass = showCompass;
     }
 
     boolean isShowCurrentLocation()
@@ -278,6 +290,7 @@ public class MapData
         m_markers.clear();
         m_nextButtonId = 1;
         m_buttons.clear();
+        m_showCompass = false;
         m_showCurrentLocation = true;
         m_title = null;
         m_cameraPosition = null;

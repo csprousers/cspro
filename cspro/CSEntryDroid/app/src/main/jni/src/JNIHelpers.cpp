@@ -522,6 +522,7 @@ jmethodID JNIReferences::methodAndroidMapUIRemoveButton;
 jmethodID JNIReferences::methodAndroidMapUIClearButtons;
 jmethodID JNIReferences::methodAndroidMapUIClear;
 jmethodID JNIReferences::methodAndroidMapUISetBaseMap;
+jmethodID JNIReferences::methodAndroidMapUISetShowCompass;
 jmethodID JNIReferences::methodAndroidMapUISetShowCurrentLocation;
 jmethodID JNIReferences::methodAndroidMapUISetTitle;
 jmethodID JNIReferences::methodAndroidMapUIZoomToPoint;
@@ -837,6 +838,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         (JNIReferences::methodAndroidMapUIClearButtons = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "clearButtons", "()V")) &&
         (JNIReferences::methodAndroidMapUIClear = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "clear", "()V")) &&
         (JNIReferences::methodAndroidMapUISetBaseMap = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "setBaseMap", "(Lgov/census/cspro/engine/BaseMapSelection;)I")) &&
+        (JNIReferences::methodAndroidMapUISetShowCompass = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "setShowCompass", "(Z)V")) &&
         (JNIReferences::methodAndroidMapUISetShowCurrentLocation = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "setShowCurrentLocation", "(Z)I")) &&
         (JNIReferences::methodAndroidMapUISetTitle = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "setTitle", "(Ljava/lang/String;)I")) &&
         (JNIReferences::methodAndroidMapUIZoomToPoint = pEnv->GetMethodID(JNIReferences::classAndroidMapUI, "zoomToPoint", "(DDF)I")) &&

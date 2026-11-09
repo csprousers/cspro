@@ -345,6 +345,7 @@ namespace JNIReferences
     extern jmethodID methodAndroidMapUIClearButtons;
     extern jmethodID methodAndroidMapUIClear;
     extern jmethodID methodAndroidMapUISetBaseMap;
+    extern jmethodID methodAndroidMapUISetShowCompass;
     extern jmethodID methodAndroidMapUISetShowCurrentLocation;
     extern jmethodID methodAndroidMapUISetTitle;
     extern jmethodID methodAndroidMapUIZoomToPoint;

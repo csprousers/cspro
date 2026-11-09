@@ -202,6 +202,11 @@ public class MapUI
         return 1;
     }
 
+    public void setShowCompass(boolean show)
+    {
+        m_mapData.setShowCompass(show);
+    }
+
     public int setShowCurrentLocation(boolean show)
     {
         m_mapData.setShowCurrentLocation(show);

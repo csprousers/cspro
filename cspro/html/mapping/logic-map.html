@@ -138,6 +138,10 @@
                 clearButtons();
                 break;
 
+            case 'showCompass':
+                showCompass(message.showCompass);
+                break;
+
             case 'showCurrentLocation':
                 showCurrentLocation(message.latitude, message.longitude);
                 break;
@@ -476,6 +480,11 @@
                 zoom: csmap.getZoom()
             }
         });
+    }
+
+
+    function showCompass(show) {
+        console.log("Showing a compass is not supported using Leaflet mapping.")
     }
 
 

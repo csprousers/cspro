@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zMapping/zMapping.h>
 #include <zMapping/IMapUI.h>
@@ -33,6 +33,7 @@ public:
     bool IsBaseMapDefined() const override;
     bool SetBaseMap(BaseMapSelection base_map_selection) override;
 
+    bool SetShowCompass(bool show) override;
     bool SetShowCurrentLocation(bool show) override;
 
     bool SetCamera(const MapCamera& camera) override;
@@ -107,6 +108,7 @@ private:
     void SetBaseMapWorker(std::optional<BaseMapSelection> base_map_selection);
     void SetBaseMapIMIS();
 
+    void SetShowCompassIMIS();
     bool SetShowCurrentLocationIMIS();
 
     constexpr bool AreCoordinatesValid(double latitude, double longitude);
