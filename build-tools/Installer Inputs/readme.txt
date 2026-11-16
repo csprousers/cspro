@@ -1,4 +1,4 @@
-CSPro 8.2.0 (beta)                                         28 September 2026
+CSPro 8.2.0 (beta)                                           9 November 2026
 
 ============================================================================
 
@@ -241,6 +241,7 @@ CSPro 8.2.0 (beta)                                         28 September 2026
           * Image functions: getExif
           * JS functions: eval, getValue, getValueJson, hasValue, invoke,
               setValue, setValueFromJson
+          * Map functions: showCompass
           * Report functions: writeEncoded, writeEncodedLine, writeLine
           * StringWriter functions: clear, toString, write, writeEncoded,
               writeEncodedLine, writeLine

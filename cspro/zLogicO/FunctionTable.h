@@ -585,11 +585,12 @@ enum FunctionCode : int
     VIDEOFN_WIDTH_CODE                      = 476, // 20250915
     VIDEOFN_HEIGHT_CODE                     = 477, // 20250915
     VALUESETFN_REMOVEDUPLICATES_CODE        = 478, // 20260326
+    MAPFN_SHOW_COMPASS_CODE                 = 479, // 20261102 (8.1.6)
 
     // CSPro 8.2
-    WORKVARIABLE_COMPUTE_CODE               = 479, // 20260716
-    ARRAY_COMPUTE_CODE                      = 480, // 20260716
-    USERFUNCTION_COMPUTE_CODE               = 481, // 20260716
+    WORKVARIABLE_COMPUTE_CODE               = 480, // 20260716
+    ARRAY_COMPUTE_CODE                      = 481, // 20260716
+    USERFUNCTION_COMPUTE_CODE               = 482, // 20260716
 };
 
 

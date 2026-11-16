@@ -825,10 +825,10 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(476, ex_Video_width_height);
     OP_ENGVAL(477, ex_Video_width_height);
     OP_ENGVAL(478, ex_ValueSet_removeDuplicates);
-    OP_ENGVAL(479, ex_WorkVariable_compute);
-    OP_ENGVAL(480, ex_Array_compute);
-    OP_ENGVAL(481, ex_UserFunction_compute);
-    OP_ENGVAL(482, ex_nop_abortFutureFunction);
+    OP_ENGVAL(479, ex_Map_showCompass);
+    OP_ENGVAL(480, ex_WorkVariable_compute);
+    OP_ENGVAL(481, ex_Array_compute);
+    OP_ENGVAL(482, ex_UserFunction_compute);
     OP_ENGVAL(483, ex_nop_abortFutureFunction);
     OP_ENGVAL(484, ex_nop_abortFutureFunction);
     OP_ENGVAL(485, ex_nop_abortFutureFunction);
@@ -838,6 +838,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(489, ex_nop_abortFutureFunction);
     OP_ENGVAL(490, ex_nop_abortFutureFunction);
     OP_ENGVAL(491, ex_nop_abortFutureFunction);
+    OP_ENGVAL(492, ex_nop_abortFutureFunction);
 #undef OP_ENGVAL
 #undef OP_ENGVAL_ID
 #undef OP_DOUBLE

@@ -3203,6 +3203,16 @@ namespace
             0,
         },
         {
+            "showCompass",
+            "map_name.showCompass(show_code)",
+            "Map_showCompass_function.html",
+            FunctionCode::MAPFN_SHOW_COMPASS_CODE,
+            SymbolType::Map,
+            DataType::Numeric,
+            FunctionCompilationType::Map,
+            1,
+        },
+        {
             "showCurrentLocation",
             "map_name.showCurrentLocation(show_code)",
             "Map_showCurrentLocation_function.html",

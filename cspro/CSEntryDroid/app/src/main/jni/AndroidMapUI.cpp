@@ -113,6 +113,17 @@ jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* const pEnv, const BaseM
 }
 
 
+bool AndroidMapUI::SetShowCompass(const bool show)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetShowCompass,
+                         show);
+
+    return true;
+}
+
+
 bool AndroidMapUI::SetShowCurrentLocation(const bool show)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();

@@ -31,6 +31,7 @@ CREATE_JSON_KEY(minLatitude)
 CREATE_JSON_KEY(minLongitude)
 CREATE_JSON_KEY(options)
 CREATE_JSON_KEY(padding)
+CREATE_JSON_KEY(showCompass)
 CREATE_JSON_KEY(zoom)
 
 
@@ -105,6 +106,7 @@ struct HtmlMapUI::Data
     std::shared_ptr<OfflineTileReader> tile_reader;
     std::unique_ptr<OfflineTileProvider> tile_provider;
 
+    bool show_compass = false;
     bool show_current_location = true;
 
     std::variant<std::monostate, Zoom1, Zoom2> zoom;
@@ -380,6 +382,7 @@ void HtmlMapUI::Clear()
 
     HtmlMapUI::SetBaseMapWorker(std::nullopt);
 
+    HtmlMapUI::SetShowCompass(false);
     HtmlMapUI::SetShowCurrentLocation(true);
 
     HtmlMapUI::ClearMarkers();
@@ -397,6 +400,9 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 
     // set the base map
     SetBaseMapIMIS();
+
+    // show or hide the compass
+    SetShowCompassIMIS();
 
     // show or hide the current location
     SetShowCurrentLocationIMIS();
@@ -532,6 +538,26 @@ void HtmlMapUI::SetBaseMapIMIS()
 OfflineTileReader* HtmlMapUI::GetOfflineTileReader()
 {
     return m_data->tile_reader.get();
+}
+
+
+bool HtmlMapUI::SetShowCompass(const bool show)
+{
+    m_data->show_compass = show;
+
+    SetShowCompassIMIS();
+
+    return true;
+}
+
+
+void HtmlMapUI::SetShowCompassIMIS()
+{
+    PostActionMessage("showCompass",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::showCompass, m_data->show_compass);
+        });
 }
 
 

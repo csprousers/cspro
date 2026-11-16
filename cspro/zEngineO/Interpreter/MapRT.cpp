@@ -314,6 +314,23 @@ Engine::Value LogicInterpreter::ex_Map_removeMarker(const int program_index)
 }
 
 
+Engine::Value LogicInterpreter::ex_Map_showCompass(const int program_index)
+{
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
+    LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
+    IMapUI* const map_ui = logic_map.GetMapUI();
+
+    if( map_ui == nullptr )
+        return Engine::Value::Bool(false);
+
+    const bool show = EvaluateConditional(symbol_va_node.arguments[0]);
+
+    return Engine::Value::Bool(
+        map_ui->SetShowCompass(show)
+    );
+}
+
+
 Engine::Value LogicInterpreter::ex_Map_showCurrentLocation(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);

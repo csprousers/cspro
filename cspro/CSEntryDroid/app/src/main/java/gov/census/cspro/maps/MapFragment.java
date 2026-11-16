@@ -121,6 +121,7 @@ public class MapFragment extends Fragment
 
             if (m_map != null)
             {
+                setShowCompass(mapData.isShowCompass());
                 setShowCurrentLocation(mapData.isShowCurrentLocation());
 
                 setMarkers(mapData.getMarkers());
@@ -230,7 +231,8 @@ public class MapFragment extends Fragment
         m_map = googleMap;
         m_map.getUiSettings().setMapToolbarEnabled(false);
         m_map.getUiSettings().setTiltGesturesEnabled(false);
-        m_map.getUiSettings().setMyLocationButtonEnabled(false); // will add our own if needed
+        m_map.getUiSettings().setMyLocationButtonEnabled(false);
+        m_map.getUiSettings().setCompassEnabled(false);
 
         addCurrentLocationButton();
 
@@ -627,6 +629,11 @@ public class MapFragment extends Fragment
         } else {
             m_map.setLatLngBoundsForCameraTarget(null);
         }
+    }
+
+    private void setShowCompass(boolean showCompass)
+    {
+        m_map.getUiSettings().setCompassEnabled(showCompass);
     }
 
     private void setShowCurrentLocation(boolean showCurrentLocation)

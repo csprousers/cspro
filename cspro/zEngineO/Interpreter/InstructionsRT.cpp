@@ -2,7 +2,7 @@
 #include "IncludesRT.h"
 
 
-size_t LogicInterpreter::MaxInstructionCode_EV_TODO = 491; // EV_TODO remove
+size_t LogicInterpreter::MaxInstructionCode_EV_TODO = 492; // EV_TODO remove
 
 // OP    = instructions defined in LogicInterpreter that return Engine::Value
 // OP_ID = instructions defined in CIntDriver that return double
@@ -545,9 +545,10 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 476 */   OP(ex_Video_width_height), // Video.width
 /* 477 */   OP(ex_Video_width_height), // Video.height
 /* 478 */   OP(ex_ValueSet_removeDuplicates),
-/* 479 */   OP(ex_WorkVariable_compute),
-/* 480 */   OP(ex_Array_compute),
-/* 481 */   OP(ex_UserFunction_compute),
+/* 479 */   OP(ex_Map_showCompass),
+/* 480 */   OP(ex_WorkVariable_compute),
+/* 481 */   OP(ex_Array_compute),
+/* 482 */   OP(ex_UserFunction_compute),
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

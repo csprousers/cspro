@@ -65,8 +65,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 8,1,5,0
- PRODUCTVERSION 8,1,5,0
+ FILEVERSION 8,1,6,0
+ PRODUCTVERSION 8,1,6,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -83,11 +83,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
             VALUE "FileDescription", "zDesignerF DLL"
-            VALUE "FileVersion", "8.1.5.0"
+            VALUE "FileVersion", "8.1.6.0"
             VALUE "InternalName", "zDesignerF"
             VALUE "OriginalFilename", "zDesignerF.DLL"
             VALUE "ProductName", "CSPro 8.1"
-            VALUE "ProductVersion", "8.1.5.0"
+            VALUE "ProductVersion", "8.1.6.0"
         END
     END
     BLOCK "VarFileInfo"
