@@ -11,12 +11,9 @@
 #include "ResourcePropertiesPageDlg.h"
 #include "TableSpecPropertiesPageDlg.h"
 #include "TextDisplayPageDlg.h"
-#include <zToolsO/FileIO.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/FileUtil.h>
-#include <zUtilO/TextSourceEditable.h>
-#include <zUtilO/TextSourceExternal.h>
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zUtilF/ChoiceDlg.h>

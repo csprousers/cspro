@@ -1,9 +1,10 @@
-﻿// XSplitter.cpp : implementation file
+// XSplitter.cpp : implementation file
 //
 
 #include "StdAfx.h"
 #include "FSplWnd.h"
 #include <zUToolO/OxszDKB.h>
+#include <../src/mfc/afximpl.h>
 
 
 #ifdef _DEBUG

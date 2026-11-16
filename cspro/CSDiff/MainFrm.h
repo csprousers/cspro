@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/BCMenu.h>
 
@@ -7,8 +7,8 @@ class CMainFrame : public CFrameWnd
 {
     DECLARE_DYNCREATE(CMainFrame)
 
-protected: 
-    CMainFrame() { } // create from serialization only
+protected:
+    CMainFrame() = default; // create from serialization only
 
 public:
     BCMenu& GetMenu() { return m_menu; }

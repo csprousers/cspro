@@ -9,7 +9,7 @@ class TextEditView : public LogicView
     DECLARE_DYNCREATE(TextEditView)
 
 protected:
-    TextEditView() { } // create from serialization only
+    TextEditView() noexcept = default; // create from serialization only
 
 public:
     TextEditDoc& GetTextEditDoc() { return assert_cast<TextEditDoc&>(*GetDocument()); }
@@ -22,10 +22,6 @@ protected:
 
     void OnSavePointReached(Scintilla::NotificationData* pSCNotification) override;
     void OnSavePointLeft(Scintilla::NotificationData* pSCNotification) override;
-
-    bool OnHandleHelp() override;
-
-    void OnFindNext();
 
     void OnWordWrap();
     void OnUpdateWordWrap(CCmdUI* pCmdUI);

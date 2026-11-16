@@ -1,6 +1,26 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "LogicReferenceWnd.h"
+#include <zEditO/LogicView.h>
 
+
+// --------------------------------------------------------------------------
+// LogicReferenceView declaration
+// --------------------------------------------------------------------------
+
+class LogicReferenceView : public LogicView
+{
+    DECLARE_DYNCREATE(LogicReferenceView)
+
+protected:
+    // LogicView overrides
+    void InitializeLogicControl() override;
+};
+
+
+
+// --------------------------------------------------------------------------
+// LogicReferenceWnd
+// --------------------------------------------------------------------------
 
 BEGIN_MESSAGE_MAP(LogicReferenceWnd, UnfloatableDialogBar)
     ON_WM_CREATE()
@@ -8,21 +28,29 @@ END_MESSAGE_MAP()
 
 
 LogicReferenceWnd::LogicReferenceWnd()
-    :   UnfloatableDialogBar(SZBARF_DLGAUTOSIZE | SZBARF_NOCAPTION | SZBARF_NORESIZEBTN)
+    :   UnfloatableDialogBar(SZBARF_NOCAPTION | SZBARF_NORESIZEBTN),
+        m_doc(nullptr),
+        m_logicReferenceView(nullptr),
+        m_logicCtrl(nullptr)
 {
 }
 
 
-bool LogicReferenceWnd::CreateAndDock(CFrameWnd* pFrameWnd)
+bool LogicReferenceWnd::CreateAndDock(CFrameWnd* const frame_wnd, CDocument* const doc)
 {
-    if( !Create(pFrameWnd, IDD_REFERENCE_WINDOW, CBRS_RIGHT, (UINT)-1) )
+    ASSERT(doc != nullptr);
+    m_doc = doc;
+
+    if( !Create(frame_wnd, IDD_REFERENCE_WINDOW, CBRS_RIGHT, static_cast<UINT>(-1)) )
         return false;
 
     // dock the reference window on the right
     EnableDocking(CBRS_ALIGN_RIGHT);
+
+    // the reference window is only shown on demand
     ShowWindow(SW_HIDE);
 
-    pFrameWnd->DockControlBar(this, CBRS_ALIGN_RIGHT);
+    frame_wnd->DockControlBar(this, CBRS_ALIGN_RIGHT);
 
     return true;
 }
@@ -30,30 +58,60 @@ bool LogicReferenceWnd::CreateAndDock(CFrameWnd* pFrameWnd)
 
 int LogicReferenceWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if( UnfloatableDialogBar::OnCreate(lpCreateStruct) == -1 ||
-        !m_editCtrl.Create(WS_VISIBLE | WS_CHILD | WS_HSCROLL | WS_VSCROLL, this) )
+    if( __super::OnCreate(lpCreateStruct) == -1 )
+        return -1;
+
+    CCreateContext context;
+    context.m_pCurrentDoc = m_doc;
+    context.m_pCurrentFrame = GetParentFrame();
+    context.m_pNewViewClass = RUNTIME_CLASS(LogicReferenceView);
+
+    constexpr DWORD dwStyle = AFX_WS_DEFAULT_VIEW & ~WS_BORDER;
+
+    m_logicReferenceView = assert_cast<LogicReferenceView*>(context.m_pNewViewClass->CreateObject());
+
+    if( m_logicReferenceView == nullptr ||
+        !m_logicReferenceView->Create(nullptr, nullptr, dwStyle, CRect(), this, static_cast<UINT>(-1), &context) )
     {
         return -1;
     }
+
+    m_logicCtrl = m_logicReferenceView->GetLogicCtrl();
 
     return 0;
 }
 
 
-BOOL LogicReferenceWnd::OnInitDialog()
+void LogicReferenceWnd::OnSizedOrDocked(const int cx, const int cy, const BOOL bFloating, const int flags)
 {
-    BOOL init_dialog_result = UnfloatableDialogBar::OnInitDialog();
+    ASSERT(( m_Style & SZBARF_DLGAUTOSIZE ) == 0 );
 
-    // replace the dialog's edit control with the logic control
-    CWnd* reference_window_edit = GetDlgItem(IDC_REFERENCE_WINDOW_EDIT);
+    __super::OnSizedOrDocked(cx, cy, bFloating, flags);
 
-    CRect rect;
-    reference_window_edit->GetWindowRect(&rect);
-    ScreenToClient(&rect);
+    m_logicReferenceView->SetWindowPos(
+        nullptr,
+        0, 0,
+        cx, cy,
+        SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
+    );
+}
 
-    reference_window_edit->DestroyWindow();
-    m_editCtrl.SubclassDlgItem(IDC_REFERENCE_WINDOW_EDIT, this);
-    m_editCtrl.MoveWindow(&rect);
 
-    return init_dialog_result;
+
+// --------------------------------------------------------------------------
+// LogicReferenceView
+// --------------------------------------------------------------------------
+
+IMPLEMENT_DYNCREATE(LogicReferenceView, LogicView)
+
+
+void LogicReferenceView::InitializeLogicControl()
+{
+    m_logicCtrl->InitLogicControl(
+        false, // show_line_numbers
+        false, // show_error_markers
+        SCLEX_NULL
+    );
+
+    m_logicCtrl->SetReadOnly(TRUE);
 }

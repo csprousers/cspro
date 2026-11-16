@@ -38,7 +38,7 @@ BEGIN_MESSAGE_MAP(CDictGrid, CDDGrid)
     ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
     ON_COMMAND(ID_EDIT_MODIFY, OnEditModify)
     ON_COMMAND(ID_EDIT_NOTES, OnEditNotes)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -1067,13 +1067,13 @@ void CDictGrid::OnEditDelete()
 
 void CDictGrid::EditCopy(bool bCut)
 {
-    std::vector<size_t> selected_levels = GetSelectedLevels();
+    const std::vector<size_t> selected_levels = GetSelectedLevels();
 
     // Copy levels to clipboard
     CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
     std::vector<const DictLevel*> dict_levels;
 
-    for( long selected_level : selected_levels )
+    for( const size_t selected_level : selected_levels )
         dict_levels.emplace_back(&m_pDict->GetLevel(selected_level));
 
     pDoc->GetDictClipboard().PutOnClipboard(this, dict_levels);
@@ -1206,15 +1206,15 @@ void CDictGrid::OnEditNotes()
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                        CDictGrid::OnShiftF10
+//                        CDictGrid::OnContextMenu
 //
 /////////////////////////////////////////////////////////////////////////////
-void CDictGrid::OnShiftF10()
+void CDictGrid::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
     int col = 0;
     long row = 0;
     RECT rect = RECT();
-    POINT point = POINT();
+    point = CPoint();
     int processed = 0;
 
     // 20130412 now simulates the actions of starting and ending a right-click

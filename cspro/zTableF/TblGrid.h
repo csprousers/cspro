@@ -402,5 +402,5 @@ public:
 
     LRESULT OnUpdateTable(WPARAM wParam,LPARAM lParam);
     afx_msg void OnPaint();
-    afx_msg void OnShiftF10();
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 };

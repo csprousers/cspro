@@ -22,7 +22,7 @@ protected:
 
 // Operations
 public:
-    virtual ~CTableChildWnd();
+    virtual ~CTableChildWnd() = default;
 
     // ApplicationChildWnd overrides
     LogicView* GetSourceLogicView() override;
@@ -70,8 +70,8 @@ protected:
     afx_msg void OnViewLogic();
     afx_msg void OnUpdateViewLogic(CCmdUI* pCmdUI);
     afx_msg void OnUpdateViewTable(CCmdUI* pCmdUI);
-    afx_msg void OnTblCompile();
-    afx_msg void OnUpdateTblCompile(CCmdUI* pCmdUI);
+    afx_msg void OnCompile();
+    afx_msg void OnUpdateCompile(CCmdUI* pCmdUI);
     afx_msg void OnEditTableTallyAttributes();
     afx_msg void OnUpdateEditTableTallyAttributes(CCmdUI* pCmdUI);
     afx_msg void OnViewPageprintview();
@@ -79,8 +79,8 @@ protected:
     afx_msg void OnUpdateViewFacing(CCmdUI* pCmdUI);
     afx_msg void OnUpdateViewBooklayout(CCmdUI* pCmdUI);
     afx_msg void OnUpdateViewZoom(CCmdUI* pCmdUI);
-    afx_msg void OnRuntab();
-    afx_msg void OnUpdateRuntab(CCmdUI* pCmdUI);
+    afx_msg void OnRunTab();
+    afx_msg void OnUpdateRunTab(CCmdUI* pCmdUI);
     //}}AFX_MSG
 
     afx_msg void OnViewPreviousTable();

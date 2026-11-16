@@ -4,6 +4,11 @@
 #include <zUtilO/TextSource.h>
 
 
+// --------------------------------------------------------------------------
+// TextSourceEditable represents an editable text source, with functionality
+// to load and save the contents to a disk.
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZUTILO TextSourceEditable : public TextSource
 {
 public:
@@ -15,7 +20,7 @@ public:
         virtual void OnTextSourceSave() = 0;
     };
 
-    // If the file does not exist or can not be read, the default text will be used.
+    // If the file does not exist or cannot be read, the default text will be used.
     // If no default text is provided, exceptions will be thrown.
     TextSourceEditable(std::string file_path, std::optional<std::string> default_text = std::nullopt,
                        bool use_default_text_even_if_file_exists = false);
@@ -42,13 +47,16 @@ public:
 
     bool RequiresSave() const override { return m_modified; }
 
-    void SetModified();
+    // Sets whether the text source has been modified.
+    // If modified, the modified iteration is set to the current time.
+    // If not modified, the modified iteration is reset to the file modified time.
+    void SetModified(bool modified = true);
 
     void Save() override;
 
     void SetNewFilePath(std::string new_file_path);
 
-    void SetSourceModifier(SourceModifier* source_modifier);
+    void SetSourceModifier(SourceModifier* source_modifier) noexcept;
 
 private:
     void SyncText() const;

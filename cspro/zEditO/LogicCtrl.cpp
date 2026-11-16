@@ -3,12 +3,12 @@
 #include "CSProScintillaFindReplaceDlg.h"
 #include "GoToDlg.h"
 #include "LexerProperties.h"
+#include "MarginProperties.h"
 #include "ScintillaColorizer.h"
 #include <zScintilla/CSPro/CSPro.h>
-#include <zDesignerF/CodeMenu.h>
 
 
-//CSPro Scintilla Logic Control
+// CSPro Scintilla Logic Control
 
 extern Scintilla::CScintillaEditState g_scintillaEditState;
 extern const UINT _ScintillaMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRING);
@@ -16,20 +16,16 @@ extern const UINT _ScintillaMsgFindReplace = ::RegisterWindowMessage(FINDMSGSTRI
 IMPLEMENT_DYNCREATE(LogicCtrl, CSProScintillaCtrl)
 
 BEGIN_MESSAGE_MAP(LogicCtrl, CSProScintillaCtrl)
-    ON_WM_KILLFOCUS()
-    ON_WM_SETFOCUS()
-    ON_WM_LBUTTONDOWN()
-    ON_WM_RBUTTONDOWN()
     ON_WM_CHAR()
-    ON_WM_KEYDOWN()
     ON_WM_CONTEXTMENU()
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateNeedSel)
     ON_COMMAND(ID_EDIT_FIND, OnEditFind)
     ON_COMMAND(ID_EDIT_REPLACE, OnEditReplace)
     ON_COMMAND(ID_EDIT_REPEAT, OnEditRepeat)
-    ON_MESSAGE(UWM::Edit::UpdateStatusPaneCaretPos, OnUpdateStatusPaneCaretPos)
     ON_MESSAGE(UWM::Edit::RefreshLexer, OnRefreshLexer)
     ON_REGISTERED_MESSAGE(_ScintillaMsgFindReplace, OnFindReplaceCmd)
+    ON_COMMAND(ID_COMMENT_LINE, OnCommentLine)
+    ON_UPDATE_COMMAND_UI(ID_COMMENT_LINE, OnUpdateCommentLine)
 END_MESSAGE_MAP()
 
 
@@ -38,8 +34,7 @@ LogicCtrl::LogicCtrl()
         m_bChangeFindRange(FALSE),
         m_lInitialSearchPos(0),
         m_modified(false),
-        m_nCtxMenuId(0),
-        m_bAutoComplete(false),
+        m_autoCompleteActive(false),
         m_replacedCEdit(false),
         m_logicTooltips(nullptr)
 {
@@ -86,7 +81,7 @@ bool LogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_ev
     const LexerProperties::Properties& properties = LexerProperties::GetProperties(lexer_language);
 
     for( size_t i = 0; i < properties.keywords.size(); ++i )
-        SetKeyWords(i, properties.keywords[i].c_str());
+        SetKeyWords(int32_cast(i), properties.keywords[i].c_str());
 
     m_logicTooltips = properties.logic_tooltips.get();
 
@@ -109,7 +104,8 @@ bool LogicCtrl::ToggleLexer(const int lexer_language, const bool force_toggle_ev
 }
 
 
-void LogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers, std::optional<int> lexer_language/* = std::nullopt*/)
+void LogicCtrl::InitLogicControl(const bool show_line_numbers, const bool show_error_markers,
+                                 std::optional<int> lexer_language/* = std::nullopt*/)
 {
     // if not specified, send a message to get the lexer language, using the default for logic if the message is not handled
     if( !lexer_language.has_value() )
@@ -120,25 +116,22 @@ void LogicCtrl::InitLogicControl(bool show_line_numbers, bool show_error_markers
 
     BaseInitControl(*lexer_language);
 
-    const int LineNumberMargin = 0;
-    const int MarkerMargin = 1;
-    const int MarkerWidth = 16;
+    const int margins_needed =
+        show_error_markers ? ( MarginProperties::MarkerMargin + 1 ) :
+        show_line_numbers  ? ( MarginProperties::LineNumberMargin + 1 ) :
+                             0;
 
-    int margins_needed = show_error_markers ? ( MarkerMargin + 1 ) :
-                         show_line_numbers  ? ( LineNumberMargin + 1 ) :
-                                              0;
-
-    if( GetMargins() < margins_needed )
+    if( GetMargins() != margins_needed )
         SetMargins(margins_needed);
 
     // optionally make room for line numbers
-    SetMarginWidthN(LineNumberMargin, show_line_numbers ? TextWidth(STYLE_LINENUMBER, "_9999") : 0);
+    SetMarginWidthN(MarginProperties::LineNumberMargin, show_line_numbers ? TextWidth(STYLE_LINENUMBER, "_9999") : 0);
 
     if( show_line_numbers )
         StyleSetFore(STYLE_LINENUMBER, RGB(128, 128, 128));
 
     // optionally make room for error and warning markers
-    SetMarginWidthN(MarkerMargin, show_error_markers ? MarkerWidth : 0);
+    SetMarginWidthN(MarginProperties::MarkerMargin, show_error_markers ? MarginProperties::MarkerWidth : 0);
 
     if( show_error_markers )
     {
@@ -394,38 +387,6 @@ void LogicCtrl::DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_s
 }
 
 
-void LogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    // for invoking the reference window with Ctrl+Alt+Click or Ctrl+Click
-
-    if( ( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) >= 0 ) && ProcessClicksForReferenceWindow() )
-    {
-        // override the handling of any change of position so that nothing get selected
-        int current_position = CharPositionFromPoint(point.x, point.y);
-
-        if( current_position >= 0 )
-        {
-            GotoPos(current_position);
-
-            int message_type = ( GetKeyState(VK_MENU) < 0 ) ? ZEDITO_LOGIC_REFERENCE : ZEDITO_LOGIC_REFERENCE_GOTO;
-            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, message_type, (LPARAM)this);
-
-            return;
-        }
-    }
-
-    __super::OnLButtonDown(nFlags, point);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void LogicCtrl::OnRButtonDown(UINT nFlags, CPoint point)
-{
-    __super::OnRButtonDown(nFlags, point);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
 void LogicCtrl::SetLineIndentation(_In_ int line, _In_ int indentation)
 {
     if (indentation < 0)
@@ -477,7 +438,7 @@ void LogicCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     if ((char)nChar == '\r' || (char)nChar == '\n') {
         if (IsAutoCompleteActive()) {
-            SetAutoComplete(false);
+            SetAutoCompleteActive(false);
             return;
         }
         Sci_Position nPos = GetCurrentPos();
@@ -597,7 +558,6 @@ void LogicCtrl::Cut()
     Clear();
 
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
@@ -1076,26 +1036,39 @@ void LogicCtrl::OnGoToLine()
 }
 
 
-void LogicCtrl::OnContextMenu(CWnd* pWnd, CPoint point)
+void LogicCtrl::OnContextMenu(CWnd* const pWnd, CPoint point)
 {
-    if (m_nCtxMenuId > 0) {
-        if (point.x < 0 || point.y < 0) {
-            point.x = point.y = 5;
-            ClientToScreen(&point);
-        }
+    const UINT evaluated_id =
+        m_contextMenuId.has_value() ? *m_contextMenuId :
+        GetReadOnly()               ? IDR_READ_ONLY_EDIT :
+                                      IDR_EDIT;
 
-        CMenu menu;
-        if (menu.LoadMenu(m_nCtxMenuId)) {
-            CMenu* pPopup = menu.GetSubMenu(0);
-            ASSERT(pPopup != NULL);
-            UpdatePopupMenu(this, pPopup);
-
-            pPopup->TrackPopupMenu(TPM_RIGHTBUTTON | TPM_LEFTALIGN, point.x, point.y,this);
-        }
-    }
-    else {
+    if( evaluated_id == 0 )
+    {
         __super::OnContextMenu(pWnd, point);
+        return;
     }
+
+    CMenu menu;
+
+    if( !menu.LoadMenu(evaluated_id) )
+    {
+        ASSERT(false);
+        return;
+    }
+
+    CMenu* pPopup = menu.GetSubMenu(0);
+    ASSERT(pPopup != nullptr);
+
+    UpdatePopupMenu(this, pPopup);
+
+    if( point.x < 0 || point.y < 0 )
+    {
+        point.x = point.y = 5;
+        ClientToScreen(&point);
+    }
+
+    pPopup->TrackPopupMenu(TPM_RIGHTBUTTON | TPM_LEFTALIGN, point.x, point.y,this);
 }
 
 
@@ -1144,44 +1117,12 @@ void LogicCtrl::UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu)
 }
 
 
-LRESULT LogicCtrl::OnUpdateStatusPaneCaretPos(WPARAM wParam, LPARAM /*lParam*/)
+CPoint LogicCtrl::GetCaretPoint()
 {
-    bool force_update = ( wParam != 0 );
+    const Scintilla::Position pos = GetCurrentPos();
 
-    CString str;
-
-    if( force_update || ::GetFocus() == this->GetSafeHwnd() )
-    {
-        Sci_Position pos = GetCurrentPos();
-        int line = LineFromPosition(pos) + 1; // one-based
-        int column = GetColumn(pos) + 1;
-        str.Format(_T("Ln %d, Col %d"), line, column);
-    }
-
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)str.GetString());
-
-    return 0;
-}
-
-
-void LogicCtrl::OnKillFocus(CWnd* pNewWnd)
-{
-    __super::OnKillFocus(pNewWnd);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void LogicCtrl::OnSetFocus(CWnd* pOldWnd)
-{
-    __super::OnSetFocus(pOldWnd);
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void LogicCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-    __super::OnKeyDown(nChar, nRepCnt, nFlags);
-    OnUpdateStatusPaneCaretPos();
+    return CPoint(int32_cast(PointXFromPosition(pos)),
+                  int32_cast(PointYFromPosition(pos)));
 }
 
 
@@ -1204,7 +1145,6 @@ void LogicCtrl::DuplicateLineOrSelection()
                           SelectionDuplicate();
 
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
@@ -1213,11 +1153,10 @@ void LogicCtrl::DeleteLine()
     LineDelete();
 
     SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
-void LogicCtrl::CommentCode() // 20101215
+void LogicCtrl::OnCommentLine() // 20101215
 {
     int selectionBufferLength = Scintilla::CScintillaCtrl::GetSelText(NULL);
     bool bResetSelection = true;
@@ -1354,408 +1293,20 @@ void LogicCtrl::CommentCode() // 20101215
 }
 
 
-void LogicCtrl::FormatLogic() // 20101208
+void LogicCtrl::OnUpdateCommentLine(CCmdUI* const pCmdUI)
 {
-    const std::wstring logic = UTF8_TODO::GetWide(GetText());
-    CString formattedLogic;
+    bool enable = !GetReadOnly();
 
-    // format the logic, using these rules
-    //      Indent code
-    //      Trim trailing spaces
-    //      Convert spaces at beginning into tabs
-    //      Must be at least two blank lines between functions, procs
-
-    const TCHAR* const zeroTabWords[] = { _T("proc"), _T("function"), _T("preproc"), _T("postproc"), _T("onfocus"), _T("killfocus"), _T("onoccchange") };
-    const TCHAR* const addTabWords[] = { _T("if"), _T("do"), _T("for"), _T("while"), _T("elseif"), _T("else") };
-    const TCHAR* const removeTabWords[] = { _T("end"), _T("enddo"), _T("endfor"), _T("endif") };
-    const int numZeroTabWords = 7, numAddTabWords = 6, numRemoveTabWords = 4;
-
-    const bool use_old_multiline_comments = ( GetLexer() == SCLEX_CSPRO_LOGIC_V0 );
-    const std::string_view multiline_comment_start_sv = use_old_multiline_comments ? CommentStrings::MultilineOldStart_sv : CommentStrings::MultilineNewStart_sv;
-    const std::string_view multiline_comment_end_sv = use_old_multiline_comments ? CommentStrings::MultilineOldEnd_sv : CommentStrings::MultilineNewEnd_sv;
-
-    int curTabPos = 0;
-    int prevSpaceCnt = 0;
-    int prevShift = 0;
-    int prevBlankLines = 0;
-    bool lastWordWasAnIndentation = false;
-    bool firstKeyword = true;
-    bool addedNewline = false;
-
-    bool moreLines = true;
-    size_t curPos = 0;
-
-    int numMultilineComments = 0;
-    bool inComment = false;
-
-    while (moreLines)
+    if( enable )
     {
-        CString line;
-
-        // get a line from the text
-        while (curPos < logic.length() && logic[curPos] != '\r')
-        {
-            line.AppendChar(logic[curPos]);
-            curPos++;
-        }
-
-        // advance past the new line
-        if (curPos < logic.length() && logic[curPos] == '\r')
-            curPos++;
-
-        if (curPos < logic.length() && logic[curPos] == '\n')
-            curPos++;
-
-        if (curPos >= logic.length())
-            moreLines = false;
-
-        CString tempLine = line;
-
-        if (!tempLine.Trim().IsEmpty())
-        {
-            // 20101209 i initially programmed this to only analyze the first word on the line, but i'm now changing it
-            // to analyze all words on the line (because if .... endif; lines were getting formatted poorly)
-
-            int numSpacesBeforeFirstWord = 0;
-
-            int linePos = 0;
-
-            for (; linePos < line.GetLength(); linePos++)
-            {
-                if (line[linePos] == ' ')
-                    numSpacesBeforeFirstWord++;
-
-                else if (line[linePos] == '\t')
-                    numSpacesBeforeFirstWord += 4;
-
-                else
-                    break;
-            }
-
-            auto match_multiline_comment = [&](const std::string_view multiline_comment_sv, const wstring_view line_sv, const int line_pos)
-            {
-                return ( ( line_pos + multiline_comment_sv.length() ) <= line_sv.length() &&
-                         line_sv.substr(line_pos).starts_with(UTF8_TODO::GetWide(multiline_comment_sv)) );
-            };
-
-
-            // remove the comments from the temp line
-            if (inComment)
-            {
-                linePos = 0;
-
-                while (linePos < tempLine.GetLength())
-                {
-                    if (match_multiline_comment(multiline_comment_start_sv, tempLine, linePos))
-                    {
-                        inComment = true;
-                        numMultilineComments++;
-                        linePos += multiline_comment_start_sv.length();
-                    }
-
-                    else if (numMultilineComments > 0 && match_multiline_comment(multiline_comment_end_sv, tempLine, linePos))
-                    {
-                        numMultilineComments--;
-                        linePos += multiline_comment_end_sv.length();
-
-                        if (numMultilineComments == 0) // comment has now ended
-                        {
-                            inComment = false;
-                            break;
-                        }
-                    }
-
-                    else
-                    {
-                        linePos++;
-                    }
-                }
-
-                tempLine = tempLine.Mid(linePos).Trim();
-            }
-
-            // now get rid of any future comments in the string, as well as strings
-            TCHAR prevChar = 0;
-            bool inSingleQuote = false;
-            bool inDoubleQuote = false;
-            int startCommentPos = 0;
-            int startQuotePos = 0;
-
-            for (int i = 0; i < tempLine.GetLength(); i++)
-            {
-                if (!inComment && !inSingleQuote && !inDoubleQuote && prevChar == '/' && tempLine[i] == '/')
-                {
-                    tempLine = tempLine.Left(i - 1);
-                    break;
-                }
-
-                else if (!inSingleQuote && !inDoubleQuote && match_multiline_comment(multiline_comment_start_sv, tempLine, i))
-                {
-                    inComment = true;
-                    numMultilineComments++;
-
-                    if (numMultilineComments == 1)
-                        startCommentPos = i;
-
-                    i += ( multiline_comment_start_sv.length() - 1 );
-                }
-
-                else if (!inSingleQuote && !inDoubleQuote && numMultilineComments > 0 && match_multiline_comment(multiline_comment_end_sv, tempLine, i))
-                {
-                    numMultilineComments--;
-
-                    i += ( multiline_comment_end_sv.length() - 1 );
-
-                    if (numMultilineComments == 0) // comment has now ended
-                    {
-                        inComment = false;
-                        tempLine = tempLine.Left(startCommentPos) + tempLine.Mid(i + 1);
-                        i = -1;
-                        continue; // start processing the string from the beginning (now that one group of comments has been removed)
-                    }
-                }
-
-                else if (!inComment && tempLine[i] == '\'')
-                {
-                    if (!inSingleQuote && !inDoubleQuote)
-                    {
-                        inSingleQuote = true;
-                        startQuotePos = i;
-                    }
-
-                    else if (inSingleQuote)
-                    {
-                        inSingleQuote = false;
-                        tempLine = tempLine.Left(startQuotePos) + tempLine.Mid(i + 1);
-                        i = -1;
-                        continue; // start processing the string from the beginning (now that one group of comments has been removed)
-                    }
-                }
-
-                else if (!inComment && tempLine[i] == '"')
-                {
-                    if (!inSingleQuote && !inDoubleQuote)
-                    {
-                        inDoubleQuote = true;
-                        startQuotePos = i;
-                    }
-
-                    else if (inDoubleQuote)
-                    {
-                        inDoubleQuote = false;
-                        tempLine = tempLine.Left(startQuotePos) + tempLine.Mid(i + 1);
-                        i = -1;
-                        continue; // start processing the string from the beginning (now that one group of comments has been removed)
-                    }
-                }
-
-                prevChar = tempLine[i];
-            }
-
-            if (inComment)
-                tempLine = tempLine.Left(startCommentPos);
-
-            else if (inSingleQuote || inDoubleQuote) // (this case wouldn't compile correctly)
-                tempLine = tempLine.Left(startQuotePos);
-
-            // now tempLine contains the line of code without any comments or strings
-
-            CString formattedLine;
-
-            bool foundMatch = false;
-            bool addTabAfterPrint = false;
-
-            addedNewline = false;
-
-            // process all potential keywords
-            linePos = 0;
-
-            TCHAR prevNonWhitespaceChar = 0; // 20101230
-
-            while (linePos < tempLine.GetLength())
-            {
-                CString word;
-
-                if (linePos < tempLine.GetLength() && _istalpha(tempLine[linePos]))
-                {
-                    // 20101216 modified because variable names like hello_for were getting read as for statements
-                    while (linePos < tempLine.GetLength() && (_istalnum(tempLine[linePos]) || tempLine[linePos] == '_'))
-                        // while( linePos < tempLine.GetLength() && isalpha(tempLine[linePos]) )
-                    {
-                        word.AppendChar(tempLine[linePos]);
-                        linePos++;
-                    }
-                }
-
-                else // read all non-word characters
-                {
-                    while (linePos < tempLine.GetLength() && !_istalpha(tempLine[linePos]))
-                    {
-                        TCHAR thisChar = tempLine[linePos];
-
-                        if (thisChar != ' ' && thisChar != '\t' && thisChar != '\r' && thisChar != '\n') // 20101230
-                            prevNonWhitespaceChar = thisChar;
-
-                        linePos++;
-                    }
-                }
-
-                if (!word.IsEmpty()) // see if this is a valid keyword
-                {
-                    for (int i = 0; i < numZeroTabWords; i++)
-                    {
-                        if (!word.CompareNoCase(zeroTabWords[i]))
-                        {
-                            curTabPos = 0;
-                            foundMatch = true;
-                            addTabAfterPrint = true;
-
-                            if (i == 0 && tempLine.Find(_T("GLOBAL")) >= 0) // we're still in PROC GLOBAL (or the user unfortunately has a variable with GLOBAL in the name)
-                                addTabAfterPrint = false;
-
-                            if (firstKeyword)
-                                firstKeyword = false;
-
-                            // make sure that PROCs and functions (after the first one, PROC GLOBAL, have spacing above them)
-                            else if (i == 0 || i == 1)
-                            {
-                                for (int j = prevBlankLines; j < 2; j++)
-                                    formattedLine.AppendChar('\n');
-                            }
-
-                            // preproc, postproc, onfocus, and killfocus must also have spacing above them, though only 1 line will be required
-                            else if (!prevBlankLines) {
-                                formattedLine.AppendChar('\n');
-                            }
-
-                            if (i != 1) // for everything but a function, force there to be at least one empty line between the start of the code
-                                addedNewline = true;
-                        }
-                    }
-
-                    for (int i = 0; i < numAddTabWords; i++)
-                    {
-                        if (!word.CompareNoCase(addTabWords[i]))
-                        {
-                            if (i == 1 && prevNonWhitespaceChar == ',')
-                                ;   // 20101230 format logic wasn't working with the do used in the userbar,
-                                    // which will have a comma preceding the do word
-
-                            else
-                            {
-                                foundMatch = true;
-                                addTabAfterPrint = true;
-
-                                if (i == 4 || i == 5) // for elseif and else we must remove the tab for this line but insert it on the next line
-                                    curTabPos = std::max(0, curTabPos - 1);
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < numRemoveTabWords; i++)
-                    {
-                        if (!word.CompareNoCase(removeTabWords[i]))
-                        {
-                            if (addTabAfterPrint)
-                                addTabAfterPrint = false; // this makes sense for lines where if and endif are on the same line
-
-                            else
-                            {
-                                curTabPos--;
-
-                                if (curTabPos < 0)
-                                    curTabPos = 0;
-                            }
-
-                            foundMatch = true;
-                        }
-                    }
-
-                    prevNonWhitespaceChar = word[word.GetLength() - 1];
-                }
-            }
-
-            if (foundMatch)
-            {
-                prevShift = 0;
-                prevSpaceCnt = 0;
-            }
-
-            if (!foundMatch) // then we see how the number of spaces compared to the previous line and we adjust accordingly
-            {
-                prevShift = prevShift + (numSpacesBeforeFirstWord - prevSpaceCnt);
-
-                if (prevShift < 0)
-                    prevShift = 0;
-
-                prevSpaceCnt = numSpacesBeforeFirstWord;
-            }
-
-            if (lastWordWasAnIndentation)
-                prevShift = 0;
-
-            for (int i = 0; i < curTabPos; i++)
-                formattedLine.AppendChar('\t');
-
-            for (int i = 0; i < (prevShift / 4); i++)
-                formattedLine.AppendChar('\t');
-
-            for (int i = 0; i < (prevShift % 4); i++)
-                formattedLine.AppendChar(' ');
-
-            formattedLine.Append(line.Trim());
-
-            formattedLogic.Append(formattedLine);
-            //formattedLogic.AppendChar('\r');
-            formattedLogic.AppendChar('\n');
-
-            if (!foundMatch && lastWordWasAnIndentation)
-                prevSpaceCnt = numSpacesBeforeFirstWord;
-
-            lastWordWasAnIndentation = false;
-
-            if (foundMatch)
-            {
-                if (addTabAfterPrint)
-                {
-                    curTabPos++;
-                    lastWordWasAnIndentation = true;
-                }
-
-                prevSpaceCnt = 4 * curTabPos;
-            }
-
-            if (addedNewline)
-            {
-                //formattedLogic.AppendChar('\r');
-                formattedLogic.AppendChar('\n');
-                prevBlankLines = 1;
-            }
-
-            else
-                prevBlankLines = 0;
-        }
-
-
-        else if (!formattedLogic.IsEmpty()) // don't allow newlines at the very beginning of the buffer
-        {
-            if (!addedNewline)
-            {
-                formattedLogic.AppendChar('\n');
-                prevBlankLines++;
-            }
-
-            addedNewline = false;
-        }
+        const int lexer_language = GetLexer();
+
+        enable = ( Lexers::IsCSProLogic(lexer_language) ||
+                   Lexers::IsCSProMessage(lexer_language) ||
+                   lexer_language == SCLEX_JAVASCRIPT );
     }
 
-    if (prevBlankLines < 2) {
-        formattedLogic.AppendChar('\n');
-    }
-
-    formattedLogic.Replace(_T("\n"), _T("\r\n")); //For scintilla
-    SetText(UTF8_TODO::GetUtf8(formattedLogic));
-    SetModified(); // 20120125 logic file wasn't getting set as modified
+    pCmdUI->Enable(enable);
 }
 
 
@@ -1828,55 +1379,16 @@ BOOL LogicCtrl::PreTranslateMessage(MSG* pMsg)
                 case 'C':
                     PostMessage(WM_COMMAND, 13); // copy
                     return TRUE;
+
+                // Ctrl + /
+                case VK_OEM_2:
+                    PostMessage(WM_COMMAND, ID_COMMENT_LINE);
+                    return TRUE;
             }
         }
     }
 
     return __super::PreTranslateMessage(pMsg);
-}
-
-
-void LogicCtrl::SetFolding(std::optional<bool> fold_procs/* = std::nullopt*/)
-{
-    const int FoldingMargin = 2;
-    ASSERT(GetMargins() >= FoldingMargin);
-
-    bool enable_folding = ( CodeMenu::CodeFolding::GetLevel() != CodeMenu::CodeFolding::Level::None );
-
-    if( m_foldingEnabled != enable_folding )
-    {
-        m_foldingEnabled = enable_folding;
-
-        SetMarginWidthN(FoldingMargin, *m_foldingEnabled ? 16 : 0);
-        SetIdleStyling(*m_foldingEnabled ? Scintilla::IdleStyling::AfterVisible : Scintilla::IdleStyling::None);
-
-        if( *m_foldingEnabled )
-        {
-            SetMarginSensitiveN(FoldingMargin, TRUE);
-            SetMarginTypeN(FoldingMargin, Scintilla::MarginType::Symbol);
-            SetMarginMaskN(FoldingMargin, Scintilla::MaskFolders);
-
-            DefineMarker(SC_MARKNUM_FOLDEROPEN, Scintilla::MarkerSymbol::BoxMinus, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDER, Scintilla::MarkerSymbol::BoxPlus, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDERSUB, Scintilla::MarkerSymbol::VLine, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDERTAIL, Scintilla::MarkerSymbol::LCorner, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDEREND, Scintilla::MarkerSymbol::BoxPlusConnected, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDEROPENMID, Scintilla::MarkerSymbol::BoxMinusConnected, RGB(255, 255, 255), RGB(0, 0, 0));
-            DefineMarker(SC_MARKNUM_FOLDERMIDTAIL, Scintilla::MarkerSymbol::TCorner, RGB(255, 255, 255), RGB(0, 0, 0));
-        }
-
-        else
-        {
-            // when folding is being turned off, expand any folded blocks
-            FoldAll(Scintilla::FoldAction::Expand);
-        }
-    }
-
-    SetSCIProperty(_T("fold"), *m_foldingEnabled ? _T("1") : _T("0"));
-    SetSCIProperty(_T("fold.blocks"), ( CodeMenu::CodeFolding::GetLevel() == CodeMenu::CodeFolding::Level::All ) ? _T("1") : _T("0"));
-
-    if( fold_procs.has_value() )
-        SetSCIProperty(_T("fold.procs"), *fold_procs ? _T("1") : _T("0"));
 }
 
 

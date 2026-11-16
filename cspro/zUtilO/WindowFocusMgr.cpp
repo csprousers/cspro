@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: WindowFocusMgr.h
 //
 //  Description:
@@ -10,8 +10,13 @@
 #include "StdAfx.h"
 #include "WindowFocusMgr.h"
 #include <zUtilO/ArrUtil.h>
+#include <afxtabctrl.h>
 
-// destructor
+
+// --------------------------------------------------------------------------
+// CWindowFocusMgr
+// --------------------------------------------------------------------------
+
 CWindowFocusMgr::~CWindowFocusMgr()
 {
     // delete all the switchers
@@ -61,8 +66,8 @@ void CWindowFocusMgr::AddSwitcher(CWindowFocusSwitcher* pSwitcher)
 // set focus to next window in list (assumes list has been populated already)
 void CWindowFocusMgr::OnNextWindow()
 {
-    const int iFocus = GetFocusWndIndex();
-    int iNewFocus;
+    const INT_PTR iFocus = GetFocusWndIndex();
+    INT_PTR iNewFocus;
     if (iFocus == -1) {
         iNewFocus = 0;
     }
@@ -80,8 +85,8 @@ void CWindowFocusMgr::OnNextWindow()
 // set focus to previous window in list (assumes list has been populated already)
 void CWindowFocusMgr::OnPrevWindow()
 {
-    const int iFocus = GetFocusWndIndex();
-    int iNewFocus;
+    const INT_PTR iFocus = GetFocusWndIndex();
+    INT_PTR iNewFocus;
     if (iFocus == -1) {
         iNewFocus = 0;
     }
@@ -150,9 +155,7 @@ void CWindowFocusMgr::FindFocusCandidatesRec(CWnd* pWnd, CWindowFocusSwitcher* p
         return;
     }
 
-    CString sOutput;
-    sOutput.Format(_T("%p  %s\n"), (LPARAM)pWnd->m_hWnd, (LPCTSTR)pWnd->GetRuntimeClass()->m_lpszClassName);
-    OutputDebugString(sOutput);
+    TRACE("%p  %s\n", (LPARAM)pWnd->m_hWnd, pWnd->GetRuntimeClass()->m_lpszClassName);
 
     if (bMatch) {
         // it is a match - add window to list of candidates and don't bother to search children
@@ -184,11 +187,72 @@ int CWindowFocusMgr::GetFocusWndIndex() const
 
 // Set focus to the candidate in the list at index i.
 // Just defers the call to the switcher associated with the window
-void CWindowFocusMgr::SetNewFocusWnd(int i)
+void CWindowFocusMgr::SetNewFocusWnd(INT_PTR i)
 {
     ASSERT(i >= 0 && i < m_aFocusWindows.GetCount());
     CWnd* pNewFocus = m_aFocusWindows.GetAt(i);
     CWindowFocusSwitcher* pSwitcher = m_aSwitchers.GetAt(m_aWndSwitcherIndices.GetAt(i));
     pSwitcher->SetFocus(pNewFocus);
 
+}
+
+
+
+// --------------------------------------------------------------------------
+// CViewFocusSwitcher
+// --------------------------------------------------------------------------
+
+void CViewFocusSwitcher::FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd)
+{
+    // find all CView derived windows that are descendants of
+    // pAppMainWnd and add them to candidate list.
+    CFrameWnd* pMainFrame = DYNAMIC_DOWNCAST(CFrameWnd, pAppMainWnd);
+    pMgr->AddWindowsRec(pMainFrame->GetActiveFrame(), this);
+}
+
+
+bool CViewFocusSwitcher::MatchWindow(CWnd* pWnd) const
+{
+    // match any window derived from CView
+    return pWnd->IsKindOf(RUNTIME_CLASS(CView));
+}
+
+
+void CViewFocusSwitcher::SetFocus(CWnd* pWnd)
+{
+    ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CView)));
+    CView* pNewFocusView = DYNAMIC_DOWNCAST(CView, pWnd);
+
+    // find first CFrameWnd ancestor for the view (not always a direct parent)
+    CWnd* pParent = pWnd->GetParent();
+    while (pParent && !pParent->IsKindOf(RUNTIME_CLASS(CFrameWnd))) {
+        pParent = pParent->GetParent();
+    }
+
+    // make the the active view for the CFrameWnd found.
+    if (pParent && pParent->IsKindOf(RUNTIME_CLASS(CFrameWnd))) {
+        CFrameWnd* pParentFrame = DYNAMIC_DOWNCAST(CFrameWnd, pParent);
+        pParentFrame->SetActiveView(pNewFocusView, FALSE);
+    }
+
+    // set focus to the view
+    pNewFocusView->SetFocus();
+}
+
+
+bool CViewFocusSwitcher::MustBeVisible() const
+{
+    return true;
+}
+
+
+
+// --------------------------------------------------------------------------
+// ViewIgnoringTabbedViewsFocusSwitcher
+// --------------------------------------------------------------------------
+
+bool ViewIgnoringTabbedViewsFocusSwitcher::MatchWindow(CWnd* pWnd) const
+{
+    return ( __super::MatchWindow(pWnd) &&
+             !pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(CMFCTabCtrl)) );
 }

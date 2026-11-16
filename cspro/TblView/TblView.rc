@@ -184,7 +184,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "Copy Cells Onl&y",            ID_EDIT_COPYCELLSONLY
-        MENUITEM "Select A&ll\tCtrl+A",         ID_SELECTALL
+        MENUITEM "Select A&ll\tCtrl+A",         ID_EDIT_SELECT_ALL
         MENUITEM "Canc&el Selection\tEsc",      ID_DESELECTALL
         MENUITEM SEPARATOR
         MENUITEM "&Preferences",                ID_EDIT_TBL_OPTIONS
@@ -248,7 +248,7 @@ BEGIN
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, SHIFT, CONTROL, NOINVERT
 END
 
@@ -266,8 +266,7 @@ BEGIN
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE_AS_VIEWER, VIRTKEY, CONTROL, NOINVERT
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
-    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
-    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     VK_HOME,        ID_VIEW_FIRST_PAGE,     VIRTKEY, ALT, NOINVERT
     "J",            ID_VIEW_FULLSCREEN,     VIRTKEY, CONTROL, NOINVERT
     VK_END,         ID_VIEW_LAST_PAGE,      VIRTKEY, ALT, NOINVERT
@@ -278,7 +277,6 @@ BEGIN
     VK_LEFT,        ID_VIEW_PREVIOUS_TABLE, VIRTKEY, SHIFT, ALT, NOINVERT
     VK_OEM_PLUS,    ID_VIEW_ZOOM_IN,        VIRTKEY, CONTROL, NOINVERT
     VK_OEM_MINUS,   ID_VIEW_ZOOM_OUT,       VIRTKEY, CONTROL, NOINVERT
-    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
 END
 
 
@@ -294,11 +292,11 @@ BEGIN
     LTEXT           "TODO: layout dialog bar ",IDC_STATIC,12,4,300,8
 END
 
-IDD_DIALOGBAR DIALOGEX 0, 0, 173, 182
-STYLE DS_SETFONT | WS_CHILD | WS_CAPTION
+IDD_DIALOGBAR DIALOGEX 0, 0, 185, 109
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    CONTROL         "Tree1",IDC_TABLETREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_TABSTOP,3,1,167,179,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+    CONTROL         "Tree1",IDC_TABLETREE,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,2,2,175,96,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
 END
 
 
@@ -462,7 +460,7 @@ BEGIN
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
     ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
     ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_SELECT_ALL      "Select the entire table\nSelect All"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
@@ -511,7 +509,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_SELECTALL            "Select the entire table"
     ID_DESELECTALL          "Cancel the current selection"
 END
 

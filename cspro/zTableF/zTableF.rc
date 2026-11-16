@@ -9,6 +9,7 @@
 //
 #include "resource_shared.h"
 #include "../zUtilF/resource_shared.h"
+#include "../zEditO/resource_shared.h"
 #include "../zDesignerF/resource_shared.h"
 #include "afxres.h"
 
@@ -37,6 +38,7 @@ END
 BEGIN
     "#include ""resource_shared.h""\r\n"
     "#include ""../zUtilF/resource_shared.h""\r\n"
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zDesignerF/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -122,7 +124,7 @@ BEGIN
         MENUITEM "&Load Preferences...",        ID_TOOLS_IMPORTTFT
         MENUITEM "Save Preferences...",         ID_TOOLS_EXPORTTFT
         MENUITEM SEPARATOR
-        MENUITEM "&Run...\tCtrl+R",             ID_RUNTAB
+        MENUITEM "&Run...\tCtrl+R",             ID_RUN
         MENUITEM "Run &in Parts...",            ID_RUN_PCS
         MENUITEM SEPARATOR
         MENUITEM "Page Set&up...",              ID_EDIT_TBL_PRINTFMT
@@ -154,7 +156,7 @@ BEGIN
         MENUITEM "Copy Table &Spec",            ID_EDIT_COPYTABLESTRUCTURE
         MENUITEM "Paste Table Spec",            ID_EDIT_PASTETABLE
         MENUITEM SEPARATOR
-        MENUITEM "Select A&ll\tCtrl+A",         ID_SELECTALL
+        MENUITEM "Select A&ll\tCtrl+A",         ID_EDIT_SELECT_ALL
         MENUITEM "Cancel Selec&tion\tEsc",      ID_DESELECTALL
         MENUITEM SEPARATOR
         MENUITEM "E&xclude Table from Run",     ID_EDIT_TABLE_EXCLUDE
@@ -163,9 +165,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Preferences",                ID_EDIT_TBL_OPTIONS
         MENUITEM SEPARATOR
-        MENUITEM "&Find...\tCtrl+F",            ID_TBL_EDIT_FIND
-        MENUITEM "Find &Next \tF3",             ID_FIND_NEXT
-        MENUITEM "R&eplace...\tCtrl+H",         ID_REPLACE
+        MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
+        MENUITEM "Find &Next \tF3",             ID_EDIT_REPEAT
+        MENUITEM "R&eplace...\tCtrl+H",         ID_EDIT_REPLACE
         MENUITEM "Generate Logic",              ID_EDIT_GENERATELOGIC
     END
     POPUP "&View"
@@ -257,6 +259,22 @@ BEGIN
     END
 END
 
+IDR_TABLE_LOGIC_EDITOR MENU
+BEGIN
+    POPUP "0"
+    BEGIN
+        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
+        MENUITEM SEPARATOR
+        MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "View Table",                  ID_VIEW_TABLE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -275,7 +293,7 @@ BEGIN
     BUTTON      ID_VIEW_PAGEPRINTVIEW
     BUTTON      ID_FILE_PRINT
     SEPARATOR
-    BUTTON      ID_RUNTAB
+    BUTTON      ID_RUN
     SEPARATOR
     BUTTON      ID_ADD_TABLE
     BUTTON      ID_INSERT_TABLE
@@ -365,6 +383,7 @@ IDI_XTBLOG              ICON                    "Res\\xtblog.ico"
 
 IDR_TABLE_FRAME ACCELERATORS
 BEGIN
+    VK_OEM_2,       ID_COMMENT_LINE,        VIRTKEY, CONTROL, NOINVERT
     "A",            ID_AREA,                VIRTKEY, ALT, NOINVERT
     "L",            ID_CHANGE_LANGUAGE,     VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F1,          ID_CONTEXT_HELP,        VIRTKEY, SHIFT, NOINVERT
@@ -379,17 +398,15 @@ BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_FIND_NEXT,           VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
     VK_F1,          ID_HELP,                VIRTKEY, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    "H",            ID_REPLACE,             VIRTKEY, CONTROL, NOINVERT
-    "R",            ID_RUNTAB,              VIRTKEY, CONTROL, NOINVERT
-    "A",            ID_SELECTALL,           VIRTKEY, CONTROL, NOINVERT
-    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
-    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
-    "K",            ID_TBL_COMPILE,         VIRTKEY, CONTROL, NOINVERT
-    "F",            ID_TBL_EDIT_FIND,       VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_RUN,                 VIRTKEY, CONTROL, NOINVERT
+    "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
+    "K",            ID_COMPILE,             VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     VK_HOME,        ID_VIEW_FIRST_PAGE,     VIRTKEY, ALT, NOINVERT
     VK_END,         ID_VIEW_LAST_PAGE,      VIRTKEY, ALT, NOINVERT
     "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
@@ -1347,14 +1364,10 @@ BEGIN
     ID_EDIT_VAR_TALLYATTRIB "Edit percent, statistics, or display properties for the given variable\nEdit Item Properties"
     ID_EDIT_VAR_TALLYATTRIB1 "Edit Tally attributes"
     ID_FILE_SAVE_TABLE      "Save the CSPro tables\nSave Tables"
-    ID_FIND_NEXT            "Find the next occurrence of the specified text "
     ID_INSERT_TABLE         "Insert a new table into the table set\nInsert Table"
     ID_PRTVIEW_PAGENUM      "Indicates the current page"
-    ID_REPLACE              "Replace the specified text with different text "
     ID_RUN_PCS              "Run separate tabulation modules"
-    ID_RUNTAB               "Run the tabulation\nRun"
-    ID_SELECTALL            "Select the entire table\nSelect All"
-    ID_TBL_EDIT_FIND        "Find the specified text\nFind"
+    ID_EDIT_SELECT_ALL      "Select the entire table\nSelect All"
     ID_TBL_RUN              "Run All Tabluation Modules"
 END
 
@@ -1372,9 +1385,9 @@ BEGIN
     ID_VIEW_PAGEPRINTVIEW   "Preview the printing of the active document\nPrint Preview"
     ID_VIEW_PREV_PAGE       "Go to previous page"
     ID_VIEW_PREVIOUS_TABLE  "Move backwards through the table set\nPrevious Table"
-    ID_VIEW_TAB_LOGIC       "View Logic \n View Logic "
-    ID_VIEW_TABLE           "View Table \n View Table"
-    ID_VIEW_ZOOM            "Zoom \n Zoom"
+    ID_VIEW_TAB_LOGIC       "View Logic\nView Logic "
+    ID_VIEW_TABLE           "View Table\nView Table"
+    ID_VIEW_ZOOM            "Zoom\nZoom"
     ID_VIEW_ZOOM_IN         "Increase zoom to view details\nZoom In"
 END
 
@@ -1416,6 +1429,9 @@ END
 STRINGTABLE
 BEGIN
     ID_EDIT_COPY            "Copy the selected cells and their correspond heads and stubs and put them on the Clipboard\nCopy"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
 END
 
 #endif    // English (United States) resources

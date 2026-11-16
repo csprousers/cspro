@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "../zUtilF/resource_shared.h"
+#include "../zEditO/resource_shared.h"
 #include "../zDesignerF/resource_shared.h"
 #include "afxres.h"
 
@@ -35,6 +36,7 @@ END
 2 TEXTINCLUDE 
 BEGIN
     "#include ""../zUtilF/resource_shared.h""\r\n"
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zDesignerF/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -116,8 +118,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Manage Credentials...",       ID_FILE_MANAGE_CREDENTIALS
         MENUITEM SEPARATOR
-        MENUITEM "Co&mpile\tCtrl+K",            ID_ORD_COMPILE
-        MENUITEM "&Run...\tCtrl+R",             ID_RUNBATCH
+        MENUITEM "Co&mpile\tCtrl+K",            ID_COMPILE
+        MENUITEM "&Run...\tCtrl+R",             ID_RUN
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
@@ -132,11 +134,11 @@ BEGIN
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
         MENUITEM SEPARATOR
-        MENUITEM "&Find\tCtrl+F",               ID_ORD_EDIT_FIND
-        MENUITEM "Find &Next\tF3",              ID_FIND_NEXT
-        MENUITEM "R&eplace\tCtrl+H",            ID_REPLACE
+        MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
+        MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
+        MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
         MENUITEM SEPARATOR
-        MENUITEM "Format Logic",                ID_LOGIC_FORMAT
+        MENUITEM "Format Logic",                ID_FORMAT_CSPRO_LOGIC
     END
     POPUP "&View"
     BEGIN
@@ -259,7 +261,7 @@ END
 
 IDR_ORDER_FRAME ACCELERATORS
 BEGIN
-    VK_OEM_2,       ID_COMMENT_CODE,        VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_2,       ID_COMMENT_LINE,        VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
@@ -271,20 +273,18 @@ BEGIN
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_FIND_NEXT,           VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
     "0",            ID_CODE_FOLDING_FOLD_ALL, VIRTKEY, ALT, NOINVERT
     "F",            ID_CODE_FOLDING_TOGGLE, VIRTKEY, CONTROL, ALT, NOINVERT
     "0",            ID_CODE_FOLDING_UNFOLD_ALL, VIRTKEY, SHIFT, ALT, NOINVERT
-    "K",            ID_ORD_COMPILE,         VIRTKEY, CONTROL, NOINVERT
-    "F",            ID_ORD_EDIT_FIND,       VIRTKEY, CONTROL, NOINVERT
-    "H",            ID_REPLACE,             VIRTKEY, CONTROL, NOINVERT
-    "R",            ID_RUNBATCH,            VIRTKEY, CONTROL, NOINVERT
-    "R",            ID_RUNBATCH,            VIRTKEY, SHIFT, CONTROL, NOINVERT
-    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
-    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
-    VK_F12,         ID_VIEW_GOTO_LOGIC_WORD, VIRTKEY, NOINVERT
+    "K",            ID_COMPILE,             VIRTKEY, CONTROL, NOINVERT
+    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
+    "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_RUN,                 VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_RUN,                 VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F12,         ID_GOTO_LOGIC_DECLARATION, VIRTKEY, NOINVERT
     "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
-    VK_F12,         ID_VIEW_PEEK_LOGIC_WORD, VIRTKEY, ALT, NOINVERT
+    VK_F12,         ID_SHOW_LOGIC_REFERENCE, VIRTKEY, ALT, NOINVERT
     VK_F5,          ID_VIEW_PREVIEW_TEXT_TEMPLATE, VIRTKEY, CONTROL, NOINVERT
     "L",            ID_VIEW_TOP_LOGIC,      VIRTKEY, SHIFT, CONTROL, NOINVERT
     VK_OEM_7,       ID_CODE_PASTE_STRING_LITERAL, VIRTKEY, CONTROL, NOINVERT
@@ -302,8 +302,8 @@ BEGIN
     BUTTON      ID_FILE_OPEN
     BUTTON      ID_FILE_CSPRO_SAVE
     SEPARATOR
-    BUTTON      ID_ORD_COMPILE
-    BUTTON      ID_RUNBATCH
+    BUTTON      ID_COMPILE
+    BUTTON      ID_RUN
     SEPARATOR
     BUTTON      ID_EDIT_UNDO
     BUTTON      ID_EDIT_REDO
@@ -311,7 +311,7 @@ BEGIN
     BUTTON      ID_EDIT_CUT
     BUTTON      ID_EDIT_COPY
     BUTTON      ID_EDIT_PASTE
-    BUTTON      ID_ORD_EDIT_FIND
+    BUTTON      ID_EDIT_FIND
     SEPARATOR
     BUTTON      ID_VIEW_LISTING
     SEPARATOR
@@ -407,16 +407,6 @@ END
 STRINGTABLE
 BEGIN
     ID_CUSTOMORDER          "Custom order for editing fields\nCustom Order"
-    ID_FIND_NEXT            "Find the next occurrence of the specified text\nFind Next"
-END
-
-STRINGTABLE
-BEGIN
-    ID_FRM_EDIT_FIND        "Find"
-    ID_ORD_COMPILE          "Compile the edit application\nCompile"
-    ID_ORD_EDIT_FIND        "Find the specified text\nFind"
-    ID_REPLACE              "Replace the specified text with different text\nReplace"
-    ID_RUNBATCH             "Run the edit application\nRun"
 END
 
 STRINGTABLE
@@ -425,6 +415,8 @@ BEGIN
     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
     ID_EDIT_FIND            "Find the specified text\nFind"
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Find the next occurrence of the specified text\nFind Next"
+    ID_EDIT_REPLACE         "Replace the specified text with different text\nReplace"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the last action\nRedo"
 END

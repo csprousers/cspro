@@ -21,14 +21,11 @@
   <ItemGroup>
     <ClCompile Include="CSProScintillaCtrl.cpp" />
     <ClCompile Include="CSProScintillaFindReplaceDlg.cpp" />
-    <ClCompile Include="EditCtrl.cpp" />
     <ClCompile Include="GoToDlg.cpp" />
     <ClCompile Include="LexerProperties.cpp" />
     <ClCompile Include="Lexers.cpp" />
     <ClCompile Include="LogicCtrl.cpp" />
     <ClCompile Include="LogicView.cpp" />
-    <ClCompile Include="MessageEditCtrl.cpp" />
-    <ClCompile Include="ReadOnlyEditCtrl.cpp" />
     <ClCompile Include="ScintillaColorizer.cpp" />
     <ClCompile Include="ScintillaCtrl.cpp" />
     <ClCompile Include="ScintillaDocView.cpp" />
@@ -40,15 +37,15 @@
   <ItemGroup>
     <ClInclude Include="CSProScintillaCtrl.h" />
     <ClInclude Include="CSProScintillaFindReplaceDlg.h" />
-    <ClInclude Include="EditCtrl.h" />
     <ClInclude Include="GoToDlg.h" />
     <ClInclude Include="LexerProperties.h" />
     <ClInclude Include="Lexers.h" />
     <ClInclude Include="LogicCtrl.h" />
     <ClInclude Include="LogicView.h" />
-    <ClInclude Include="MessageEditCtrl.h" />
-    <ClInclude Include="ReadOnlyEditCtrl.h" />
+    <ClInclude Include="LogicViewTextSourceModifier.h" />
+    <ClInclude Include="MarginProperties.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="resource_shared.h" />
     <ClInclude Include="resource_win32.h" />
     <ClInclude Include="ScintillaColorizer.h" />
     <ClInclude Include="ScintillaCtrl.h" />

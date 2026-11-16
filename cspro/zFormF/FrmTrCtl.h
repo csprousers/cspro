@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: FrmTrCtl.h
@@ -21,7 +21,7 @@ class CFormNodeID;
 
 class CLASS_DECL_ZFORMF CFormTreeCtrl : public CTreeCtrl
 {
-    DECLARE_DYNCREATE (CFormTreeCtrl)
+    DECLARE_DYNCREATE(CFormTreeCtrl)
 
 private:
     CWnd*           m_pDropWnd;
@@ -159,18 +159,11 @@ public:
 
     CImageList* CreateDragImageEx(HTREEITEM hItem);
 
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CFormTreeCtrl)
-    public:
-    virtual BOOL PreTranslateMessage(MSG* pMsg);
-    //}}AFX_VIRTUAL
-// Implementation
-
-
-    // Generated message map functions
 protected:
-    //{{AFX_MSG(CFormTreeCtrl)
+    DECLARE_MESSAGE_MAP()
+
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+
     afx_msg void OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnDTreeDblclk(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnItemexpanding(NMHDR* pNMHDR, LRESULT* pResult);
@@ -202,13 +195,11 @@ protected:
     afx_msg void OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
     afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg void OnSetFocus(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnEditCopy();
-    afx_msg void OnShiftF10();
-    //}}AFX_MSG
 
-    DECLARE_MESSAGE_MAP()
-
+private:
     HTREEITEM FindItem( const CDEFormBase* pItemBase );
     HTREEITEM xFindItem( HTREEITEM hInputItem, const CDEFormBase* pFormBase );
 
@@ -216,6 +207,7 @@ protected:
     void UpdateRosterColumnsForDrop(CDERoster* pRoster, const std::vector<CDEField*>& dragFields, CDEField* pDropField, bool dropAtEndIfDropFieldNull);
     CString GetNameOrLabel(CFormID* pID, CDEField** pSelField, bool name =true);
 
-private:
     CFormID* GetSelectedFormId();
+
+    int ShowContextMenu(CFormID* pID, int x, int y);
 };

@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 #include "NewFileCreator.h"
-#include <zToolsO/FileIO.h>
-#include <zUtilO/TextSourceEditable.h>
 #include <zAppO/PFF.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zFormO/DragOptions.h>
@@ -256,7 +254,16 @@ std::unique_ptr<Application> NewFileCreator::CreateApplication(const EngineAppTy
 
     // conditionally add a working storage dictionary
     if( add_working_storage_dictionary )
-        CreateWorkingStorageDictionary(*application);
+    {
+        std::string working_storage_dictionary_file_path = NewFileCreator::CreateWorkingStorageDictionary(*application);
+
+        application->AddExternalDictionary(working_storage_dictionary_file_path);
+
+        application->AddDictionaryDescription(DictionaryDescription(
+            std::move(working_storage_dictionary_file_path),
+            DictionaryType::Working
+        ));
+    }
 
     // save the application
     application->Save(application_file_path);

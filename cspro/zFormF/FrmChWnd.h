@@ -129,7 +129,7 @@ protected:
     afx_msg void OnUpdateViewForm(CCmdUI* pCmdUI);
     afx_msg void OnUpdateViewLogic(CCmdUI* pCmdUI);
     afx_msg void OnUpdateGenerateForm(CCmdUI* pCmdUI);
-    afx_msg void OnGo();
+    afx_msg void OnRun();
     afx_msg void OnEditOptions();
     afx_msg void OnOptionsDataSources();
     afx_msg void OnUpdateIfApplicationIsAvailable(CCmdUI* pCmdUI);

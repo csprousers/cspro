@@ -82,8 +82,7 @@ BEGIN_MESSAGE_MAP(CTabView, CView)
     ON_COMMAND(ID_EDIT_TBL_PRINTFMT, OnEditTablePrintFmt)
 
     ON_COMMAND(ID_DESELECTALL, OnDeselectAll)
-    ON_COMMAND(ID_SELECTALL, OnSelectAll)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_COMMAND(ID_EDIT_SELECT_ALL, OnSelectAll)
     ON_WM_MOUSEMOVE()
     //}}AFX_MSG_MAP
       ON_MESSAGE(WM_IMSA_DROPITEM,OnDropItem)
@@ -1628,7 +1627,7 @@ void CTabView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
             hMenu.AppendMenu(MF_GRAYED, ID_EDIT_PASTETABLE, _T("Paste Table Spec"));
         }
         hMenu.AppendMenu(MF_SEPARATOR, NULL, nullptr);
-        hMenu.AppendMenu(MF_STRING, ID_SELECTALL, _T("Select All\tCtrl+A"));
+        hMenu.AppendMenu(MF_STRING, ID_EDIT_SELECT_ALL, _T("Select All\tCtrl+A"));
         hMenu.AppendMenu(MF_STRING, ID_DESELECTALL, _T("Cancel Selection\tEsc"));
 
         hMenu.AppendMenu(MF_SEPARATOR, NULL, nullptr);
@@ -5400,17 +5399,6 @@ void CTabView::RestoreScrollPos()
         m_pGrid->SendMessage(WM_SIZE);
         m_iVertScrollPos =-1;
         m_iHorzScrollPos =-1;
-    }
-}
-
-void CTabView::OnShiftF10()
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd->IsKindOf(RUNTIME_CLASS(CTabTreeCtrl))) {
-        pWnd->PostMessage(WM_COMMAND, ID_SHIFT_F10);
-    }
-    else {
-        m_pGrid->PostMessage(WM_COMMAND, ID_SHIFT_F10);
     }
 }
 

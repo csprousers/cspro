@@ -6,7 +6,6 @@
 IMPLEMENT_DYNCREATE(TextEditView, LogicView)
 
 BEGIN_MESSAGE_MAP(TextEditView, LogicView)
-    ON_COMMAND(ID_EDIT_FIND_NEXT, OnFindNext)
     ON_COMMAND(ID_EDIT_WORD_WRAP, OnWordWrap)
     ON_UPDATE_COMMAND_UI(ID_EDIT_WORD_WRAP, OnUpdateWordWrap)
 END_MESSAGE_MAP()
@@ -59,19 +58,6 @@ void TextEditView::OnSavePointLeft(Scintilla::NotificationData* /*pSCNotificatio
 {
     TextEditDoc& text_edit_doc = GetTextEditDoc();
     text_edit_doc.SetModifiedFlag(TRUE);
-}
-
-
-bool TextEditView::OnHandleHelp()
-{
-    HtmlHelp(reinterpret_cast<DWORD_PTR>(nullptr), HH_DISPLAY_TOPIC);
-    return true;
-}
-
-
-void TextEditView::OnFindNext()
-{
-    SendMessage(WM_COMMAND, ID_EDIT_REPEAT);
 }
 
 

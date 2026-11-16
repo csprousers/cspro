@@ -45,7 +45,6 @@ protected:
 public:
     afx_msg void OnEditGenValueSet();
     afx_msg void OnUpdateEditGenValueSet(CCmdUI *pCmdUI);
-    afx_msg void OnShiftF10();
 
     CDDGrid& GetCurrentGrid();
     void ResizeGrid();

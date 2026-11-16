@@ -1,29 +1,46 @@
-﻿#pragma once
+#pragma once
 
 #include <zDesignerF/zDesignerF.h>
-#include <zDesignerF/ApplicationChildWnd.h>
-#include <zDesignerF/CompilerOutputTabViewPage.h>
-#include <zDesignerF/MessageEditTabViewPage.h>
 #include <zDesignerF/UnfloatableDialogBar.h>
-#include <zDesignerF/TabViewContainer.h>
+
+class CMFCTabCtrl;
+class CWindowFocusSwitcher;
+class CompilerOutputView;
+class LogicCtrl;
+class MessageEditView;
 
 
-// the container holding the compiler output and messages tabs
+// --------------------------------------------------------------------------
+// LogicDialogBar
+//
+// This container hosts windows as tabs, including:
+//
+// - compiler output  |  CompilerOutputView
+// - messages         |  MessageEditView
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZDESIGNERF LogicDialogBar : public UnfloatableDialogBar
 {
+    DECLARE_DYNAMIC(LogicDialogBar)
+
+    class LDB_WindowFocusSwitcher;
+
 public:
     LogicDialogBar();
     ~LogicDialogBar();
 
-    bool CreateAndDock(ApplicationChildWnd* application_child_wnd);
+    bool CreateAndDock(CFrameWnd* frame_wnd, CDocument* doc);
 
-    CompilerOutputTabViewPage* GetCompilerOutputTabViewPage() { return m_compilerOutputTabViewPage.get(); }
-    MessageEditCtrl* GetMessageEditCtrl()                     { return m_messageEditTabViewPage.get(); }
+    // Returns, or selects, the "Compiler Output" tab.
+    CompilerOutputView& GetCompilerOutputView() noexcept;
+    void SelectCompilerOutputTab();
 
-    void SelectCompilerOutputTab() { m_tabViewContainer.SetActivePageIndex(0); }
-    void SelectMessageEditTab()    { m_tabViewContainer.SetActivePageIndex(1); }
-    void UpdateScrollState()       { m_tabViewContainer.UpdateScrollState(); }
+    // Selects the "Messages" tab and returns the control used to edit messages.
+    LogicCtrl* SelectMessageEditTab();
+
+    // Creates a CWindowFocusSwitcher subclass that manages switching focus
+    // between the tabs managed by the LogicDialogBar.
+    static std::unique_ptr<CWindowFocusSwitcher> CreateWindowFocusSwitcher();
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -31,11 +48,10 @@ protected:
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
     void OnSize(UINT nType, int cx, int cy);
 
-    LRESULT OnTabChange(WPARAM wParam, LPARAM lParam);
-
 private:
-    TabViewContainer m_tabViewContainer;
-    std::unique_ptr<CompilerOutputTabViewPage> m_compilerOutputTabViewPage;
-    std::unique_ptr<MessageEditTabViewPage> m_messageEditTabViewPage;
-    ApplicationChildWnd* m_applicationChildWnd;
+    std::unique_ptr<CMFCTabCtrl> m_tabCtrl;
+    CDocument* m_doc;
+    CompilerOutputView* m_compilerOutputView;
+    MessageEditView* m_messageEditView;
+    int m_messageEditTabIndex;
 };

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "AplDoc.h"
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
@@ -11,20 +11,20 @@
 /////////////////////////////////////////////////////////////////////////////
 // CAplDoc
 
-IMPLEMENT_DYNCREATE(CAplDoc, CDocument)
+IMPLEMENT_DYNCREATE(CAplDoc, DesignerDoc)
 
-BEGIN_MESSAGE_MAP(CAplDoc, CDocument)
+BEGIN_MESSAGE_MAP(CAplDoc, DesignerDoc)
     ON_COMMAND(ID_FILE_CSPRO_CLOSE, OnFileClose)
 END_MESSAGE_MAP()
 
 
 CAplDoc::CAplDoc()
-    :   m_application(std::make_unique<Application>())
+    :   m_bIsClosing(false),
+        m_deployWnd(nullptr),
+        m_application(std::make_unique<Application>()),
+        m_applicationChildWnd(nullptr),
+        m_bSrcLoaded(false)
 {
-    m_bSrcLoaded = false;
-    m_bIsClosing = false;
-    m_bIsClosing = false;
-    m_deployWnd = nullptr;
 }
 
 
@@ -51,7 +51,7 @@ void CAplDoc::ReplaceAppObject(std::unique_ptr<Application> application)
 BOOL CAplDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
     // load the application object
-    if( !CDocument::OnOpenDocument(lpszPathName) )
+    if( !__super::OnOpenDocument(lpszPathName) )
         return FALSE;
 
     try
@@ -318,7 +318,7 @@ void CAplDoc::OnCloseDocument()
     CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     FileTreeNode* const file_tree_node = pFrame->GetDlgBar().m_ObjTree.FindNode(this);
 
-    CDocument::OnCloseDocument();
+    __super::OnCloseDocument();
 
     //remove the application node on the object tree .
     if( file_tree_node != nullptr )
@@ -1056,7 +1056,7 @@ void CAplDoc::SetAppObjects()
 
 
 // Function name    : CAplDoc::OpenAllDocuments
-// Description      :Call this funciton only after a call of Build AllTrees
+// Description      :Call this function only after a call of BuildAllTrees
 // Return type      : void
 // Argument         : void
 
@@ -1120,7 +1120,7 @@ BOOL CAplDoc::OpenAllDocuments()
         m_bSrcLoaded = pSourceCode->Load();
     }
 
-    ApplicationChildWnd* application_child_wnd = nullptr;
+    const bool first_time_opening_document = ( m_applicationChildWnd == nullptr );
 
     if( engine_app_type == EngineAppType::Entry )
     {
@@ -1132,7 +1132,7 @@ BOOL CAplDoc::OpenAllDocuments()
         if( pNode != nullptr )
         {
             POSITION pos = pNode->GetFormDoc()->GetFirstViewPosition();
-            application_child_wnd = assert_cast<ApplicationChildWnd*>(pNode->GetFormDoc()->GetNextView(pos)->GetParentFrame());
+            m_applicationChildWnd = assert_cast<ApplicationChildWnd*>(pNode->GetFormDoc()->GetNextView(pos)->GetParentFrame());
         }
 
         RefreshExternalLogicAndReportNodes();
@@ -1149,7 +1149,7 @@ BOOL CAplDoc::OpenAllDocuments()
 
             POSITION pos = form_order_app_tree_node->GetOrderDocument()->GetFirstViewPosition();
             COrderChildWnd* const pOrderChildWnd = assert_cast<COrderChildWnd*>(form_order_app_tree_node->GetOrderDocument()->GetNextView(pos)->GetParentFrame());
-            application_child_wnd = pOrderChildWnd;
+            m_applicationChildWnd = pOrderChildWnd;
 
             orderTree.Select(form_order_app_tree_node->GetHItem(), TVGN_CARET);
 
@@ -1176,7 +1176,7 @@ BOOL CAplDoc::OpenAllDocuments()
 
         POSITION pos = pTabDoc->GetFirstViewPosition();
         CTabView* pView = assert_cast<CTabView*>(pTabDoc->GetNextView(pos));
-        application_child_wnd = assert_cast<ApplicationChildWnd*>(pView->GetParentFrame());
+        m_applicationChildWnd = assert_cast<ApplicationChildWnd*>(pView->GetParentFrame());
 
         CString sErr;
         AfxGetMainWnd()->SendMessage(WM_IMSA_UPDATE_SYMBOLTBL,(WPARAM)pTabDoc,0);
@@ -1193,16 +1193,12 @@ BOOL CAplDoc::OpenAllDocuments()
         tabTree.ReBuildTree();
     }
 
-    // refresh the message control's lexer language (based on the logic settings in this application)
-    if( application_child_wnd != nullptr && application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl() != nullptr )
-    {
-        application_child_wnd->GetLogicDialogBar().GetMessageEditCtrl()->PostMessage(UWM::Edit::RefreshLexer);
-    }
+    ASSERT(m_applicationChildWnd != nullptr);
 
-    else
-    {
-        ASSERT80(false);
-    }
+    // let any views created while opening CFormDoc / OrderDoc / CTabulateDoc
+    // know that this is its associated DesignerDoc
+    if( first_time_opening_document )
+        m_applicationChildWnd->GetActiveDocument()->UpdateAllViews(nullptr, Hint::DesignerDocLoaded, this);
 
     return TRUE;
 }
@@ -2315,6 +2311,12 @@ std::shared_ptr<TextSourceEditable> CAplDoc::GetLogicMainCodeFileTextSource()
     ASSERT(text_source != nullptr);
 
     return text_source;
+}
+
+
+const LogicSettings& CAplDoc::GetLogicSettings()
+{
+    return m_application->GetLogicSettings();
 }
 
 

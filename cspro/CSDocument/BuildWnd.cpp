@@ -69,9 +69,9 @@ TextEditDoc* CSDocumentBuildWnd::OpenDocumentOnMessageClick(const std::string& f
         return assert_nullable_cast<TextEditDoc*>(csdoc_app.OpenDocumentFile(TC::ToWide(file_path).c_str()));
 
     // if the document cannot be opened directly, find the Document Set associated with the source of these errors
-    if( GetSourceLogicSource() != nullptr )
+    if( GetSourceLogicCtrl() != nullptr )
     {
-        TextEditView* const text_edit_view = FindTextEditView(GetSourceLogicSource());
+        TextEditView* const text_edit_view = FindTextEditView(GetSourceLogicCtrl());
 
         if( text_edit_view != nullptr )
         {

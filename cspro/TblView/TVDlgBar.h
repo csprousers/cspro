@@ -1,46 +1,27 @@
-﻿#pragma once
+#pragma once
 
-// TDlgBar.h : header file
-//
-#include <zUToolO/zUToolO.h>
 #include <zTableF/TabTrCtl.h>
 
-#define ID_FIXEDDLGBAR                  0xe881
 
-/////////////////////////////////////////////////////////////////////////////
-// CTVDlgBar dialog
-
+class DynamicLayoutControlResizer;
 
 class CTVDlgBar : public COXSizeDialogBar
 {
-// Construction
 public:
     CTVDlgBar();
+    ~CTVDlgBar();
 
-// Dialog Data
-    //{{AFX_DATA(CTVDlgBar)
-    enum { IDD = IDD_DIALOGBAR };
-    CTabTreeCtrl    m_TblTree;
-    //}}AFX_DATA
+    BOOL Create(CWnd* pParentWnd, UINT nStyle);
 
-
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CTVDlgBar)
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    //}}AFX_VIRTUAL
+    void DoDataExchange(CDataExchange* pDX) override;
+    BOOL OnInitDialog() override;
 
-// Implementation
-protected:
+    void OnSizedOrDocked(int cx, int cy, BOOL bFloating, int flags) override;
 
-    // Generated message map functions
-    //{{AFX_MSG(CTVDlgBar)
-    // NOTE: the ClassWizard will add member functions here
-    virtual BOOL OnInitDialog();
+public:
+    CTabTreeCtrl m_TblTree;
 
-    //}}AFX_MSG
+private:
+    std::unique_ptr<DynamicLayoutControlResizer> m_dynamicLayoutControlResizer;
 };
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.

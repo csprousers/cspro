@@ -46,9 +46,6 @@ protected:
     void OnStringEncoder();
     void OnPathAdjuster();
 
-    void OnDeprecationWarnings(UINT nID);
-    void OnUpdateDeprecationWarnings(CCmdUI* pCmdUI);
-
     // Run menu handlers
     // --------------------------------------------------------------------------
     void OnRunRun();

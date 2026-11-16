@@ -47,13 +47,13 @@ const int ORD_BLOCKC        = 15;
 
 
 BEGIN_MESSAGE_MAP(COrderTreeCtrl, CTreeCtrl)
-    //{{AFX_MSG_MAP(COrderTreeCtrl)
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
     ON_WM_MOUSEMOVE()
     ON_WM_KEYDOWN()
     ON_WM_RBUTTONDOWN()
     ON_WM_RBUTTONUP()
+    ON_WM_CONTEXTMENU()
     ON_NOTIFY_REFLECT(TVN_SELCHANGED, OnSelchanged)
     ON_NOTIFY_REFLECT(TVN_SELCHANGING, OnSelchanging)
     ON_NOTIFY_REFLECT(NM_DBLCLK, OnDTreeDblclk)
@@ -65,8 +65,6 @@ BEGIN_MESSAGE_MAP(COrderTreeCtrl, CTreeCtrl)
     ON_COMMAND(ID_COPY_NAME, OnCopyName)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
     ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
-    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 
@@ -768,7 +766,7 @@ void COrderTreeCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
     m_dwDragStart = GetTickCount(); // global; rtns elapsed # of ms. since system startup
 
-    CTreeCtrl::OnLButtonDown(nFlags, point);
+    __super::OnLButtonDown(nFlags, point);
 }
 
 
@@ -798,7 +796,7 @@ void COrderTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
                 ReleaseCapture();   // ok, before i bail, cleanup
                 m_bDragging = false;
                 bDragSendMsg = TRUE;
-                CTreeCtrl::OnLButtonUp(nFlags, point);
+                __super::OnLButtonUp(nFlags, point);
                 AfxMessageBox(_T("The order of procedures for fields and records is currently set to match the dictionary.\n\n")
                               _T("To make the order different, select 'Options/Custom Order' from the main menu."));
                 return;                // selecting item below will crash me, so bail
@@ -818,7 +816,7 @@ void COrderTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
                 ReleaseCapture();   // ok, before i bail, cleanup
                 m_bDragging = false;
                 bDragSendMsg = TRUE;
-                CTreeCtrl::OnLButtonUp(nFlags, point);
+                __super::OnLButtonUp(nFlags, point);
                 return;                // selecting item below will crash me, so bail
             }
         }
@@ -829,7 +827,7 @@ void COrderTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
         SelectItem(hItem);
     }
 
-    CTreeCtrl::OnLButtonUp(nFlags, point);  // mfc-generated
+    __super::OnLButtonUp(nFlags, point);  // mfc-generated
 }
 
 
@@ -867,7 +865,7 @@ void COrderTreeCtrl::OnMouseMove(UINT nFlags, CPoint point)
             m_pDragImage->DragShowNolock(true); // show the image being dragged w/o locking the window
         }
     }
-    CTreeCtrl::OnMouseMove(nFlags, point);
+    __super::OnMouseMove(nFlags, point);
 }
 
 
@@ -960,7 +958,7 @@ void COrderTreeCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             break;
 
         default:
-            CTreeCtrl::OnKeyDown(nChar, nRepCnt, nFlags);  // BMD 24 Oct 2001
+            __super::OnKeyDown(nChar, nRepCnt, nFlags);  // BMD 24 Oct 2001
             break;
     }
 }
@@ -1170,7 +1168,7 @@ void COrderTreeCtrl::OnGetdispinfo(NMHDR* pNMHDR, LRESULT* pResult)
                 CRect rectItem;
 
                 if( GetItemRect(pTVDispInfo->item.hItem, &rectItem, FALSE) )
-                    return ( AfxGetMainWnd()->SendMessage(UWM::Order::HasLogic, 0, reinterpret_cast<LPARAM>(app_tree_node)) != 0 );
+                    return ( WindowsDesktopMessage::Send(UWM::Order::HasLogic, app_tree_node) != 0 );
             }
 
             return false;
@@ -1403,7 +1401,7 @@ void COrderTreeCtrl::OnRButtonDown(UINT nFlags, CPoint point)
         return;
     }
 
-    CTreeCtrl::OnRButtonDown(nFlags, point);
+    __super::OnRButtonDown(nFlags, point);
 }
 
 
@@ -1421,40 +1419,64 @@ void COrderTreeCtrl::OnRButtonUp(UINT /*nFlags*/, CPoint point)
         SelectItem(hItem);  // otherwise, highlight it
     }
 
-    const AppTreeNode* app_tree_node = GetTreeNode(hItem);
+    ClientToScreen(&point);
+    ShowContextMenu(hItem, point.x, point.y);
+
+    RestoreItemSelection();
+}
+
+
+void COrderTreeCtrl::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/)
+{
+    HTREEITEM selected_tree_item = GetSelectedItem();
+
+    if( selected_tree_item == nullptr )
+        return;
+
+    CRect rect;
+
+    if( !GetItemRect(selected_tree_item, rect, TRUE) )
+        return;
+
+    ClientToScreen(rect);
+    ShowContextMenu(selected_tree_item, rect.right, rect.bottom);
+}
+
+
+void COrderTreeCtrl::ShowContextMenu(HTREEITEM selected_tree_item, const int x, const int y)
+{
+    ASSERT(selected_tree_item != nullptr);
+
+    const AppTreeNode* const app_tree_node = GetTreeNode(selected_tree_item);
+    ASSERT(app_tree_node != nullptr);
 
     BCMenu popup_menu;
     popup_menu.CreatePopupMenu();
 
-    bool add_report_options = ( app_tree_node->GetAppFileType() == AppFileType::Report );
+    const bool add_report_options = ( app_tree_node->GetAppFileType() == AppFileType::Report );
 
     if( add_report_options || app_tree_node->IsFormElement() )
     {
-        popup_menu.AppendMenu(MF_STRING, ID_COPY_NAME, _T("&Copy Name"));
+        popup_menu.AppendMenu(MF_STRING, ID_COPY_NAME, L"&Copy Name");
         popup_menu.AppendMenu(MF_SEPARATOR);
-        popup_menu.AppendMenu(MF_STRING, ID_VIEW_LOGIC, _T("View Logic"));
-        popup_menu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, _T("View Questionnaire"));
+        popup_menu.AppendMenu(MF_STRING, ID_VIEW_LOGIC, L"View Logic");
+        popup_menu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, L"View Questionnaire");
     }
 
     if( add_report_options )
     {
         popup_menu.AppendMenu(MF_SEPARATOR);
-        popup_menu.AppendMenu(MF_STRING, ID_EDIT_REPORT_PROPERTIES, _T("&Properties"));
+        popup_menu.AppendMenu(MF_STRING, ID_EDIT_REPORT_PROPERTIES, L"&Properties");
     }
 
-    if( popup_menu.GetMenuItemCount() > 0 )
-    {
-        CRect rect;
-        GetWindowRect(rect);    // GetClientRect will not work, nd offset of entire screen
-        rect.OffsetRect(5, 5);
+    if( popup_menu.GetMenuItemCount() == 0 )
+        return;
 
-        int iMenuSelection = popup_menu.TrackPopupMenu(TPM_RIGHTBUTTON | TPM_RETURNCMD, rect.left + point.x, rect.top + point.y, this);
+    constexpr UINT style = TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD;
+    const int command_id = popup_menu.TrackPopupMenu(style, x, y, this);
 
-        if( iMenuSelection != 0 )
-            SendMessage(WM_COMMAND, iMenuSelection);
-    }
-
-    RestoreItemSelection();
+    if( command_id != 0 )
+        SendMessage(WM_COMMAND, command_id);
 }
 
 
@@ -1558,10 +1580,4 @@ CImageList* COrderTreeCtrl::CreateDragImageEx(HTREEITEM hItem)
     pImageList->Add(&bitmap, RGB(0, 255, 0)); // Here green is used as mask color
 
     return pImageList;
-}
-
-
-void COrderTreeCtrl::OnShiftF10()
-{
-    PostMessage(WM_RBUTTONDOWN);
 }

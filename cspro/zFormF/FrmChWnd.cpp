@@ -31,12 +31,6 @@
 #include <zCapiO/QSFView.h>
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
 // have to have scope resolutors, else linker can't find these guys...
 
 std::unique_ptr<BoxToolbar> CFormChildWnd::m_pBoxToolBar;
@@ -64,7 +58,7 @@ BEGIN_MESSAGE_MAP(CFormChildWnd, ApplicationChildWnd)
     ON_UPDATE_COMMAND_UI(ID_VIEW_FORM, OnUpdateViewForm)
     ON_UPDATE_COMMAND_UI(ID_VIEW_LOGIC, OnUpdateViewLogic)
     ON_UPDATE_COMMAND_UI(ID_GENERATE_FRM, OnUpdateGenerateForm)
-    ON_COMMAND(ID_GO, OnGo)
+    ON_COMMAND(ID_RUN, OnRun)
     ON_COMMAND(ID_EDIT_OPTIONS, OnEditOptions)
     ON_COMMAND(ID_OPTIONS_DATA_SOURCES, OnOptionsDataSources)
     ON_UPDATE_COMMAND_UI(ID_OPTIONS_DATA_SOURCES, OnUpdateIfApplicationIsAvailable)
@@ -149,7 +143,7 @@ void CFormChildWnd::ActivateFrame(int nCmdShow)
     m_wndFSplitter.RecalcLayout();
 
     AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, (WPARAM)FrameType::Form);
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
     InvalidateRect(NULL);
 
     if(m_logicDlgBar.GetSafeHwnd() && m_logicDlgBar.IsWindowVisible()) {
@@ -213,13 +207,13 @@ BOOL CFormChildWnd::Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD 
     EnableDocking(CBRS_ALIGN_ANY);
 
     // create the compiler output and messages tabs
-    if( !m_logicDlgBar.CreateAndDock(this) )
+    if( !m_logicDlgBar.CreateAndDock(this, pContext->m_pCurrentDoc) )
         return FALSE;
 
     m_logicDlgBar.ShowWindow(SW_HIDE);
 
     // create the reference window
-    if( !m_logicReferenceWnd.CreateAndDock(this) )
+    if( !m_logicReferenceWnd.CreateAndDock(this, pContext->m_pCurrentDoc) )
         return FALSE;
 
     return TRUE;
@@ -444,7 +438,7 @@ void CFormChildWnd::OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDea
     }
     if (bActivate)
     {
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+        WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
         ActivateFrame(SW_SHOW); //Fixed the initialization bug related to the capi app Ctl+Tab window change Bug#12
     }
 
@@ -801,7 +795,7 @@ void CFormChildWnd::OnViewLogic()
     if(!pWnd || !pWnd->IsKindOf(RUNTIME_CLASS(CToolBar)))
         return;
 
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, NULL);
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, reinterpret_cast<WPARAM>(nullptr));
     m_pSourceEditView->GetLogicCtrl()->SetFocus();
 }
 
@@ -853,7 +847,6 @@ void CFormChildWnd::OnUpdateViewForm(CCmdUI* pCmdUI)
 
 void CFormChildWnd::OnViewForm()
 {
-    // in the event the form tree ctrl is up, but somebody else is in the view, do this
     // in the event the form tree ctrl is up, but somebody else is in the view, do this
     CFormDoc* pDoc = (CFormDoc*) GetActiveDocument();
     if(m_viewMode == FormViewMode::Form){
@@ -968,10 +961,10 @@ LogicCtrl* CFormChildWnd::GetSourceLogicCtrl()
 }
 
 
-void CFormChildWnd::OnGo()
+void CFormChildWnd::OnRun()
 {
     CFormDoc* pFormDoc = PreRunPublish();
-    AfxGetMainWnd()->SendMessage(UWM::Form::RunActiveApplication, 0, (LPARAM)pFormDoc);
+    WindowsDesktopMessage::Send(UWM::Form::RunActiveApplication, 0, pFormDoc);
 }
 
 
@@ -1094,35 +1087,29 @@ void CFormChildWnd::OnEditDragOptions()
 
 void CFormChildWnd::OnCompile()
 {
-    CFormDoc* pDoc = (CFormDoc*) GetActiveDocument();
-    CView* pView = GetActiveView();
+    CFormDoc* pDoc = assert_cast<CFormDoc*>(GetActiveDocument());
+    HTREEITEM hItem;
 
-    if (pDoc && pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView)))
+    if( ( pDoc == nullptr ) ||
+        ( ( hItem = pDoc->GetFormTreeCtrl()->GetSelectedItem() ) == nullptr ) )
     {
-        HTREEITEM hItem = pDoc->GetFormTreeCtrl()->GetSelectedItem();
-        CFormID* pID = (CFormID*)pDoc->GetFormTreeCtrl()->GetItemData(hItem);
+        return;
+    }
 
-        if(pID && pID->GetFormDoc() == pDoc)
-        {
-            //wParam 1 implies force compile
-            AfxGetMainWnd()->SendMessage(UWM::Form::PutSourceCode, (WPARAM)1, (LPARAM)pID);
-            ((CFSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
-        }
+    CFormID* const pID = reinterpret_cast<CFormID*>(pDoc->GetFormTreeCtrl()->GetItemData(hItem));
+
+    if( pID != nullptr && pID->GetFormDoc() == pDoc )
+    {
+        constexpr WPARAM ForceCompile = 1;
+        WindowsDesktopMessage::Send(UWM::Form::PutSourceCode, ForceCompile, pID);
+        GetSourceLogicCtrl()->SetFocus();
     }
 }
 
-void CFormChildWnd::OnUpdateCompile(CCmdUI* pCmdUI)
-{
-    CView* pView = GetActiveView();
-    if(!pView)
-        return;
 
-    if(!pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView))) {
-        pCmdUI->Enable(FALSE);
-    }
-    else {
-        pCmdUI->Enable(TRUE);
-    }
+void CFormChildWnd::OnUpdateCompile(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(GetActiveView()->IsKindOf(RUNTIME_CLASS(LogicView)));
 }
 
 
@@ -2072,7 +2059,7 @@ CFormDoc* CFormChildWnd::PreRunPublish()
         return pFormDoc;
     }
 
-    else if (pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView))) {
+    else if (pView->IsKindOf(RUNTIME_CLASS(LogicView))) {
         HTREEITEM hItem = pFormDoc->GetFormTreeCtrl()->GetSelectedItem();
         CFormID* pID = (CFormID*)pFormDoc->GetFormTreeCtrl()->GetItemData(hItem);
 

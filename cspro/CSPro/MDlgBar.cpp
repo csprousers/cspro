@@ -1,42 +1,65 @@
-﻿// MDlgBar.cpp : implementation file
-//
-
 #include "StdAfx.h"
 #include "MDlgBar.h"
+#include <zUtilO/DynamicLayoutControlResizer.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-
-/////////////////////////////////////////////////////////////////////////////
-// CMDlgBar dialog
 
 IMPLEMENT_DYNAMIC(CMDlgBar, COXSizeDialogBar)
 
-CMDlgBar::CMDlgBar(CWnd* pParent /*=NULL*/)
-    : COXSizeDialogBar(SZBARF_STDMOUSECLICKS)
+
+BEGIN_MESSAGE_MAP(CMDlgBar, COXSizeDialogBar)
+    ON_WM_LBUTTONDBLCLK()
+    ON_WM_LBUTTONDOWN()
+END_MESSAGE_MAP()
+
+
+CMDlgBar::CMDlgBar()
+    :   COXSizeDialogBar(SZBARF_STDMOUSECLICKS)
 {
-    //{{AFX_DATA_INIT(CMDlgBar)
-        // NOTE: the ClassWizard will add member initialization here
-    //}}AFX_DATA_INIT
-    UNREFERENCED_PARAMETER(pParent);
 }
 
 
-void CMDlgBar::DoDataExchange(CDataExchange* pDX)
+CMDlgBar::~CMDlgBar() = default;
+
+
+BOOL CMDlgBar::Create(CWnd* const pParentWnd, const UINT nStyle)
 {
-    COXSizeDialogBar::DoDataExchange(pDX);
-    //{{AFX_DATA_MAP(CMDlgBar)
+    ASSERT(( m_Style & SZBARF_DLGAUTOSIZE ) == 0 );
+
+    if( !__super::Create(pParentWnd, IDD_DIALOGBAR, nStyle, 0) )
+        return FALSE;
+
+    // by default, DynamicLayoutControlResizer uses the client window for its
+    // sizing calculation, but doing this here in Create (as opposed to OnSizedOrDocked),
+    // using the window rectangle seems to work better for these calculations
+    CRect rect;
+    GetWindowRect(rect);
+    const CSize size = rect.Size();
+    m_dynamicLayoutControlResizer = std::make_unique<DynamicLayoutControlResizer>(*this, &size);
+
+    m_dynamicLayoutControlResizer->Add(IDC_OBJTREE, SizingDirection::XY);
+    m_dynamicLayoutControlResizer->Add(IDC_DICTTREE, SizingDirection::XY);
+    m_dynamicLayoutControlResizer->Add(IDC_FORMTREE, SizingDirection::XY);
+    m_dynamicLayoutControlResizer->Add(IDC_ORDERTREE, SizingDirection::XY);
+    m_dynamicLayoutControlResizer->Add(IDC_TABLETREE, SizingDirection::XY);
+    m_dynamicLayoutControlResizer->Add(IDC_MEASURETAB, SizingDirection::X);
+    m_dynamicLayoutControlResizer->Add(IDC_MEASURETAB, MovingDirection::Y);
+
+    return TRUE;
+}
+
+
+void CMDlgBar::DoDataExchange(CDataExchange* const pDX)
+{
+    __super::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_FORMTREE, m_FormTree);
     DDX_Control(pDX, IDC_ORDERTREE, m_OrderTree);
     DDX_Control(pDX, IDC_TABLETREE, m_TableTree);
     DDX_Control(pDX, IDC_DICTTREE, m_DictTree);
     DDX_Control(pDX, IDC_MEASURETAB, m_tabCtl);
     DDX_Control(pDX, IDC_OBJTREE, m_ObjTree);
-    //}}AFX_DATA_MAP
 }
+
 
 BOOL CMDlgBar::OnInitDialog()
 {
@@ -66,6 +89,18 @@ BOOL CMDlgBar::OnInitDialog()
                   // EXCEPTION: OCX Property Pages should return FALSE
 }
 
+
+void CMDlgBar::OnSizedOrDocked(int cx, int cy, BOOL bFloating, int flags)
+{
+    ASSERT(( m_Style & SZBARF_DLGAUTOSIZE ) == 0 );
+
+    __super::OnSizedOrDocked(cx, cy, bFloating, flags);
+
+    if( m_dynamicLayoutControlResizer != nullptr )
+        m_dynamicLayoutControlResizer->OnSize(cx, cy);
+}
+
+
 void CMDlgBar::UpdateTabs()
 {
     //check if a dictionary is open and if the tab control has dictionary tab
@@ -80,6 +115,7 @@ void CMDlgBar::UpdateTabs()
     m_tabCtl.UpdateTabs();
 
 }
+
 
 void CMDlgBar::SelectTab(CString sTabName, int iTabMode)
 {
@@ -112,10 +148,12 @@ void CMDlgBar::SelectTab(CString sTabName, int iTabMode)
     UpdateTrees();
 }
 
+
 void CMDlgBar::SelectTab(CWnd* pWnd)
 {
     SelectTab(WindowToName(pWnd), 0);
 }
+
 
 void CMDlgBar::GetTabNames(CStringArray& aNames) const
 {
@@ -132,6 +170,7 @@ void CMDlgBar::GetTabNames(CStringArray& aNames) const
     }
 }
 
+
 void CMDlgBar::GetTabWindows(CArray<CWnd*>& aWnds)
 {
     CStringArray aNames;
@@ -140,6 +179,7 @@ void CMDlgBar::GetTabWindows(CArray<CWnd*>& aWnds)
         aWnds.Add(NameToWindow(aNames.GetAt(i)));
     }
 }
+
 
 CWnd* CMDlgBar::NameToWindow(LPCTSTR lpszName)
 {
@@ -163,6 +203,7 @@ CWnd* CMDlgBar::NameToWindow(LPCTSTR lpszName)
     return NULL;
 }
 
+
 CIMSAString CMDlgBar::WindowToName(CWnd* pWnd) const
 {
     CIMSAString sName;
@@ -185,7 +226,9 @@ CIMSAString CMDlgBar::WindowToName(CWnd* pWnd) const
     return sName;
 }
 
-void CMDlgBar::UpdateTrees(void) {
+
+void CMDlgBar::UpdateTrees()
+{
     m_DictTree.Invalidate(TRUE);
     m_FormTree.Invalidate(TRUE);
     m_OrderTree.Invalidate(TRUE);
@@ -193,28 +236,14 @@ void CMDlgBar::UpdateTrees(void) {
     m_ObjTree.Invalidate(TRUE);
 }
 
-BEGIN_MESSAGE_MAP(CMDlgBar, COXSizeDialogBar)
-    //{{AFX_MSG_MAP(CMDlgBar)
-        ON_WM_WINDOWPOSCHANGING()
-    ON_WM_LBUTTONDBLCLK()
-    ON_WM_LBUTTONDOWN()
-    //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
 
-/////////////////////////////////////////////////////////////////////////////
-// CMDlgBar message handlers
-
-void CMDlgBar::OnWindowPosChanging (LPWINDOWPOS lpWndPos)
-{
-    COXSizeDialogBar::OnWindowPosChanging(lpWndPos);
-}
-
-void CMDlgBar::OnLButtonDblClk(UINT nFlags, CPoint point)
+void CMDlgBar::OnLButtonDblClk(UINT /*nFlags*/, CPoint /*point*/)
 {
     return; // Do not process double click  to avoid floating toobar
 }
 
-void CMDlgBar::OnLButtonDown(UINT nFlags, CPoint point)
+
+void CMDlgBar::OnLButtonDown(UINT /*nFlags*/, CPoint /*point*/)
 {
     return;  //Do not process LButton down to avoid dragging the dialogbar away to float it
 }

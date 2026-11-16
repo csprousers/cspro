@@ -1,27 +1,27 @@
-﻿#pragma once
-// MDlgBar.h : header file
-//
+#pragma once
 
 /////////////////////////////////////////////////////////////////////////////
 // CMDlgBar dialog
 
-#include <zUToolO/zUToolO.h>
 #include <zFormF/FrmTrCtl.h>
 #include <zOrderF/OrdTrCtl.h>
 #include <zTableF/TabTrCtl.h>
 #include <CSPro/ObjTCtrl.h>
 #include <CSPro/MTabCtl.h>
 
+class DynamicLayoutControlResizer;
 
-#define ID_FIXEDDLGBAR                  0xe881
 
-class CMDlgBar :  public COXSizeDialogBar
+class CMDlgBar : public COXSizeDialogBar
 {
-// Construction
-public:
     DECLARE_DYNAMIC(CMDlgBar)
 
-    CMDlgBar(CWnd* pParent = NULL);   // standard constructor
+public:
+    CMDlgBar();
+    ~CMDlgBar();
+
+    BOOL Create(CWnd* pParentWnd, UINT nStyle);
+
     void UpdateTabs();
     void SelectTab(CString sTabName, int iTabMode);      //Selects the tab from the tab control
     void SelectTab(CWnd* pWnd);      //Selects the tab from the tab control by ptr to window for the tab contents
@@ -31,38 +31,24 @@ public:
     CWnd* NameToWindow(LPCTSTR lpszName);
     CIMSAString WindowToName(CWnd* pWnd) const;
 
-
-// Dialog Data
-    //{{AFX_DATA(CMDlgBar)
-    enum { IDD = IDD_DIALOGBAR };
     CFormTreeCtrl   m_FormTree;
     COrderTreeCtrl  m_OrderTree;
     CTabTreeCtrl    m_TableTree;
     CDDTreeCtrl     m_DictTree;
     CMTabCtl        m_tabCtl;
     CObjTreeCtrl    m_ObjTree;
-    //}}AFX_DATA
 
-
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CMDlgBar)
-    protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    //}}AFX_VIRTUAL
-
-// Implementation
 protected:
+    DECLARE_MESSAGE_MAP()
 
-    // Generated message map functions
-    //{{AFX_MSG(CMDlgBar)
-        virtual BOOL OnInitDialog();
-    afx_msg void OnWindowPosChanging (LPWINDOWPOS lpWndPos);
+    void DoDataExchange(CDataExchange* pDX) override;
+    BOOL OnInitDialog() override;
+
+    void OnSizedOrDocked(int cx, int cy, BOOL bFloating, int flags) override;
+
     afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-    //}}AFX_MSG
-    DECLARE_MESSAGE_MAP()
-};
 
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+private:
+    std::unique_ptr<DynamicLayoutControlResizer> m_dynamicLayoutControlResizer;
+};

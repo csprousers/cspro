@@ -54,6 +54,7 @@ IMPLEMENT_DYNCREATE(CFormScrollView, CScrollView)
 BEGIN_MESSAGE_MAP(CFormScrollView, CScrollView)
     ON_WM_LBUTTONDOWN()
     ON_WM_RBUTTONUP()
+    ON_WM_CONTEXTMENU()
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_WM_KEYDOWN()
@@ -77,8 +78,8 @@ BEGIN_MESSAGE_MAP(CFormScrollView, CScrollView)
     ON_COMMAND(ID_ADD_TEXT, OnAddText)
     ON_COMMAND(ID_ADD_FORM, OnAddForm)
     ON_COMMAND(ID_GENERATE_FRM, OnGenerateFrm)
-    ON_COMMAND(ID_DELETE_ITEM, OnDeleteItem)
-    ON_UPDATE_COMMAND_UI(ID_DELETE_ITEM, OnUpdateDeleteItem)
+    ON_COMMAND(ID_EDIT_CLEAR, OnDeleteItem)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR, OnUpdateDeleteItem)
     ON_COMMAND(ID_DELETE_FORM, OnDeleteForm)
     ON_UPDATE_COMMAND_UI(ID_DELETE_FORM, OnUpdateDeleteForm)
     ON_COMMAND_RANGE(ID_LAYOUT_ALIGN_LEFT, ID_LAYOUT_ALIGN_BOTTOM, OnLayoutAlign)
@@ -103,7 +104,6 @@ BEGIN_MESSAGE_MAP(CFormScrollView, CScrollView)
     ON_COMMAND(ID_EDIT_CUT, OnEditCut)
     ON_COMMAND(ID_FIELDFONT, OnFieldFont)
     ON_COMMAND(ID_FIELDCOLORS, OnFieldColors)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_PROPERTIES, OnProperties)
     ON_COMMAND(ID_EDIT_MULTIPLE_FIELDPROP, OnEditMultipleFieldProperties)
     ON_MESSAGE(WM_IMSA_DROPITEM,OnDropItem)
@@ -3693,7 +3693,27 @@ bool CFormScrollView::UserRightClickedOverTrackers (CDEItemBase* pRightClickItem
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
+void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, const CPoint point)
+{
+    ShowContextMenu(point);
+}
+
+
+void CFormScrollView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
+{
+    // the right-click context menu code will be used,
+    // so simulate a right-click only when one item is selected
+    if( GetNumTrackers() == 1 )
+    {
+        const CFormTracker tracker = GetTracker(0);
+        CRect rect = tracker.GetRect();
+        point = rect.CenterPoint();
+        ShowContextMenu(point);
+    }
+}
+
+
+void CFormScrollView::ShowContextMenu(const CPoint& point)
 {
     BCMenu popMenu;
     CRect rect;
@@ -3883,12 +3903,12 @@ void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
             }
         }
 
-        popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+        popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
         popMenu.AppendMenu(MF_SEPARATOR);
 
         if (pItem->GetItemType() == CDEFormBase::Roster)   // use right-click item for all other opts
         {
-            popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+            popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
             popMenu.AppendMenu(MF_SEPARATOR);
 
             if (bRosterCol || bRosterRow || bRosterCell) {
@@ -5228,7 +5248,7 @@ void CFormScrollView::OnDeleteItem()
     {
         CFormGrid* pGrid = GetGridWhereTrackerSelected();
         pGrid->SetHitObj (pGrid->GetTracker(0).GetHitOb());
-        pGrid->SendMessage(WM_COMMAND, ID_DELETE_ITEM);
+        pGrid->SendMessage(WM_COMMAND, ID_EDIT_CLEAR);
         SetFocus();
     }
     else if (pWnd == this || IsAnyGridColSelected() || IsAnyGridRowSelected())
@@ -6276,16 +6296,16 @@ void CFormScrollView::DrawField(const CDEField* pField, CDC* pDC)
             pDC->TextOut(iX, iY, GetDecimalCharacter());
 
             // 20100708 the decimal point was eliminating some of the border
-            if( using_control ) 
+            if( using_control )
             {
                 // top border
                 const LONG top_border_y = rcFld.top + 1;
-                pDC->MoveTo(iX - 1, top_border_y); 
+                pDC->MoveTo(iX - 1, top_border_y);
                 pDC->LineTo(iX + szChar.cx, top_border_y);
 
                 // bottom border
                 const LONG bottom_border_y = iBottom + 1;
-                pDC->MoveTo(iX - 1, bottom_border_y); 
+                pDC->MoveTo(iX - 1, bottom_border_y);
                 pDC->LineTo(iX + szChar.cx, bottom_border_y);
             }
         }
@@ -8624,15 +8644,6 @@ CDERoster* CFormScrollView::DropAnItemRoster(DictTreeNode* dict_tree_node, CPoin
     CreateGrid(pRoster);
 
     return  pRoster;
-}
-
-
-void CFormScrollView::OnShiftF10()
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd->IsKindOf(RUNTIME_CLASS(CFormTreeCtrl))) {
-        pWnd->PostMessage(WM_COMMAND, ID_SHIFT_F10);
-    }
 }
 
 

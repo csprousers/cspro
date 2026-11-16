@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DDDoc.h"
 #include "DDLView.h"
 #include "RelDlg.h"
@@ -380,7 +380,7 @@ void CDDDoc::OnOptionsAbsRel()
         UpdateAllViews(nullptr);
     }
 
-    AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)( change_to_relative ? _T("Relative Positions") : _T("Absolute Positions") ));
+    WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, change_to_relative ? L"Relative Positions" : L"Absolute Positions");
 }
 
 

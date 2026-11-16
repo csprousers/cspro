@@ -1,25 +1,40 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "LogicDialogBar.h"
-#include "CompilerOutputTabViewPage.h"
+#include "CompilerOutputView.h"
+#include "MessageEditView.h"
+#include <zUtilO/WindowFocusMgr.h>
+#include <afxtabctrl.h>
 
+
+// --------------------------------------------------------------------------
+// LogicDialogBar
+// --------------------------------------------------------------------------
 
 namespace
 {
-    constexpr const TCHAR* CompilerOutputTabText = _T("Compiler Output");
-    constexpr const TCHAR* MessagesTabText       = _T("Messages");
+    constexpr const wchar_t* CompilerOutputTabText = L"Compiler Output";
+    constexpr const wchar_t* MessagesTabText       = L"Messages";
+
+    constexpr size_t CompilerOutputTabIndex = 0;
 }
+
+
+IMPLEMENT_DYNAMIC(LogicDialogBar, UnfloatableDialogBar)
 
 
 BEGIN_MESSAGE_MAP(LogicDialogBar, UnfloatableDialogBar)
     ON_WM_CREATE()
     ON_WM_SIZE()
-    ON_MESSAGE(UWM::Designer::TabViewContainerTabChange, OnTabChange)
 END_MESSAGE_MAP()
 
 
 LogicDialogBar::LogicDialogBar()
     :   UnfloatableDialogBar(SZBARF_DLGAUTOSIZE | SZBARF_NOCAPTION | SZBARF_NOGRIPPER | SZBARF_NOCLOSEBTN | SZBARF_NORESIZEBTN),
-        m_applicationChildWnd(nullptr)
+        m_tabCtrl(std::make_unique<CMFCTabCtrl>()),
+        m_doc(nullptr),
+        m_compilerOutputView(nullptr),
+        m_messageEditView(nullptr),
+        m_messageEditTabIndex(-1)
 {
 }
 
@@ -29,19 +44,18 @@ LogicDialogBar::~LogicDialogBar()
 }
 
 
-bool LogicDialogBar::CreateAndDock(ApplicationChildWnd* application_child_wnd)
+bool LogicDialogBar::CreateAndDock(CFrameWnd* const frame_wnd, CDocument* const doc)
 {
-    m_applicationChildWnd = application_child_wnd;
-    m_compilerOutputTabViewPage = std::make_unique<CompilerOutputTabViewPage>(m_applicationChildWnd);
-    m_messageEditTabViewPage = std::make_unique<MessageEditTabViewPage>(m_applicationChildWnd);
+    ASSERT(doc != nullptr);
+    m_doc = doc;
 
-    if( !Create(m_applicationChildWnd, IDD_LOGIC_BAR, CBRS_BOTTOM, (UINT)-1) )
+    if( !Create(frame_wnd, IDD_LOGIC_BAR, CBRS_BOTTOM, static_cast<UINT>(-1)) )
         return false;
 
     // dock the window on the bottom
     EnableDocking(CBRS_ALIGN_BOTTOM);
 
-    m_applicationChildWnd->DockControlBar(this, CBRS_ALIGN_BOTTOM);
+    frame_wnd->DockControlBar(this, CBRS_ALIGN_BOTTOM);
 
     return true;
 }
@@ -49,60 +63,155 @@ bool LogicDialogBar::CreateAndDock(ApplicationChildWnd* application_child_wnd)
 
 int LogicDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    if( UnfloatableDialogBar::OnCreate(lpCreateStruct) == -1 )
+    if( __super::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
-    // create the tab view container for the two tabs
-    if( !m_tabViewContainer.Create(this) )
+    // without this style, the Scintilla controls often do not appear fully drawn,
+    // particularly when the focus moves to other windows
+    ModifyStyleEx(0, WS_EX_COMPOSITED);
+
+    // create the tab container for the tabs
+    if( !m_tabCtrl->Create(CMFCTabCtrl::STYLE_3D_ROUNDED, CRect(), this, static_cast<UINT>(-1)) )
         return -1;
 
+    ASSERT(!m_tabCtrl->IsActiveTabCloseButton());
+    ASSERT(!m_tabCtrl->IsSharedScroll());
+
+    m_tabCtrl->EnableTabSwap(FALSE);
+    m_tabCtrl->SetTabBorderSize(1);
+
+    CCreateContext context;
+    context.m_pCurrentDoc = m_doc;
+    context.m_pCurrentFrame = GetParentFrame();
+
+    int tab_index = 0;
+
+    auto create_tabbed_window = [&]<typename T>(T*& wnd, const wchar_t* const tab_text, const UINT resource_id)
+    {
+        constexpr DWORD dwStyle = AFX_WS_DEFAULT_VIEW & ~WS_BORDER;
+
+        wnd = assert_cast<T*>(T::CreateObject());
+        ASSERT(wnd != nullptr);
+
+        context.m_pNewViewClass = RUNTIME_CLASS(T);
+
+        if( !wnd->Create(nullptr, nullptr, dwStyle, CRect(), m_tabCtrl.get(), resource_id, &context) )
+            return false;
+
+        m_tabCtrl->AddTab(wnd, tab_text);
+
+        ++tab_index;
+
+        return true;
+    };
 
     // create the compiler output window
-    const DWORD dwStyle = WS_VISIBLE | WS_CHILD | WS_HSCROLL | WS_VSCROLL;
+    {
+        ASSERT(tab_index == CompilerOutputTabIndex);
 
-    if( !m_compilerOutputTabViewPage->Create(dwStyle, &m_tabViewContainer) )
-        return -1;
-
-    m_tabViewContainer.AddPage(m_compilerOutputTabViewPage.get(), CompilerOutputTabText);
-
+        if( !create_tabbed_window(m_compilerOutputView, CompilerOutputTabText, IDC_COMPILER_OUTPUT_TAB) )
+            return -1;
+    }
 
     // create the messages window
-    if( !m_messageEditTabViewPage->Create(dwStyle, &m_tabViewContainer) )
-        return -1;
+    {
+        m_messageEditTabIndex = tab_index;
 
-    m_tabViewContainer.AddPage(m_messageEditTabViewPage.get(), MessagesTabText);
+        if( !create_tabbed_window(m_messageEditView, MessagesTabText, IDC_MESSAGES_TAB) )
+            return -1;
+    }
 
+    // by default, the compiler output window is shown
+    ASSERT(m_tabCtrl->GetActiveTab() == CompilerOutputTabIndex);
 
-    // by default select the compiler output window
-    m_tabViewContainer.SetActivePageIndex(0);
-    
     return 0;
 }
 
 
-void LogicDialogBar::OnSize(UINT nType, int cx, int cy)
+void LogicDialogBar::OnSize(const UINT nType, const int cx, const int cy)
 {
-    UnfloatableDialogBar::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
-    // resize the tab view container to match this window
-    if( m_tabViewContainer.GetSafeHwnd() != nullptr )
+    // resize the tab container to match this window
+    if( m_tabCtrl->GetSafeHwnd() != nullptr )
     {
         CRect rect;
         GetClientRect(&rect);
-
-        m_tabViewContainer.MoveWindow(rect.left, rect.top, cx, cy);
-        m_tabViewContainer.UpdateScrollState();
+        m_tabCtrl->MoveWindow(rect);
     }
 }
 
 
-LRESULT LogicDialogBar::OnTabChange(WPARAM wParam, LPARAM /*lParam*/)
+CompilerOutputView& LogicDialogBar::GetCompilerOutputView() noexcept
 {
-    const int tab_index = static_cast<int>(wParam);
+    ASSERT(m_compilerOutputView != nullptr);
+    return *m_compilerOutputView;
+}
 
-    // when selecting the messages tab, refresh the text
-    if( tab_index == 1 )
-        m_messageEditTabViewPage->OnTabChange();
 
-    return 0;
+void LogicDialogBar::SelectCompilerOutputTab()
+{
+    m_tabCtrl->SetActiveTab(CompilerOutputTabIndex);
+}
+
+
+LogicCtrl* LogicDialogBar::SelectMessageEditTab()
+{
+    ASSERT(m_messageEditTabIndex != -1);
+    m_tabCtrl->SetActiveTab(m_messageEditTabIndex);
+
+    return m_messageEditView->GetLogicCtrl();
+}
+
+
+
+// --------------------------------------------------------------------------
+// LogicDialogBar::LDB_WindowFocusSwitcher
+// --------------------------------------------------------------------------
+
+class LogicDialogBar::LDB_WindowFocusSwitcher : public CWindowFocusSwitcher
+{
+protected:
+    void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd) override
+    {
+        CFrameWnd* pMainFrame = DYNAMIC_DOWNCAST(CFrameWnd, pAppMainWnd);
+        pMgr->AddWindowsRec(pMainFrame->GetActiveFrame(), this);
+    }
+
+    bool MatchWindow(CWnd* pWnd) const override
+    {
+        if( pWnd->IsKindOf(RUNTIME_CLASS(CompilerOutputView)) ||
+            pWnd->IsKindOf(RUNTIME_CLASS(MessageEditView)) )
+        {
+            ASSERT(pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(CMFCTabCtrl)));
+            ASSERT(pWnd->GetParent()->GetParent()->IsKindOf(RUNTIME_CLASS(LogicDialogBar)));
+            return true;
+        }
+
+        return false;
+    }
+
+    void SetFocus(CWnd* pWnd) override
+    {
+        CMFCTabCtrl* const tab_ctrl = assert_cast<CMFCTabCtrl*>(pWnd->GetParent());
+
+        if( pWnd != tab_ctrl->GetActiveWnd() )
+        {
+            const int tab_index = tab_ctrl->GetTabFromHwnd(pWnd->m_hWnd);
+            tab_ctrl->SetActiveTab(tab_index);
+        }
+
+        pWnd->SetFocus();
+    }
+
+    bool MustBeVisible() const override
+    {
+        return false;
+    }
+};
+
+
+std::unique_ptr<CWindowFocusSwitcher> LogicDialogBar::CreateWindowFocusSwitcher()
+{
+    return std::make_unique<LDB_WindowFocusSwitcher>();
 }

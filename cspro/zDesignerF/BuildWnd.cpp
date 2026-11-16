@@ -1,22 +1,21 @@
 #include "StdAfx.h"
 #include "BuildWnd.h"
 #include <zToolsO/Utf8.h>
-#include <zJson/JsonNode.h>
 #include <zLogicO/ParserMessage.h>
-#include <zEditO/ReadOnlyEditCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 
 // --------------------------------------------------------------------------
-// BuildWndReadOnlyEditCtrl
+// BuildWnd::BuildWndLogicCtrl
 //
-// this class handles mouse double-clicks to facilicate the action of going
-// to the line of an error/warning when double-clicking on the message
+// This class handles mouse double-clicks to facilicate the action of going
+// to the line of an error/warning when double-clicking on the message.
 // --------------------------------------------------------------------------
 
-class BuildWndReadOnlyEditCtrl : public ReadOnlyEditCtrl
+class BuildWnd::BuildWndLogicCtrl : public LogicCtrl
 {
 public:
-    BuildWndReadOnlyEditCtrl(BuildWnd& build_wnd);
+    BuildWndLogicCtrl(BuildWnd& build_wnd);
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -28,18 +27,18 @@ private:
 };
 
 
-BEGIN_MESSAGE_MAP(BuildWndReadOnlyEditCtrl, ReadOnlyEditCtrl)
+BEGIN_MESSAGE_MAP(BuildWnd::BuildWndLogicCtrl, LogicCtrl)
     ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 
-BuildWndReadOnlyEditCtrl::BuildWndReadOnlyEditCtrl(BuildWnd& build_wnd)
+BuildWnd::BuildWndLogicCtrl::BuildWndLogicCtrl(BuildWnd& build_wnd)
     :   m_buildWnd(build_wnd)
 {
 }
 
 
-void BuildWndReadOnlyEditCtrl::OnLButtonDblClk(const UINT nFlags, const CPoint point)
+void BuildWnd::BuildWndLogicCtrl::OnLButtonDblClk(const UINT nFlags, const CPoint point)
 {
     __super::OnLButtonDblClk(nFlags, point);
 
@@ -67,7 +66,7 @@ END_MESSAGE_MAP()
 BuildWnd::BuildWnd()
     :   m_addNewlinesBetweenErrorsAndWarnings(false),
         m_indentMessageLinesAfterFirstLine(false),
-        m_sourceLogicSource(nullptr),
+        m_sourceLogicCtrl(nullptr),
         m_currentSeparatorWideLength(0),
         m_warningCount(0)
 {
@@ -84,10 +83,13 @@ int BuildWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if( __super::OnCreate(lpCreateStruct) == -1 )
         return -1;
 
-    m_editCtrl = std::make_unique<BuildWndReadOnlyEditCtrl>(*this);
+    m_buildWndLogicCtrl = std::make_unique<BuildWndLogicCtrl>(*this);
 
-    if( !m_editCtrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, this) )
+    if( !m_buildWndLogicCtrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(), this, static_cast<UINT>(-1)) )
         return -1;
+
+    m_buildWndLogicCtrl->InitLogicControl(false, false, SCLEX_NULL);
+    m_buildWndLogicCtrl->SetReadOnly(TRUE);
 
     return 0;
 }
@@ -97,7 +99,7 @@ void BuildWnd::OnSize(const UINT nType, const int cx, const int cy)
 {
     __super::OnSize(nType, cx, cy);
 
-    m_editCtrl->SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+    m_buildWndLogicCtrl->SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 
@@ -111,7 +113,7 @@ void BuildWnd::Initialize(LogicCtrl* const source_logic_ctrl, const std::string&
         m_indentMessageLinesAfterFirstLine = false;
     }
 
-    m_sourceLogicSource = source_logic_ctrl;
+    m_sourceLogicCtrl = source_logic_ctrl;
     m_sourceDocFilePath.clear();
     m_currentAction = std::move(action);
 
@@ -124,7 +126,7 @@ void BuildWnd::Initialize(LogicCtrl* const source_logic_ctrl, const std::string&
         source_logic_ctrl->ClearErrorAndWarningMarkers();
 
     // clear the build window text
-    m_editCtrl->ClearReadOnlyText();
+    m_buildWndLogicCtrl->ClearReadOnlyText();
 
     // add a start message
     const std::string action_text = SO::Concatenate(m_currentAction, " started: ", source_title);
@@ -153,14 +155,14 @@ void BuildWnd::Initialize(LogicCtrl* const source_logic_ctrl, const CDocument* c
 
 void BuildWnd::AddMessage(const CompilerMessageType compiler_message_type, const std::string* file_path, const std::string& text, const int line_number_base1)
 {
-    ASSERT(m_editCtrl->GetLineCount() >= 1);
+    ASSERT(m_buildWndLogicCtrl->GetLineCount() >= 1);
 
     // space out errors/warnings (if applicable)
     if( m_addNewlinesBetweenErrorsAndWarnings &&
         compiler_message_type != CompilerMessageType::Info &&
         ( !m_errors.empty() || m_warningCount > 0 ) )
     {
-        m_editCtrl->AppendReadOnlyText("\n");
+        m_buildWndLogicCtrl->AppendReadOnlyText("\n");
     }
 
     // clear the filename if it does not come from a different compilation unit
@@ -170,7 +172,7 @@ void BuildWnd::AddMessage(const CompilerMessageType compiler_message_type, const
     MessageDetails& message_details = m_messageDetails.emplace_back(
         MessageDetails
         {
-            int32_cast(m_editCtrl->GetLineCount()) - 1,
+            int32_cast(m_buildWndLogicCtrl->GetLineCount()) - 1,
             line_number_base1 - 1,
             ( file_path != nullptr ) ? *file_path : std::string()
         });
@@ -186,7 +188,7 @@ void BuildWnd::AddMessage(const CompilerMessageType compiler_message_type, const
     // process the message
     if( compiler_message_type == CompilerMessageType::Info && line_number_base1 <= 0 )
     {
-        m_editCtrl->AppendReadOnlyText(get_text_with_message_filename_prefix() + "\n");
+        m_buildWndLogicCtrl->AppendReadOnlyText(get_text_with_message_filename_prefix() + "\n");
     }
 
     else
@@ -216,8 +218,8 @@ void BuildWnd::AddMessage(const CompilerMessageType compiler_message_type, const
             }
 
             // add the error/warning marker
-            if( m_sourceLogicSource != nullptr && message_details.file_path.empty() && line_number_base1 >= 1 )
-                m_sourceLogicSource->AddErrorOrWarningMarker(is_error, line_number_base1 - 1);
+            if( m_sourceLogicCtrl != nullptr && message_details.file_path.empty() && line_number_base1 >= 1 )
+                m_sourceLogicCtrl->AddErrorOrWarningMarker(is_error, line_number_base1 - 1);
         }
 
         const std::string file_path_or_line_number =
@@ -225,12 +227,17 @@ void BuildWnd::AddMessage(const CompilerMessageType compiler_message_type, const
             ( line_number_base1 >= 1 )         ? FormatText("(%d): ", line_number_base1) :
                                                  ": ";
 
-        const std::unique_ptr<std::string> indented_text = m_indentMessageLinesAfterFirstLine ? GetIndentedMessageIfNecessary(text, file_path_or_line_number, type_text.size()) :
-                                                                                                nullptr;
-        m_editCtrl->AppendReadOnlyText(SO::Concatenate(type_text,
-                                                       file_path_or_line_number,
-                                                       ( indented_text != nullptr ) ? *indented_text : text,
-                                                       "\n"));
+        const std::unique_ptr<std::string> indented_text =
+            m_indentMessageLinesAfterFirstLine
+            ? GetIndentedMessageIfNecessary(text, file_path_or_line_number, type_text.size())
+            : nullptr;
+
+        m_buildWndLogicCtrl->AppendReadOnlyText(SO::Concatenate(
+            type_text,
+            file_path_or_line_number,
+            ( indented_text != nullptr ) ? *indented_text : text,
+            "\n")
+        );
     }
 }
 
@@ -351,13 +358,14 @@ void BuildWnd::ProgressMessageClick(const int build_wnd_line_number_base0)
 
     // make sure that the document used for this compilation is the active document,
     // taking into account the fact that the message could have originated in a different file
-    LogicCtrl* const found_logic_ctrl = ( !lookup->file_path.empty() )    ? ActivateDocumentAndGetLogicCtrl(&lookup->file_path) :
-                                        ( m_sourceLogicSource != nullptr) ? ActivateDocumentAndGetLogicCtrl(m_sourceLogicSource) :
-                                                                            nullptr;
+    LogicCtrl* const found_logic_ctrl =
+        ( !lookup->file_path.empty() )  ? ActivateDocumentAndGetLogicCtrl(&lookup->file_path) :
+        ( m_sourceLogicCtrl != nullptr) ? ActivateDocumentAndGetLogicCtrl(m_sourceLogicCtrl) :
+                                          nullptr;
 
     if( found_logic_ctrl != nullptr )
     {
-        if( found_logic_ctrl == m_sourceLogicSource && lookup->compiled_buffer_line_number_base0 >= 0 )
+        if( found_logic_ctrl == m_sourceLogicCtrl && lookup->compiled_buffer_line_number_base0 >= 0 )
             found_logic_ctrl->GotoLine(lookup->compiled_buffer_line_number_base0);
 
         found_logic_ctrl->SetFocus();

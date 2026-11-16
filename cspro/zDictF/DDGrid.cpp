@@ -425,9 +425,9 @@ void CDDGrid::OnRowChange(long /*oldrow*/, long newrow)
     CDictChildWnd* pDictChildWnd = assert_cast<CDictChildWnd*>(pView->GetParentFrame());
 
     if( pDictChildWnd->GetDictDlgBar()->GetSafeHwnd() != nullptr &&
-        pDictChildWnd->GetDictDlgBar()->GetPropCtrl()->GetSafeHwnd() != nullptr )
+        pDictChildWnd->GetDictDlgBar()->GetPropCtrl().GetSafeHwnd() != nullptr )
     {
-        pDictChildWnd->GetDictDlgBar()->GetPropCtrl()->Initialize(pDoc, dict_base);
+        pDictChildWnd->GetDictDlgBar()->GetPropCtrl().Initialize(pDoc, dict_base);
     }
 }
 

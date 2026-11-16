@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "ScintillaColorizer.h"
-#include <zToolsO/Encoders.h>
 #include <zUtilO/PortableColor.h>
 #include <zHtml/HtmlWriter.h>
 #include <zScintilla/CSPro/CSPro.h>

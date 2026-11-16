@@ -59,7 +59,7 @@ protected:
     afx_msg void OnEditDelete();
     afx_msg void OnEditModify();
     afx_msg void OnEditNotes();
-    afx_msg void OnShiftF10();
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg void OnPasteValueSetLink();
     afx_msg void OnRemoveValueSetLink(UINT nID);
     afx_msg void OnMergeValues();

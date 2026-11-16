@@ -1,14 +1,13 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DesignerApplicationLoader.h"
 #include "Compiler.h"
 #include "DesignerCompilerMessageProcessor.h"
 #include <zToolsO/Hash.h>
-#include <zToolsO/PortableFunctions.h>
 #include <zMessageO/MessageManager.h>
 #include <zMessageO/SystemMessageIssuer.h>
 #include <zMessageO/SystemMessages.h>
 #include <zMessageO/VariableArgumentsMessageParameterEvaluator.h>
-#include <zDesignerF/CodeMenu.h>
+#include <zLogicO/DeprecationWarnings.h>
 #include <engine/Comp.h>
 #include <engine/Engdrv.h>
 
@@ -110,14 +109,14 @@ void DesignerMessageIssuerHandler::OnIssue(const Logic::ParserMessage& parser_me
     // conditionally issue deprecation warnings
     if( parser_message.IsDeprecationWarning() )
     {
-        switch( CodeMenu::DeprecationWarnings::GetLevel() )
+        switch( DeprecationWarnings::GetLevel() )
         {
-            case CodeMenu::DeprecationWarnings::Level::None:
+            case DeprecationWarnings::Level::None:
             {
                 return;
             }
 
-            case CodeMenu::DeprecationWarnings::Level::Most:
+            case DeprecationWarnings::Level::Most:
             {
                 if( parser_message.type == Logic::ParserMessage::Type::DeprecationMinor )
                     return;

@@ -1,4 +1,4 @@
-﻿// MainFrm.cpp : implementation of the CMainFrame class
+// MainFrm.cpp : implementation of the CMainFrame class
 //
 
 #include "StdAfx.h"
@@ -195,8 +195,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 
     EnableDocking(CBRS_ALIGN_ANY);
-    m_SizeDlgBar.SetSizeDockStyle(/*SZBARF_STDMOUSECLICKS |*/ SZBARF_DLGAUTOSIZE);
-    if (!m_SizeDlgBar.Create(this, IDD_DIALOGBAR, CBRS_LEFT, ID_FIXEDDLGBAR) )
+    m_SizeDlgBar.SetSizeDockStyle(/*SZBARF_STDMOUSECLICKS |*/ SZBARF_NOGRIPPER | SZBARF_NOCLOSEBTN | SZBARF_NORESIZEBTN);
+    if (!m_SizeDlgBar.Create(this, CBRS_LEFT) )
     {
         TRACE0("Failed to create dialog bar\n");
         return -1;

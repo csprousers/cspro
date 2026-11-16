@@ -11,23 +11,21 @@
 #include "SelectDocsDlg.h"
 #include "StartDlg.h"
 #include "VersionShifterDlg.h"
-#include <zToolsO/FileIO.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/FileUtil.h>
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zUtilO/WindowFocusMgr.h>
 #include <zUtilF/CommonControls.h>
-#include <zUtilF/DocViewIterators.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/resource_shared.h>
 #include <zListingO/Lister.h>
 #include <zDesignerF/ManageFilesDlg.h>
 #include <zDictF/Ddgview.h>
-#include <zFormO/DragOptions.h>
 #include <zTableF/TabView.h>
 #include <zTableF/TabChWnd.h>
 #include <zNetwork/SyncLog.h>
 #include <afxvisualmanageroffice2007.h>
+#include <../src/mfc/afximpl.h>
 
 
 #define SOFTWARE_DEVELOPER _T("U.S. Census Bureau")
@@ -125,58 +123,6 @@ CCSProApp::CCSProApp()
 // Helper classes to be used with the window focus manager (see InitInstance below)
 // Need one of these for each of the types of windows that you want to switch focus between.
 
-// focus switcher for batch edit source view
-struct COSourceEditViewFocusSwitcher : public CViewFocusSwitcher
-{
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return pWnd->IsKindOf(RUNTIME_CLASS(COSourceEditView));
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(COSourceEditView)));
-        CViewFocusSwitcher::SetFocus(pWnd);
-        COSourceEditView* pView = DYNAMIC_DOWNCAST(COSourceEditView, pWnd);
-        pView->GetLogicCtrl()->SetFocus();
-    }
-};
-
-
-// focus switcher for tab source view
-struct CTSourceEditViewFocusSwitcher : public CViewFocusSwitcher
-{
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return pWnd->IsKindOf(RUNTIME_CLASS(CTSourceEditView));
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTSourceEditView)));
-        CViewFocusSwitcher::SetFocus(pWnd);
-        CTSourceEditView* pView = DYNAMIC_DOWNCAST(CTSourceEditView, pWnd);
-        pView->GetLogicCtrl()->SetFocus();
-    }
-};
-
-// focus switcher for tab grid view
-struct CTabViewFocusSwitcher : public CViewFocusSwitcher
-{
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return pWnd->IsKindOf(RUNTIME_CLASS(CTabView));
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CTabView)));
-        CViewFocusSwitcher::SetFocus(pWnd);
-        CTabView* pView = DYNAMIC_DOWNCAST(CTabView, pWnd);
-        pView->GetGrid()->SetFocus();
-    }
-};
-
 // focus switcher for tree control tabs (dictionary, forms, tables,...)
 struct CMDlgTabFocusSwitcher : public CWindowFocusSwitcher
 {
@@ -209,40 +155,6 @@ struct CMDlgTabFocusSwitcher : public CWindowFocusSwitcher
     }
 };
 
-// focus switcher for edit windows in tab view (messages, compile output)
-struct CTabViewContainerFocusSwitcher : public CWindowFocusSwitcher
-{
-    virtual void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd)
-    {
-        CFrameWnd* pMainFrame = DYNAMIC_DOWNCAST(CFrameWnd, pAppMainWnd);
-        pMgr->AddWindowsRec(pMainFrame->GetActiveFrame(), this);
-    }
-
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        return ( pWnd->GetParent()->IsKindOf(RUNTIME_CLASS(COXTabViewContainer)) &&
-                 pWnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) );
-    }
-
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        COXTabViewContainer* pParentDlg = DYNAMIC_DOWNCAST(COXTabViewContainer, pWnd->GetParent());
-        if (!pParentDlg->IsActivePage(pWnd)) {
-            int nIndex;
-            if (pParentDlg->FindPage(pWnd, nIndex)) {
-                pParentDlg->SetActivePageIndex(nIndex);
-            }
-        }
-        pWnd->SetFocus();
-    }
-
-    virtual bool MustBeVisible() const
-    {
-        return false;
-    }
-};
-
-
 
 BOOL CCSProApp::InitInstance()
 {
@@ -255,11 +167,8 @@ BOOL CCSProApp::InitInstance()
     // main app windows on a hotkey (for accessibility)
     // Called in PreTranslateMessage
     m_pWindowFocusMgr = new CWindowFocusMgr;
-    m_pWindowFocusMgr->AddSwitcher(new COSourceEditViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CTSourceEditViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CTabViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CViewFocusSwitcher);
-    m_pWindowFocusMgr->AddSwitcher(new CTabViewContainerFocusSwitcher);
+    m_pWindowFocusMgr->AddSwitcher(new ViewIgnoringTabbedViewsFocusSwitcher);
+    m_pWindowFocusMgr->AddSwitcher(LogicDialogBar::CreateWindowFocusSwitcher().release());
     m_pWindowFocusMgr->AddSwitcher(new CMDlgTabFocusSwitcher);
 
     // Standard initialization
@@ -275,8 +184,8 @@ BOOL CCSProApp::InitInstance()
 
     LoadStdProfileSettings(10);  // Load standard INI file options (including MRU)
 
-    // set the look and feel of the property grids to the Office 2007 style
-    CMFCVisualManagerOffice2007::SetStyle(CMFCVisualManagerOffice2007::Office2007_ObsidianBlack);
+    // set the look and feel of the tab controls and property grids to the Office 2007 style
+    CMFCVisualManagerOffice2007::SetStyle(CMFCVisualManagerOffice2007::Office2007_Silver);
     CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerOffice2007));
 
     // gsf
@@ -2874,7 +2783,7 @@ void CCSProApp::RestoreRFL()
         for(int iIndex = 0; iIndex < m_pRecentFileList->GetSize(); iIndex++) {
             m_pRecentFileList->Remove(0);
         }
-        for( int iIndex = m_arrRFLStrings.GetSize() -1; iIndex >= 0; iIndex--) {
+        for( INT_PTR iIndex = m_arrRFLStrings.GetSize() - 1; iIndex >= 0; iIndex--) {
             // JH 11/29/05 - added try/catch to catch CFileException::badPath thrown
             // by CRecentFileList::Add when one of the recent file list strings
             // has a path that is no longer valid e.g. was on a removeable drive

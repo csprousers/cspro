@@ -35,6 +35,9 @@
     <ClInclude Include="ContextSensitiveHelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DeprecationWarnings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FunctionTable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LocalSymbolStack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogicFormatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogicScanner.h">
@@ -131,6 +137,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="KeywordTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogicFormatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor.cpp">

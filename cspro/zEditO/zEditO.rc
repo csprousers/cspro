@@ -7,6 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#include "../zEditO/resource_shared.h"
 #include "../zEditO/resource_win32.h"
 #include "afxres.h"
 
@@ -33,6 +34,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zEditO/resource_win32.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -209,9 +211,9 @@ END
 // Accelerator
 //
 
-IDR_MESSAGE_EDIT ACCELERATORS
+IDR_EDIT ACCELERATORS
 BEGIN
-    VK_OEM_2,       ID_EDIT_COMMENT_LINE,   VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_2,       ID_COMMENT_LINE,        VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
@@ -245,13 +247,14 @@ BEGIN
     END
 END
 
-IDR_MESSAGE_EDIT MENU
+IDR_EDIT MENU
 BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
         MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
+        MENUITEM SEPARATOR
         MENUITEM "&Delete\tDel",                ID_EDIT_CLEAR
         MENUITEM SEPARATOR
         MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
@@ -272,6 +275,11 @@ BEGIN
     IDP_FAIL_SCINTILLA_DOCUMENT_TOO_LARGE "Document is too large to be loaded"
     IDS_SCINTILLA_DEFAULT_PRINT_FOOTER "Page %1"
     IDS_SCINTILLA_DEFAULT_PRINT_HEADER "%1 - Printed on %2"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FORMAT_CSPRO_LOGIC   "Formats CSPro logic using a defined style\nFormat Logic"
 END
 
 #endif    // English (United States) resources

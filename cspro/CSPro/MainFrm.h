@@ -4,7 +4,6 @@
 #include <zToolsO/RaiiHelpers.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ApplicationShutdownRunner.h>
-#include <zUToolO/zUToolO.h>
 #include <zExTab/zExTab.h>
 #include <zInterfaceF/LangDlgBar.h>
 #include <zBridgeO/NPff.h>
@@ -59,10 +58,11 @@ public:
     // the user must select which one to use
     CAplDoc* GetApplicationUsingFormFile(const std::string& form_file_path, bool silent = false);
 
-    CAplDoc* ProcessFOForSrcCode(CDocument& document);
+    // If the document is not null and derives from DesignerDoc, the document is returned.
+    // Otherwise, ProcessFOForSrcCode is called and its result is returned.
+    DesignerDoc* GetDesignerDoc(CDocument* doc);
 
-protected:
-    LRESULT OnGetMessageTextSource(WPARAM wParam, LPARAM lParam);
+    CAplDoc* ProcessFOForSrcCode(CDocument& document);
 
 private:
     static std::unique_ptr<CImageList> Load24BitColorToolbarImages(CToolBar* pToolBar, UINT nIDResource);
@@ -91,10 +91,10 @@ public:
     LRESULT UpdateOSrcCode(WPARAM wParam, LPARAM lParam);
     LRESULT IsNameUnique(WPARAM wParam, LPARAM lParam);
 
-    LRESULT SetStatusBarPane(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSetStatusBarText(WPARAM wParam, LPARAM lParam);
     LRESULT OnIMSASetFocus(WPARAM wParam, LPARAM lParam);
-    LRESULT OnIsCode(WPARAM wParam, LPARAM lParam);
-    LRESULT OnFIsCode(WPARAM wParam, LPARAM lParam);
+    LRESULT OnOrderHasLogic(WPARAM wParam, LPARAM lParam);
+    LRESULT OnFormHasLogic(WPARAM wParam, LPARAM lParam);
     LRESULT OnUpdateSymbolTblFlag(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnGetApplicationBeingLoaded(WPARAM wParam, LPARAM lParam);
@@ -158,7 +158,7 @@ protected:
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnActivateApp(BOOL bActive, DWORD dwThreadID);
     afx_msg void OnClose();
-    afx_msg void OnUpdateKeyOvr(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateKeyOvertype(CCmdUI* pCmdUI);
     afx_msg void OnEndSession(BOOL bEnding);
     afx_msg LRESULT OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu);
     afx_msg void OnAbout1();
@@ -209,9 +209,15 @@ private:
     void GotoExternalLogicOrReportNode(const CDocument* pDoc, LogicCtrl* logic_control, NullTerminatedString filename,
                                        bool using_line_number, int line_number_or_position_in_buffer);
 
+    // Returns the symbol name for the selected item, returning a blank string for the form file (PROC GLOBAL).
+    static std::optional<CString> GetSymbolName(const CDEFormBase* form_base, const CFormID* pFormID);
+
 protected:
-    afx_msg void OnViewTopLogic();
-    LRESULT OnLogicReference(WPARAM wParam, LPARAM lParam);
+    void OnViewTopLogic();
+    bool OnLogicReference(LogicCtrl* const logic_ctrl, bool activated_by_f1, bool goto_declaration);
+    LRESULT OnShowLogicReference(WPARAM wParam, LPARAM lParam);
+    LRESULT OnShowLogicHelp(WPARAM wParam, LPARAM lParam);
+    LRESULT OnGoToDeclaration(WPARAM wParam, LPARAM lParam);
     LRESULT OnSymbolsAdded(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicAutoComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicInsertProcName(WPARAM wParam, LPARAM lParam);
@@ -243,21 +249,10 @@ private:
 protected:
     void OnUpdateIfLogicIsShowing(CCmdUI* pCmdUI);
 
-    void OnPasteStringLiteral();
-    void OnUpdatePasteStringLiteral(CCmdUI* pCmdUI);
-
     void OnStringEncoder();
     void OnPathAdjuster();
 
     void OnSymbolAnalysis();
-
-    void OnDeprecationWarnings(UINT nID);
-    void OnUpdateDeprecationWarnings(CCmdUI* pCmdUI);
-
-    void OnCodeFoldingLevel(UINT nID);
-    void OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI);
-    void OnCodeFoldingAction(UINT nID);
-    void OnUpdateCodeFoldingAction(CCmdUI* pCmdUI);
 
 
     // other functions

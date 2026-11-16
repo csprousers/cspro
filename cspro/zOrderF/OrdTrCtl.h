@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: FrmTrCtl.h
@@ -84,11 +84,14 @@ protected:
     afx_msg void OnGetdispinfo(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
-    afx_msg void OnShiftF10();
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg void OnEditReportProperties();
     afx_msg void OnCopyName();
     afx_msg void OnViewQuestionnaire();
     afx_msg void OnViewLogic();
+
+private:
+    void ShowContextMenu(HTREEITEM selected_tree_item, int x, int y);
 
 public:
     int             m_iOrder;

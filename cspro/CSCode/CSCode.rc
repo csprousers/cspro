@@ -7,6 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#include "../zEditO/resource_shared.h"
 #include "../zDesignerF/resource_shared.h"
 #include "afxres.h"
 
@@ -33,6 +34,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
+    "#include ""../zEditO/resource_shared.h""\r\n"
     "#include ""../zDesignerF/resource_shared.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
@@ -79,9 +81,9 @@ BEGIN
     "F",            ID_CODE_FOLDING_TOGGLE, VIRTKEY, CONTROL, ALT, NOINVERT
     "0",            ID_CODE_FOLDING_UNFOLD_ALL, VIRTKEY, SHIFT, ALT, NOINVERT
     VK_OEM_7,       ID_CODE_PASTE_STRING_LITERAL, VIRTKEY, CONTROL, NOINVERT
-    VK_OEM_2,       ID_COMMENT_CODE,        VIRTKEY, CONTROL, NOINVERT
+    VK_OEM_2,       ID_COMMENT_LINE,        VIRTKEY, CONTROL, NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_EDIT_FIND_NEXT,      VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
     "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "W",            ID_FILE_CLOSE,          VIRTKEY, CONTROL, NOINVERT
     "W",            ID_FILE_CLOSE_ALL,      VIRTKEY, SHIFT, CONTROL, NOINVERT
@@ -195,7 +197,7 @@ BEGIN
         MENUITEM "Select &All\tCtrl+A",         ID_EDIT_SELECT_ALL
         MENUITEM SEPARATOR
         MENUITEM "&Find\tCtrl+F",               ID_EDIT_FIND
-        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
         MENUITEM "R&eplace\tCtrl+H",            ID_EDIT_REPLACE
     END
     POPUP "&Language"
@@ -622,11 +624,6 @@ BEGIN
                             "Stop processing actions on the first exception\nAbort on First Exception"
     ID_RUN_COMPILE_OR_VALIDATE 
                             "Compile or validate the code\nCompile or Validate"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_FIND_NEXT       "Find next occurrence of search text\nFind Next"
 END
 
 STRINGTABLE

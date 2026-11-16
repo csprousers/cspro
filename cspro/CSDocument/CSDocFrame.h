@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/CSDocDoc.h>
 #include <CSDocument/DocSetBuildHandlerFrame.h>
@@ -6,10 +6,10 @@
 
 class CSDocFrame : public DocSetBuildHandlerFrame
 {
-	DECLARE_DYNCREATE(CSDocFrame)
+    DECLARE_DYNCREATE(CSDocFrame)
 
 protected:
-    CSDocFrame() { } // create from serialization only
+    CSDocFrame() noexcept = default; // create from serialization only
 
 public:
     CSDocDoc& GetCSDocDoc() { return *assert_cast<CSDocDoc*>(GetActiveDocument()); }

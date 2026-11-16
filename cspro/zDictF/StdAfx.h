@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
@@ -23,6 +23,7 @@
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/UWM.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zDictO/DDClass.h>
 #include <zDictO/DictionaryIterator.h>

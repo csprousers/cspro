@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zRuntimeO/zRuntimeO.h>
 #include <zHtml/HtmlViewerView.h>
@@ -17,7 +17,7 @@ public:
     WindowsRuntimeHost& GetRuntimeHost() { return *m_runtimeHost; }
 
 protected:
-    // methods that can be overriden by subclasses
+    // methods that can be overridden by subclasses
     virtual void SetRuntimeTitle(SharableString description);
     virtual void AllRuntimesClosed();
 

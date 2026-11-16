@@ -1,7 +1,6 @@
-﻿#pragma once
+#pragma once
 
 #include <TblView/TVDlgBar.h>
-#include <zUToolO/zUToolO.h>
 #include <zUtilO/BCMenu.h>
 
 class ObjectTransporter;

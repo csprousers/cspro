@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FormGrid.h"
 #include "ColumnPropertiesDlg.h"
 #include "GridDlgs.h"
@@ -19,7 +19,7 @@ BEGIN_MESSAGE_MAP(CFormGrid, CGridWnd)
     ON_COMMAND(ID_EDIT_GRID_AUTOFIT, OnEditGridAutoFit)
     ON_COMMAND(ID_VVIEW_LOGIC, OnViewLogic)
     ON_COMMAND(ID_VQSF_EDITOR, OnQSFEditor)
-    ON_COMMAND(ID_DELETE_ITEM, OnDeleteItem)
+    ON_COMMAND(ID_EDIT_CLEAR, OnDeleteItem)
     ON_COMMAND(ID_DELETE_COLUMN, OnDeleteColumn)
     ON_COMMAND(ID_SHOW_BOXTOOLBAR, OnShowBoxToolbar)
     ON_COMMAND(ID_EDIT_JOIN, OnEditJoin)
@@ -194,7 +194,7 @@ void CFormGrid::OnCell_RClicked(int iRow, int iCol)
     popMenu.CreatePopupMenu();
     popMenu.AppendMenu(MF_STRING, ID_EDIT_GRIDPROP, _T("&Properties"));
     popMenu.AppendMenu(MF_STRING, ID_EDIT_GRID_AUTOFIT, _T("AutoFit"));
-    popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+    popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
     popMenu.AppendMenu(MF_SEPARATOR);
     popMenu.AppendMenu(MF_STRING, ID_ADD_TEXT, _T("Add &Text"));
     popMenu.AppendMenu(MF_STRING, ID_SHOW_BOXTOOLBAR, _T("Add &Boxes"));
@@ -346,7 +346,7 @@ void CFormGrid::OnCellField_RClicked(CDEField* pFld, int iOcc)
         BCMenu popMenu;
         popMenu.CreatePopupMenu();
         popMenu.AppendMenu((bActive?MF_STRING:MF_GRAYED), ID_EDIT_FIELDPROP, _T("Field &Properties"));
-        popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+        popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_ADD_TEXT, _T("Add &Text"));
         popMenu.AppendMenu(MF_STRING, ID_SHOW_BOXTOOLBAR, _T("Add &Boxes"));
@@ -416,7 +416,7 @@ void CFormGrid::OnCellText_RClicked(CHitOb& hitOb)
         BCMenu popMenu;
         popMenu.CreatePopupMenu();
         popMenu.AppendMenu((bActive?MF_STRING:MF_GRAYED), ID_EDIT_TEXTPROP, _T("&Properties"));
-        popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+        popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_ADD_TEXT, _T("Add &Text"));
         popMenu.AppendMenu(MF_STRING, ID_SHOW_BOXTOOLBAR, _T("Add &Boxes"));
@@ -483,7 +483,7 @@ void CFormGrid::OnCellBox_RClicked(CHitOb& hitOb)
         BCMenu popMenu;
         popMenu.CreatePopupMenu();
         popMenu.AppendMenu((bActive?MF_STRING:MF_GRAYED), ID_EDIT_BOXPROP, _T("&Properties"));
-        popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+        popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_ADD_TEXT, _T("Add &Text"));
         popMenu.AppendMenu(MF_STRING, ID_SHOW_BOXTOOLBAR, _T("Add &Boxes"));
@@ -744,7 +744,7 @@ void CFormGrid::OnCB_RClicked(const CPoint& pt)
     popMenu.CreatePopupMenu();
     popMenu.AppendMenu(MF_STRING, ID_EDIT_GRIDPROP, _T("Roster &Properties"));
     popMenu.AppendMenu(MF_STRING, ID_EDIT_GRID_AUTOFIT, _T("AutoFit"));
-    popMenu.AppendMenu(MF_STRING, ID_DELETE_ITEM, _T("&Delete"));
+    popMenu.AppendMenu(MF_STRING, ID_EDIT_CLEAR, _T("&Delete"));
     popMenu.AppendMenu(MF_SEPARATOR);
     popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_ADD_TEXT, _T("Add &Text"));
     popMenu.AppendMenu(MF_STRING, ID_SHOW_BOXTOOLBAR, _T("Add &Boxes"));
@@ -773,7 +773,7 @@ void CFormGrid::OnKeyDown(UINT* piKey, bool bProcessed)
         if (IsTrackerActive() && *piKey==VK_DELETE) {
             CGridRectTracker& t = GetTracker(0);
             m_hitOb = t.GetHitOb();
-            SendMessage(WM_COMMAND, ID_DELETE_ITEM);
+            SendMessage(WM_COMMAND, ID_EDIT_CLEAR);
         }
     }
 }
@@ -1450,7 +1450,7 @@ void CFormGrid::OnDeleteItem()
     {
         CFormScrollView* pView = GetFormView();
         pView->SetFocus();              // view nds to have the focus for delete to work prop
-        pView->SendMessage (WM_COMMAND, ID_DELETE_ITEM);
+        pView->SendMessage (WM_COMMAND, ID_EDIT_CLEAR);
         return;
     }
 
@@ -1627,12 +1627,12 @@ void CFormGrid::OnDeleteItem()
         RemoveAllTrackers();
         if (GetCell(iRow,iCol).GetNumFields()>1)
         {
-            GetParent()->SendMessage(WM_COMMAND, ID_DELETE_ITEM);
+            GetParent()->SendMessage(WM_COMMAND, ID_EDIT_CLEAR);
         }
         else
         {
             // post on last fld deletion since we'll be deleting ourselves
-            GetParent()->PostMessage(WM_COMMAND, ID_DELETE_ITEM);
+            GetParent()->PostMessage(WM_COMMAND, ID_EDIT_CLEAR);
         }
     }
 

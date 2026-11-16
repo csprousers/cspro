@@ -24,6 +24,9 @@
     <ClCompile Include="ApplicationDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ApplicationLogicView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ApplicationPropertiesPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,7 +45,10 @@
     <ClCompile Include="CodeMenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CompilerOutputTabViewPage.cpp">
+    <ClCompile Include="CompilerOutputView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DesignerDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictionaryBasedDoc.cpp">
@@ -69,7 +75,7 @@
     <ClCompile Include="ManageFilesDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MessageEditTabViewPage.cpp">
+    <ClCompile Include="MessageEditView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NewFileCreator.cpp">
@@ -120,9 +126,6 @@
     <ClCompile Include="TableSpecPropertiesPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TabViewContainer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TextDisplayPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,6 +147,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ApplicationDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ApplicationLogicView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ApplicationPropertiesPageDlg.h">
@@ -170,7 +176,10 @@
     <ClInclude Include="CompilerMessageType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CompilerOutputTabViewPage.h">
+    <ClInclude Include="CompilerOutputView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DesignerDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DesignerObjectTransporter.h">
@@ -203,7 +212,7 @@
     <ClInclude Include="ManageFilesDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MessageEditTabViewPage.h">
+    <ClInclude Include="MessageEditView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NewFileCreator.h">
@@ -258,9 +267,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TableSpecPropertiesPageDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TabViewContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TextDisplayPageDlg.h">

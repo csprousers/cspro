@@ -1,4 +1,15 @@
-﻿#pragma once
+#pragma once
+
+
+// --------------------------------------------------------------------------
+// Get ... functions
+// --------------------------------------------------------------------------
+
+template<typename ViewType = CView>
+ViewType* GetFirstView(CDocument& doc);
+
+template<typename ViewType = CView>
+ViewType* GetFirstView(CDocument* doc);
 
 
 // --------------------------------------------------------------------------
@@ -44,13 +55,33 @@ void ForeachParentFrame(const CF& callback_function);
 // inline implementations
 // --------------------------------------------------------------------------
 
-template<typename ViewType/* = CView*/, typename CF>
-void WithFirstView(CDocument& doc, const CF& callback_function)
+template<typename ViewType/* = CView*/>
+ViewType* GetFirstView(CDocument& doc)
 {
     POSITION view_pos = doc.GetFirstViewPosition();
 
     if( view_pos != nullptr )
-        callback_function(*assert_cast<ViewType*>(doc.GetNextView(view_pos)));
+        return assert_cast<ViewType*>(doc.GetNextView(view_pos));
+
+    return nullptr;
+}
+
+
+template<typename ViewType/* = CView*/>
+ViewType* GetFirstView(CDocument* const doc)
+{
+    return ( doc != nullptr ) ? GetFirstView<ViewType>(*doc)
+                              : nullptr;
+}
+
+
+template<typename ViewType/* = CView*/, typename CF>
+void WithFirstView(CDocument& doc, const CF& callback_function)
+{
+    ViewType* const first_view = GetFirstView(doc);
+
+    if( first_view != nullptr )
+        callback_function(*first_view);
 }
 
 

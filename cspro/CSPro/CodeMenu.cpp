@@ -25,9 +25,9 @@ namespace
 
         CView* pView = pFrame->GetActiveView();
 
-        LogicCtrl* logic_ctrl = ( pView->IsKindOf(RUNTIME_CLASS(CFSourceEditView)) ) ? assert_cast<CFSourceEditView*>(pView)->GetLogicCtrl() :
-                                ( pView->IsKindOf(RUNTIME_CLASS(COSourceEditView)) ) ? assert_cast<COSourceEditView*>(pView)->GetLogicCtrl() :
-                                                                                       nullptr;
+        LogicCtrl* logic_ctrl = pView->IsKindOf(RUNTIME_CLASS(ApplicationLogicView))
+            ? assert_cast<ApplicationLogicView*>(pView)->GetLogicCtrl()
+            : nullptr;
 
         return { pFrame->GetActiveDocument(), logic_ctrl };
     }
@@ -68,35 +68,6 @@ namespace
 void CMainFrame::OnUpdateIfLogicIsShowing(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(IsLogicCtrlActive(this));
-}
-
-
-
-// --------------------------------------------------------------------------
-// Paste as String Literal
-// --------------------------------------------------------------------------
-
-void CMainFrame::OnPasteStringLiteral()
-{
-    LogicCtrl* logic_ctrl = assert_cast<LogicCtrl*>(GetFocus());
-    CodeMenu::OnPasteStringLiteral(*logic_ctrl);
-}
-
-
-void CMainFrame::OnUpdatePasteStringLiteral(CCmdUI* pCmdUI)
-{
-    bool enable = false;
-
-    if( WinClipboard::HasText() )
-    {
-        CWnd* focused_wnd = GetFocus();
-        ASSERT(focused_wnd != nullptr);
-
-        enable = ( focused_wnd->IsKindOf(RUNTIME_CLASS(LogicCtrl)) &&
-                   CodeMenu::CanPasteStringLiteral(assert_cast<LogicCtrl*>(focused_wnd)->GetLexer()) );
-    }
-
-    pCmdUI->Enable(enable);
 }
 
 
@@ -190,50 +161,4 @@ void CMainFrame::OnSymbolAnalysis()
     {
         ErrorMessage::Display(exception);
     }
-}
-
-
-
-// --------------------------------------------------------------------------
-// Deprecation Warnings
-// --------------------------------------------------------------------------
-
-void CMainFrame::OnDeprecationWarnings(UINT nID)
-{
-    CodeMenu::DeprecationWarnings::OnDeprecationWarnings(nID);
-}
-
-
-void CMainFrame::OnUpdateDeprecationWarnings(CCmdUI* pCmdUI)
-{
-    CodeMenu::DeprecationWarnings::OnUpdateDeprecationWarnings(pCmdUI);
-}
-
-
-
-// --------------------------------------------------------------------------
-// Code Folding
-// --------------------------------------------------------------------------
-
-void CMainFrame::OnCodeFoldingLevel(UINT nID)
-{
-    CodeMenu::CodeFolding::OnCodeFoldingLevel(nID, GetActiveLogicCtrl(this));
-}
-
-
-void CMainFrame::OnUpdateCodeFoldingLevel(CCmdUI* pCmdUI)
-{
-    CodeMenu::CodeFolding::OnUpdateCodeFoldingLevel(pCmdUI);
-}
-
-
-void CMainFrame::OnCodeFoldingAction(UINT nID)
-{
-    CodeMenu::CodeFolding::OnCodeFoldingAction(nID, GetActiveLogicCtrl(this));
-}
-
-
-void CMainFrame::OnUpdateCodeFoldingAction(CCmdUI* pCmdUI)
-{
-    CodeMenu::CodeFolding::OnUpdateCodeFoldingAction(pCmdUI, GetActiveLogicCtrl(this));
 }

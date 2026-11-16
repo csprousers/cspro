@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;11&#8209;16 | [logic-views](https://github.com/CSProDevelopment/cspro/commit/ccf69c50124ae4bac4f3406f26785c5a6e56df87) | reworked several uses of the Scintilla editor to use LogicView rather than LogicCtrl |
 | 2026&#8209;10&#8209;07 | [scintilla-upgrade](https://github.com/CSProDevelopment/cspro/commit/ece947e3a556186226539374c9d23f7e174237a0) | upgraded Scintilla and Lexilla |
 | 2026&#8209;10&#8209;07 | [zDocument](https://github.com/CSProDevelopment/cspro/commit/e853d5331e54ffdea19c4324ddc59fce60ae7efd) | moved CSDocument's non-UI objects to a DLL, zDocument, and refactored the build tools to use this rather than invoke CSDocument |
 | 2026&#8209;10&#8209;07 | [dll-cleanup](https://github.com/CSProDevelopment/cspro/commit/119f5f733a79f0b0be91bcbfaa27731f7b0233a6) | removed MFC from DLLs that did not use it + cleaned up build settings + added precompiled headers to the Android build files |

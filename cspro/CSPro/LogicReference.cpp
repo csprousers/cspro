@@ -7,6 +7,7 @@
 #include <zLogicO/FunctionTable.h>
 #include <zLogicO/GeneralizedFunction.h>
 #include <zLogicO/SourceBuffer.h>
+#include <zDesignerF/MessageEditView.h>
 #include <zFreqO/Frequency.h>
 #include <zSrcMgrO/BackgroundCompiler.h>
 #include <zSrcMgrO/ProcGlobalConditionalCompiler.h>
@@ -1491,7 +1492,7 @@ namespace
             {
                 CFormChildWnd* form_window = assert_cast<CFormChildWnd*>(m_currentMdiWindow);
                 m_applicationWindow = form_window;
-                m_logicControl = form_window->GetSourceView()->GetLogicCtrl();
+                m_logicControl = form_window->GetSourceLogicCtrl();
                 m_logicReferenceWindow = &form_window->GetLogicReferenceWnd();
                 m_treeControl = assert_cast<CFormDoc*>(m_activeDocument)->GetFormTreeCtrl();
             }
@@ -1500,7 +1501,7 @@ namespace
             {
                 COrderChildWnd* order_window = assert_cast<COrderChildWnd*>(m_currentMdiWindow);
                 m_applicationWindow = order_window;
-                m_logicControl = order_window->GetOSourceView()->GetLogicCtrl();
+                m_logicControl = order_window->GetSourceLogicCtrl();
                 m_logicReferenceWindow = &order_window->GetLogicReferenceWnd();
                 m_treeControl = assert_cast<COrderDoc*>(m_activeDocument)->GetOrderTreeCtrl();
             }
@@ -1509,7 +1510,7 @@ namespace
             {
                 CTableChildWnd* table_window = assert_cast<CTableChildWnd*>(m_currentMdiWindow);
                 m_applicationWindow = table_window;
-                m_logicControl = table_window->GetSourceView()->GetLogicCtrl();
+                m_logicControl = table_window->GetSourceLogicCtrl();
                 m_logicReferenceWindow = &table_window->GetLogicReferenceWnd();
                 m_treeControl = assert_cast<CTabulateDoc*>(m_activeDocument)->GetTabTreeCtrl();
             }
@@ -1763,7 +1764,7 @@ namespace
 
             m_applicationWindow->ShowControlBar(m_logicReferenceWindow, TRUE, FALSE);
 
-            ReadOnlyEditCtrl* reference_control = m_logicReferenceWindow->GetEditCtrl();
+            LogicCtrl* const reference_control = m_logicReferenceWindow->GetLogicCtrl();
 
             if( !reference_text.IsEmpty() )
             {
@@ -1812,7 +1813,7 @@ namespace
                 {
                     reference_control->ToggleLexer(Lexers::GetLexer_Logic(application));
 
-                    int length_before_logic_text = reference_control->GetLength();
+                    Sci_Position length_before_logic_text = reference_control->GetLength();
 
                     reference_control->AppendReadOnlyText(UTF8_TODO::GetUtf8(logic_text));
 
@@ -1840,13 +1841,19 @@ namespace
 
 
 
-LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
+bool CMainFrame::OnLogicReference(LogicCtrl* const logic_ctrl, const bool activated_by_f1, const bool goto_declaration)
 {
-    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(lParam);
-    const bool activated_by_f1 = ( wParam == ZEDITO_LOGIC_REFERENCE_HELP );
-    const bool goto_word = ( wParam == ZEDITO_LOGIC_REFERENCE_GOTO );
+    ASSERT(logic_ctrl != nullptr && logic_ctrl->GetParent()->IsKindOf(RUNTIME_CLASS(LogicView)));
 
-    const std::vector<std::string> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
+    auto get_help_topic_filename_for_view = [&]()
+    {
+        return logic_ctrl->GetParent()->IsKindOf(RUNTIME_CLASS(MessageEditView))
+            ? Logic::ContextSensitiveHelp::GetMessagesIntroductionTopicFilename()
+            : Logic::ContextSensitiveHelp::GetLogicIntroductionTopicFilename();
+    };
+
+
+    const std::vector<std::string> selected_words = logic_ctrl->ReturnWordsAtCursorWithDotNotation();
 
     // for help requests, first check the function table, or bypass all checks if a name
     // wasn't selected, so that the help can be launched quickly
@@ -1870,20 +1877,20 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 
     else if( activated_by_f1 && selected_words.empty() )
     {
-        help_topic_filename = Logic::ContextSensitiveHelp::GetIntroductionTopicFilename();
+        help_topic_filename = get_help_topic_filename_for_view();
     }
 
-    if( help_topic_filename != nullptr && ( activated_by_f1 || goto_word ) )
+    if( help_topic_filename != nullptr && ( activated_by_f1 || goto_declaration ) )
     {
         DisplayHelp(*this, help_topic_filename);
-        return 0;
+        return true;
     }
 
 
     LogicReferenceWorker logic_reference_worker(this);
 
     if( !logic_reference_worker.IsValid() )
-        return 0;
+        return false;
 
     // generate the text for the reference window
     CString reference_text;
@@ -2004,7 +2011,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 
                         if( Logic::FunctionTable::IsFunction(search_word, *parent_symbol, &function_details) )
                         {
-                            if( activated_by_f1 || goto_word )
+                            if( activated_by_f1 || goto_declaration )
                             {
                                 f1_help_processing_finished = true;
                                 DisplayHelp(*this, function_details->help_filename);
@@ -2027,7 +2034,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 
                 ASSERT(symbol != nullptr);
 
-                if( !goto_word )
+                if( !goto_declaration )
                 {
                     // if using an alias, show the base name
                     if( symbol->GetName() != selected_words.back() )
@@ -2142,7 +2149,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 
                 if( search_for_symbol_declaration && source_buffer != nullptr )
                 {
-                    if( goto_word )
+                    if( goto_declaration )
                     {
                         position_in_buffer = FindSymbolPositionInBuffer(symbol, *source_buffer);
 
@@ -2170,7 +2177,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
                             std::holds_alternative<LogicReferenceWorker::CompilationLocation>(*external_logic_text_source_or_compilation_location) &&
                             std::get<LogicReferenceWorker::CompilationLocation>(*external_logic_text_source_or_compilation_location) == LogicReferenceWorker::CompilationLocation::CurrentBuffer )
                         {
-                            source_buffer = std::make_unique<Logic::SourceBuffer>(logic_control->GetText());
+                            source_buffer = std::make_unique<Logic::SourceBuffer>(logic_ctrl->GetText());
                             source_buffer->Tokenize(logic_reference_worker.GetApplication().GetLogicSettings());
                         }
 
@@ -2218,7 +2225,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 
             // if still not found, check for external dictionary levels, which are not added to the
             // symbol table unless they are on an external form
-            if( keep_processing && !goto_word && selected_words.size() == 1 )
+            if( keep_processing && !goto_declaration && selected_words.size() == 1 )
             {
                 const std::vector<const CDataDict*>& dictionaries = logic_reference_worker.GetApplicationDocument()->GetAllDictsInApp();
                 const CDataDict* dictionary = nullptr;
@@ -2231,9 +2238,9 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
     }
 
     if( f1_help_processing_finished )
-        return 0;
+        return true;
 
-    if( goto_word )
+    if( goto_declaration )
     {
         // go to the position in..
         if( position_in_buffer.has_value() )
@@ -2244,7 +2251,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
             if( std::holds_alternative<LogicReferenceWorker::CompilationLocation>(*external_logic_text_source_or_compilation_location) &&
                 std::get<LogicReferenceWorker::CompilationLocation>(*external_logic_text_source_or_compilation_location) == LogicReferenceWorker::CompilationLocation::CurrentBuffer )
             {
-                logic_control->GotoPos((int)*position_in_buffer);
+                logic_ctrl->GotoPos((int)*position_in_buffer);
             }
 
             // ...PROC GLOBAL
@@ -2258,20 +2265,20 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
             else
             {
                 ASSERT(std::holds_alternative<const TextSource*>(*external_logic_text_source_or_compilation_location));
-                GotoExternalLogicOrReportNode(logic_reference_worker.GetActiveDocument(), logic_control,
+                GotoExternalLogicOrReportNode(logic_reference_worker.GetActiveDocument(), logic_ctrl,
                                               UTF8_TODO::GetWide(std::get<const TextSource*>(*external_logic_text_source_or_compilation_location)->GetFilePath()),
                                               false, (int)*position_in_buffer);
             }
         }
 
-        return 0;
+        return true;
     }
 
     // if there is no reference text for a help request, launch the introductory logic topic (or ignore the goto)
     if( reference_text.IsEmpty() )
     {
         if( activated_by_f1 )
-            DisplayHelp(*this, Logic::ContextSensitiveHelp::GetIntroductionTopicFilename());
+            DisplayHelp(*this, get_help_topic_filename_for_view());
     }
 
     // otherwise set up the reference window
@@ -2281,7 +2288,25 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
             external_logic_text_source_or_compilation_location, logic_reference_worker.GetApplication());
     }
 
-    return 0;
+    return true;
+}
+
+
+LRESULT CMainFrame::OnShowLogicReference(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    return OnLogicReference(reinterpret_cast<LogicCtrl*>(wParam), false, false);
+}
+
+
+LRESULT CMainFrame::OnShowLogicHelp(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    return OnLogicReference(reinterpret_cast<LogicCtrl*>(wParam), true, false);
+}
+
+
+LRESULT CMainFrame::OnGoToDeclaration(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    return OnLogicReference(reinterpret_cast<LogicCtrl*>(wParam), false, true);
 }
 
 
@@ -2296,31 +2321,32 @@ LRESULT CMainFrame::OnSymbolsAdded(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::OnLogicAutoComplete(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    LogicCtrl* logic_control = reinterpret_cast<LogicCtrl*>(lParam);
+    LogicCtrl* const logic_ctrl = reinterpret_cast<LogicCtrl*>(wParam);
+    ASSERT(logic_ctrl->GetParent()->IsKindOf(RUNTIME_CLASS(LogicView)));
 
     // compile up to the current buffer to look for any new symbols
     LogicReferenceWorker logic_reference_worker(this);
 
     if( !logic_reference_worker.IsValid() )
-        return 0;
+        return 1;
 
     logic_reference_worker.CompileToCurrentLocation();
 
     // determine what words to work with
-    std::vector<std::string> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
+    std::vector<std::string> selected_words = logic_ctrl->ReturnWordsAtCursorWithDotNotation();
 
     // allow auto complete to work when a symbol_name/namespace. is entered
     if( selected_words.empty() )
     {
-        int buffer_position_of_previous_word = logic_control->GetCurrentPos() - 2;
+        const Sci_Position buffer_position_of_previous_word = logic_ctrl->GetCurrentPos() - 2;
 
-        if( buffer_position_of_previous_word >= 0 && logic_control->GetCharAt(buffer_position_of_previous_word + 1) == '.' )
-            selected_words = logic_control->ReturnWordsAtCursorWithDotNotation(buffer_position_of_previous_word);
+        if( buffer_position_of_previous_word >= 0 && logic_ctrl->GetCharAt(buffer_position_of_previous_word + 1) == '.' )
+            selected_words = logic_ctrl->ReturnWordsAtCursorWithDotNotation(buffer_position_of_previous_word);
 
         if( selected_words.empty() )
-            return 0;
+            return 1;
 
         // add a blank entry to signify that nothing has been added after symbol_name/namespace.
         selected_words.emplace_back();
@@ -2351,37 +2377,38 @@ LRESULT CMainFrame::OnLogicAutoComplete(WPARAM /*wParam*/, LPARAM lParam)
     // on a fuzzy match, replace the entire word (because the beginning of the word may not match the beginning of the suggested word)
     if( word_comes_from_fuzzy_matching )
     {
-        Sci_Position current_pos = logic_control->GetCurrentPos();
-        Sci_Position start_pos = logic_control->WordStartPosition(current_pos, TRUE);
+        const Sci_Position current_pos = logic_ctrl->GetCurrentPos();
+        const Sci_Position start_pos = logic_ctrl->WordStartPosition(current_pos, TRUE);
 
-        logic_control->SetTargetRange(start_pos, logic_control->WordEndPosition(current_pos, TRUE));
-        logic_control->ReplaceTarget(suggested_words.length(), suggested_words.c_str());
+        logic_ctrl->SetTargetRange(start_pos, logic_ctrl->WordEndPosition(current_pos, TRUE));
+        logic_ctrl->ReplaceTarget(suggested_words.length(), suggested_words.c_str());
 
-        logic_control->GotoPos(start_pos + suggested_words.length());
+        logic_ctrl->GotoPos(start_pos + suggested_words.length());
     }
 
     // otherwise show the Scintilla autocomplete; the second condition prevents suggestions for when the word is complete
     // (which led to either a Scintilla crash or weird insertion behavior)
     else if( !suggested_words.empty() && !SO::EqualsNoCase(suggested_words, word_to_complete) )
     {
-        logic_control->AutoCSetChooseSingle(TRUE);
-        logic_control->AutoCSetIgnoreCase(TRUE);
-        logic_control->AutoCShow(word_to_complete.length(), suggested_words.c_str());
+        logic_ctrl->AutoCSetChooseSingle(TRUE);
+        logic_ctrl->AutoCSetIgnoreCase(TRUE);
+        logic_ctrl->AutoCShow(word_to_complete.length(), suggested_words.c_str());
     }
 
-    return 0;
+    return 1;
 }
 
 
-LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam)
+LRESULT CMainFrame::OnLogicInsertProcName(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    LogicCtrl* const logic_control = reinterpret_cast<LogicCtrl*>(lParam);
+    LogicCtrl* const logic_ctrl = reinterpret_cast<LogicCtrl*>(wParam);
+    ASSERT(logic_ctrl->GetParent()->IsKindOf(RUNTIME_CLASS(LogicView)));
 
     LogicReferenceWorker logic_reference_worker(this);
 
     // this will not work for tabulation applications
     if( !logic_reference_worker.IsValid() || logic_reference_worker.IsTabulationApplication() )
-        return 0;
+        return 1;
 
 
     std::string proc_or_function_name;
@@ -2401,12 +2428,12 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam
     // otherwise (if on PROC GLOBAL or external code), get the logic buffer and search backwards for the last PROC or function name
     else
     {
-        std::string buffer_text_up_to_cursor = logic_control->GetText().substr(0, logic_control->GetCurrentPos());
+        std::string buffer_text_up_to_cursor = logic_ctrl->GetText().substr(0, logic_ctrl->GetCurrentPos());
         logic_reference_worker.PrepareCurrentBufferText(buffer_text_up_to_cursor);
 
         auto source_buffer = std::make_shared<Logic::SourceBuffer>(std::move(buffer_text_up_to_cursor));
 
-        auto background_compiler = logic_reference_worker.CreateCompiler();
+        const std::unique_ptr<BackgroundCompiler> background_compiler = logic_reference_worker.CreateCompiler();
         background_compiler->Compile(source_buffer);
         const std::vector<Logic::BasicToken>& basic_tokens = source_buffer->GetTokens();
 
@@ -2463,9 +2490,9 @@ LRESULT CMainFrame::OnLogicInsertProcName(WPARAM /*wParam*/, const LPARAM lParam
 
 
     if( !proc_or_function_name.empty() )
-        logic_control->AddText(proc_or_function_name);
+        logic_ctrl->AddText(proc_or_function_name);
 
-    return 0;
+    return 1;
 }
 
 

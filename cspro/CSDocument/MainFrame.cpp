@@ -3,8 +3,10 @@
 #include "CSDocFrame.h"
 #include "DocSetSpecDoc.h"
 #include "GlobalSettingsDlg.h"
+#include <zUtilO/UWM.h>
 #include <zUtilF/resource_shared.h>
 #include <zUtilF/WindowsMenuManager.h>
+#include <zEditO/UWM.h>
 #include <zDesignerF/UWM.h>
 
 
@@ -51,7 +53,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     // status bar handlers
     ON_COMMAND(ID_STATUS_PANE_ASSOCIATED_DOCSET, OnStatusBarAssociatedDocSetClick)
     ON_UPDATE_COMMAND_UI(ID_STATUS_PANE_ASSOCIATED_DOCSET, OnUpdateStatusBarAssociatedDocSet)
-    ON_MESSAGE(WM_IMSA_SET_STATUSBAR_PANE, OnSetStatusBarFilePos)
+    ON_MESSAGE(UWM::UtilO::SetStatusBarText, OnSetStatusBarFilePos)
     ON_UPDATE_COMMAND_UI(ID_STATUS_PANE_FILE_POS, OnUpdateStatusBar)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_OVR, OnUpdateKeyOvertype)
 
@@ -59,6 +61,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     ON_MESSAGE(UWM::Designer::FindOpenTextSourceEditable, OnFindOpenTextSourceEditable)
     ON_MESSAGE(UWM::CSDocument::GetOpenTextSourceEditables, OnGetOpenTextSourceEditables)
     ON_MESSAGE(UWM::Designer::TEXT_ENCODING_TODO_UseNewSettings, OnTEXT_ENCODING_TODO_UseNewSettings)
+    ON_MESSAGE(UWM::Edit::ShowLogicHelp, OnShowLogicHelp)
 
     // interapp communication
     ON_MESSAGE(WM_IMSA_FILEOPEN, OnIMSAFileOpen)
@@ -715,6 +718,22 @@ LRESULT CMainFrame::OnTEXT_ENCODING_TODO_UseNewSettings(WPARAM /*wParam*/, LPARA
 {
     return 1;
 }
+
+
+LRESULT CMainFrame::OnShowLogicHelp(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    const TextEditDoc* const active_doc = GetActiveDoc();
+
+    // when editing a CSPro Document, show its help topic
+    if( active_doc != nullptr && active_doc->GetLexerLanguage() == SCLEX_CSPRO_DOCUMENT )
+    {
+        HtmlHelp(reinterpret_cast<DWORD_PTR>(L"cspro_document.html"), HH_DISPLAY_TOPIC);
+        return 1;
+    }
+
+    return 0;
+}
+
 
 LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {

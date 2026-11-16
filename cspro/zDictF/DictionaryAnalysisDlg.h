@@ -1,7 +1,7 @@
 #pragma once
 
 #include <zUtilO/ResizableDlg.h>
-#include <zEditO/ReadOnlyEditCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 class ValueSetResponse;
 
@@ -55,7 +55,7 @@ private:
     CTreeCtrl m_analysisTypeTreeCtrl;
     int m_analysisType;
     int m_analysisOrder;
-    ReadOnlyEditCtrl m_resultsEditCtrl;
+    LogicCtrl m_resultsLogicCtrl;
 
     std::vector<std::string> m_resultRows;
     std::string m_resultsTextForClipboard;

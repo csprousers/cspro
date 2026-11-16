@@ -46,7 +46,7 @@ BEGIN_MESSAGE_MAP(CItemGrid, CDDGrid)
     ON_COMMAND(ID_EDIT_DELETE, OnEditDelete)
     ON_COMMAND(ID_EDIT_MODIFY, OnEditModify)
     ON_COMMAND(ID_EDIT_NOTES, OnEditNotes)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
     ON_COMMAND(ID_EDIT_GEN_VALUE_SET, OnEditGenValueSet)
     ON_COMMAND(ID_PASTE_VS_LINK, OnPasteValueSetLink)
     ON_COMMAND_RANGE(ID_REMOVE_VS_LINK, ID_REMOVE_VS_ALL_LINKS, OnRemoveValueSetLink)
@@ -2795,15 +2795,15 @@ void CItemGrid::OnMakeFirstValueSet()
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                        CItemGrid::OnShiftF10
+//                        CItemGrid::OnContextMenu
 //
 /////////////////////////////////////////////////////////////////////////////
-void CItemGrid::OnShiftF10()
+void CItemGrid::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
 {
     int col = 0;
     long row = 0;
     RECT rect = RECT();
-    POINT point = POINT();
+    point = CPoint();
     int processed = 0;
 
     // 20130412 now simulates the actions of starting and ending a right-click

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: WindowFocusMgr.h
@@ -20,13 +20,18 @@
 // your own CWindowFocusSwitcher for those windows and an instance of it to the
 // CWindowFocusMgr.
 //***************************************************************************
+
 #include <zUtilO/zUtilO.h>
 
 class CWindowFocusMgr;
 
+
 // interface for windows that can have focused switched to them by manager
-struct CLASS_DECL_ZUTILO CWindowFocusSwitcher
+class CWindowFocusSwitcher
 {
+public:
+    virtual ~CWindowFocusSwitcher() = default;
+
     // given a pointer to main app window (CMainFrame), find
     // all the windows of the appropriate type and them to the CWindowFocusMgr.
     // Can either add each window individually via CWindowFocusMgr::AddWindow
@@ -48,9 +53,8 @@ struct CLASS_DECL_ZUTILO CWindowFocusSwitcher
     // would return false for windows in tabs that may be hidden.
     // this is only used by CWindowFocusMgr::AddWindowsRec
     virtual bool MustBeVisible() const = 0;
-
-    virtual ~CWindowFocusSwitcher() {}
 };
+
 
 // manager for handling cycling focus through main application windows
 // works off a collection of CWindowFocusSwitcher derived classes to
@@ -59,7 +63,6 @@ struct CLASS_DECL_ZUTILO CWindowFocusSwitcher
 class CLASS_DECL_ZUTILO CWindowFocusMgr
 {
 public:
-
     // destructor
     ~CWindowFocusMgr();
 
@@ -85,57 +88,43 @@ protected:
 
     int GetFocusWndIndex() const;
 
-    void SetNewFocusWnd(int i);
+    void SetNewFocusWnd(INT_PTR i);
 
     void FindFocusCandidatesRec(CWnd* pWnd, CWindowFocusSwitcher* pSwitcher);
 
 private:
-
-  CArray<CWnd*> m_aFocusWindows;
-  CArray<int> m_aWndSwitcherIndices;
-  CArray<CWindowFocusSwitcher*> m_aSwitchers;
+    CArray<CWnd*> m_aFocusWindows;
+    CArray<int> m_aWndSwitcherIndices;
+    CArray<CWindowFocusSwitcher*> m_aSwitchers;
 };
 
-// implementation of CWindowFocusSwitcher for Cview derived classes.
-struct CLASS_DECL_ZUTILO CViewFocusSwitcher : public CWindowFocusSwitcher
+
+
+// --------------------------------------------------------------------------
+// CViewFocusSwitcher
+//
+// Implementation of CWindowFocusSwitcher for CView-derived classes.
+// --------------------------------------------------------------------------
+
+class CLASS_DECL_ZUTILO CViewFocusSwitcher : public CWindowFocusSwitcher
 {
-    virtual void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd)
-    {
-        // find all CView derived windows that are descendants of
-        // pAppMainWnd and add them to candidate list.
-        CFrameWnd* pMainFrame = DYNAMIC_DOWNCAST(CFrameWnd, pAppMainWnd);
-        pMgr->AddWindowsRec(pMainFrame->GetActiveFrame(), this);
-    }
+protected:
+    void FindWindows(CWindowFocusMgr* pMgr, CWnd* pAppMainWnd) override;
+    bool MatchWindow(CWnd* pWnd) const override;
+    void SetFocus(CWnd* pWnd) override;
+    bool MustBeVisible() const override;
+};
 
-    virtual bool MatchWindow(CWnd* pWnd) const
-    {
-        // match any window derived from CView
-        return pWnd->IsKindOf(RUNTIME_CLASS(CView)) != FALSE;
-    }
 
-    virtual void SetFocus(CWnd* pWnd)
-    {
-        ASSERT(pWnd->IsKindOf(RUNTIME_CLASS(CView)));
-        CView* pNewFocusView = DYNAMIC_DOWNCAST(CView, pWnd);
+// --------------------------------------------------------------------------
+// ViewIgnoringTabbedViewsFocusSwitcher
+//
+// Implementation of CViewFocusSwitcher that ignores CView-derived classes
+// with a parent in a CMFCTabCtrl.
+// --------------------------------------------------------------------------
 
-        // find first CFrameWnd ancestor for the view (not always a direct parent)
-        CWnd* pParent = pWnd->GetParent();
-        while (pParent && !pParent->IsKindOf(RUNTIME_CLASS(CFrameWnd))) {
-            pParent = pParent->GetParent();
-        }
-
-        // make the the active view for the CFrameWnd found.
-        if (pParent && pParent->IsKindOf(RUNTIME_CLASS(CFrameWnd))) {
-            CFrameWnd* pParentFrame = DYNAMIC_DOWNCAST(CFrameWnd, pParent);
-            pParentFrame->SetActiveView(pNewFocusView, FALSE);
-        }
-
-        // set focus to the view
-        pNewFocusView->SetFocus();
-    }
-
-    virtual bool MustBeVisible() const
-    {
-        return true;
-    }
+class CLASS_DECL_ZUTILO ViewIgnoringTabbedViewsFocusSwitcher : public CViewFocusSwitcher
+{
+protected:
+    bool MatchWindow(CWnd* pWnd) const override;
 };

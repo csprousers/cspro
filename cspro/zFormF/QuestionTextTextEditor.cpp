@@ -15,9 +15,6 @@ public:
     void ClearSelectionOnSetFocus() { m_clearSelectionOnSetFocus = true; }
 
 protected:
-    bool ProcessClicksForReferenceWindow() const override { return false; }
-
-protected:
     DECLARE_MESSAGE_MAP()
 
     void OnSetFocus(CWnd* pOldWnd);

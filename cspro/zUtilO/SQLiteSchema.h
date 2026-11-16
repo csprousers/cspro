@@ -14,7 +14,7 @@ namespace SQLiteSchema {
     /// </summary>
     struct Name {
         std::string name;
-        Name() = default;
+        Name() noexcept = default;
         Name(const std::string& name) : name(name) {}
         Name(const char* name) : name(name) {}
         bool operator==(const Name& rhs) const
@@ -118,7 +118,7 @@ namespace SQLiteSchema {
         std::vector<Table> tables;
         std::vector<Index> indexes;
 
-        Schema() = default;
+        Schema() noexcept = default;
 
         Schema(const std::vector<Table>& tables, const std::vector<Index>& indexes) :
             tables(tables),
@@ -172,7 +172,7 @@ namespace SQLiteSchema {
     class CLASS_DECL_ZUTILO SchemaDifferences {
     public:
 
-        SchemaDifferences() = default;
+        SchemaDifferences() noexcept = default;
 
         /// <summary>
         /// Construct differences from original and updated schema

@@ -37,18 +37,11 @@ public:
 
     void DefineMarker(int marker_number, Scintilla::MarkerSymbol marker_symbol, COLORREF fore, COLORREF back);
 
-    void SetCtxMenuId(UINT nId) { m_nCtxMenuId = nId; }
-    void UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu);
-
-    // override to false if the reference window does not apply for the subclassed control
-    virtual bool ProcessClicksForReferenceWindow() const { return true; }
-
-    void CommentCode();
-    void FormatLogic();
+    // If not specified, the IDR_EDIT menu is used, or IDR_READ_ONLY_EDIT for read-only controls.
+    // To use the control's base context menu handling, specify 0.
+    void SetContextMenuId(std::optional<UINT> id) { m_contextMenuId = id; }
 
     void SetLineIndentation(_In_ int line, _In_ int indentation);
-
-    void SetFolding(std::optional<bool> fold_procs = std::nullopt);
 
     //search and replace support
     void OnFindNext(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ BOOL bCase, _In_ BOOL bWord, _In_ BOOL bRegularExpression);
@@ -64,10 +57,11 @@ public:
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
-    virtual LRESULT OnUpdateStatusPaneCaretPos(WPARAM wParam = 0, LPARAM lParam = 0);
+    // Returns the point, in client coordinates, of the current caret position.
+    CPoint GetCaretPoint();
 
-    bool IsAutoCompleteActive(void) { return m_bAutoComplete;}
-    void SetAutoComplete(bool bAutoComplete) { m_bAutoComplete = bAutoComplete; }
+    bool IsAutoCompleteActive() const noexcept       { return m_autoCompleteActive; }
+    void SetAutoCompleteActive(bool active) noexcept { m_autoCompleteActive = active; }
 
     void CopySelection();
     void CopyAllText();
@@ -82,23 +76,19 @@ public:
 protected:
     DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnEditFind();
-    afx_msg void OnEditReplace();
-    afx_msg void OnEditRepeat();
-    afx_msg LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
-    afx_msg void OnUpdateNeedSel(CCmdUI* pCmdUI);
-    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+    void OnEditFind();
+    void OnEditReplace();
+    void OnEditRepeat();
+    LRESULT OnFindReplaceCmd(WPARAM, LPARAM lParam);
+    void OnUpdateNeedSel(CCmdUI* pCmdUI);
+    void OnContextMenu(CWnd* pWnd, CPoint point);
 
-    afx_msg void OnKillFocus(CWnd* pNewWnd);
-    afx_msg void OnSetFocus(CWnd* pOldWnd);
+    void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 
-    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-    afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+    void OnCommentLine();
+    void OnUpdateCommentLine(CCmdUI* pCmdUI);
 
-    afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
-    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
-
-    afx_msg LRESULT OnRefreshLexer(WPARAM wParam, LPARAM lParam);
+    LRESULT OnRefreshLexer(WPARAM wParam, LPARAM lParam);
 
 private:
     bool ToggleLexer(int lexer_language, bool force_toggle_even_if_lexer_is_same);
@@ -108,19 +98,19 @@ private:
     void Copy(Sci_Position start_pos, Sci_Position end_pos, std::string_view text_sv);
     void CopyForCSProUsers(bool for_forum);
 
+    void UpdatePopupMenu(CCmdTarget* pTarget, CMenu *pMenu);
+
     void DuplicateLineOrSelection();
     void DeleteLine();
 
 private:
-    UINT            m_nCtxMenuId;
+    std::optional<UINT> m_contextMenuId;
     bool            m_modified;
     BOOL            m_bFirstSearch;                     //Is this the first search
     BOOL            m_bChangeFindRange;                 //Should search start again from beginning
     Sci_Position    m_lInitialSearchPos;                //Initial search position
-    bool            m_bAutoComplete;
+    bool            m_autoCompleteActive;
     bool            m_replacedCEdit;
-
-    std::optional<bool> m_foldingEnabled;
 
     const std::map<std::string, const char*, cs::case_insensitive_less>* m_logicTooltips;
 

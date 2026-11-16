@@ -49,7 +49,7 @@ namespace
 }
 
 
-const char* const ContextSensitiveHelp::GetTopicFilename(const std::string_view text_sv, const FunctionDetails** function_details/* = nullptr*/)
+const char* ContextSensitiveHelp::GetTopicFilename(const std::string_view text_sv, const FunctionDetails** function_details/* = nullptr*/)
 {
     const KeywordDetails* keyword_details;
 
@@ -82,7 +82,7 @@ const char* const ContextSensitiveHelp::GetTopicFilename(const std::string_view 
 }
 
 
-const char* const ContextSensitiveHelp::GetTopicFilename(const std::span<const std::string> dot_notation_entries, const std::string_view text_sv, const FunctionDetails** function_details)
+const char* ContextSensitiveHelp::GetTopicFilename(const std::span<const std::string> dot_notation_entries, const std::string_view text_sv, const FunctionDetails** function_details)
 {
     // a routine for dot notation words
     ASSERT(!dot_notation_entries.empty());
@@ -114,9 +114,15 @@ const char* const ContextSensitiveHelp::GetTopicFilename(const std::span<const s
 }
 
 
-const char* const ContextSensitiveHelp::GetIntroductionTopicFilename()
+const char* ContextSensitiveHelp::GetLogicIntroductionTopicFilename()
 {
     return "introduction_to_cspro_language.html";
+}
+
+
+const char* ContextSensitiveHelp::GetMessagesIntroductionTopicFilename()
+{
+    return "message_file_mgf.html";
 }
 
 

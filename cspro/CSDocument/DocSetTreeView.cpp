@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetTreeView.h"
 #include "CSDocument.h"
 
@@ -8,7 +8,7 @@ IMPLEMENT_DYNCREATE(DocSetTreeView, CTreeView)
 BEGIN_MESSAGE_MAP(DocSetTreeView, CTreeView)
 
     ON_WM_RBUTTONDOWN()
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
 
     ON_NOTIFY_REFLECT(NM_DBLCLK, OnDoubleClickAndReturn)
     ON_NOTIFY_REFLECT(NM_RETURN, OnDoubleClickAndReturn)
@@ -53,8 +53,6 @@ void DocSetTreeView::OnInitialUpdate()
 
     if( m_imageList.Create(16, 16, ILC_COLOR32, 0, int32_cast(icon_resource_ids.size())) )
     {
-        m_imageList.SetBkColor(GetSysColor(COLOR_WINDOW));
-
         for( const auto& [icon_type, resource_id] : icon_resource_ids )
         {
             HICON icon = AfxGetApp()->LoadIcon(resource_id);
@@ -345,7 +343,7 @@ void DocSetTreeView::OnRButtonDown(const UINT nFlags, CPoint point)
 }
 
 
-void DocSetTreeView::OnShiftF10()
+void DocSetTreeView::OnContextMenu(CWnd* const /*pWnd*/, CPoint /*point*/)
 {
     CTreeCtrl& tree_ctrl = GetTreeCtrl();
     HTREEITEM selected_tree_item = tree_ctrl.GetSelectedItem();

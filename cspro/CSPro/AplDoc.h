@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 // AplDoc.h : header file
 //
 
 #include <zAppO/Application.h>
+#include <zDesignerF/DesignerDoc.h>
 #include <zDictF/LangGrid.h>
 
 class CapiQuestionManager;
@@ -17,7 +18,7 @@ class TextSourceEditable;
 // CAplDoc document
 
 
-class CAplDoc : public CDocument
+class CAplDoc : public DesignerDoc
 {
     friend class CCSProApp;
 
@@ -60,18 +61,13 @@ public:
     void RefreshExternalLogicAndReportNodes();
 
     std::shared_ptr<TextSourceEditable> GetLogicMainCodeFileTextSource();
-    std::shared_ptr<TextSourceEditable> GetMessageTextSource();
+
+    // DesignerDoc overrides
+    const LogicSettings& GetLogicSettings() override;
+    std::shared_ptr<TextSourceEditable> GetMessageTextSource() override;
+    ApplicationChildWnd* GetApplicationChildWnd() override { return m_applicationChildWnd; }
 
     BOOL AreAplDictsOK(void);
-    bool m_bIsClosing;
-    std::shared_ptr<CapiQuestionManager> m_questionManager;
-    HWND m_deployWnd;
-    //Attributes
-
-private:
-    std::shared_ptr<Application> m_application;
-
-    bool m_bSrcLoaded;
 
 private:
     void SaveAllDictionaries();
@@ -114,6 +110,17 @@ public:
 
 protected:
     DECLARE_MESSAGE_MAP()
+
+    //Attributes
+public:
+    bool m_bIsClosing;
+    std::shared_ptr<CapiQuestionManager> m_questionManager;
+    HWND m_deployWnd;
+
+private:
+    std::shared_ptr<Application> m_application;
+    ApplicationChildWnd* m_applicationChildWnd;
+    bool m_bSrcLoaded;
 };
 
 //{{AFX_INSERT_LOCATION}}

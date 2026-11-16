@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zRuntimeO/WindowsRuntimeView.h>
 
@@ -8,7 +8,7 @@ class RuntimeView : public WindowsRuntimeView
     DECLARE_DYNCREATE(RuntimeView)
 
 protected:
-    RuntimeView() { } // create from serialization only
+    RuntimeView() noexcept = default; // create from serialization only
 
 protected:
     // WindowsRuntimeView overrides

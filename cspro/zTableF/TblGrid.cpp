@@ -54,13 +54,9 @@ public:
 CPoint oldPoint;
 
 BEGIN_MESSAGE_MAP(CTblGrid,CUGCtrl)
-//{{AFX_MSG_MAP(CTblGrid)
-// NOTE - the ClassWizard will add and remove mapping macros here.
-//    DO NOT EDIT what you see in these blocks of generated code !
-//}}AFX_MSG_MAP
     ON_MESSAGE(UWM::Table::Update, OnUpdateTable)
     ON_WM_PAINT()
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
+    ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
@@ -10008,17 +10004,17 @@ void CTblGrid::ApplyFormat2DataCells()
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                        CLevelGrid::OnShiftF10
+//                        CTblGrid::OnContextMenu
 //
 /////////////////////////////////////////////////////////////////////////////
-void CTblGrid::OnShiftF10() {
-
+void CTblGrid::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
+{
     int col = 0;
     long row = 0;
     int updn = 0;
     RECT rect = RECT();
-    POINT point = POINT();
+    point = CPoint();
     int processed = 0;
-    OnRClicked(col, row, updn, &rect, &point, processed);
 
+    OnRClicked(col, row, updn, &rect, &point, processed);
 }

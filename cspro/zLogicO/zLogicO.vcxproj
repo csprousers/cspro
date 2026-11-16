@@ -27,10 +27,12 @@
     <ClInclude Include="BasicTokenCompiler.h" />
     <ClInclude Include="ChildSymbolNames.h" />
     <ClInclude Include="ContextSensitiveHelp.h" />
+    <ClInclude Include="DeprecationWarnings.h" />
     <ClInclude Include="FunctionTable.h" />
     <ClInclude Include="GeneralizedFunction.h" />
     <ClInclude Include="KeywordTable.h" />
     <ClInclude Include="LocalSymbolStack.h" />
+    <ClInclude Include="LogicFormatter.h" />
     <ClInclude Include="LogicScanner.h" />
     <ClInclude Include="ParserMessage.h" />
     <ClInclude Include="Preprocessor.h" />
@@ -61,6 +63,7 @@
     <ClCompile Include="FunctionTable.cpp" />
     <ClCompile Include="GeneralizedFunction.cpp" />
     <ClCompile Include="KeywordTable.cpp" />
+    <ClCompile Include="LogicFormatter.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="ReservedWords.cpp" />
     <ClCompile Include="SourceBuffer.cpp" />

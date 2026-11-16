@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zFormF/zFormF.h>
 #include <zFormF/QSFEditToolbar.h>
@@ -51,8 +51,6 @@ protected:
 
     void OnTimer(UINT_PTR nIDEvent);
 
-    void OnViewForm();
-    void OnViewLogic();
     void OnToggleSecondView();
 
     void OnEditorSetFocus();

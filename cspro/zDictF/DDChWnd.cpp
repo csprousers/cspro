@@ -29,8 +29,8 @@ namespace
 {
     void UpdateRelativePositionsStatusBar(const CDataDict& dictionary)
     {
-        const TCHAR* text = dictionary.IsPosRelative() ? L"Relative Positions" : L"Absolute Positions";
-        AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)text);
+        const wchar_t* const text = dictionary.IsPosRelative() ? L"Relative Positions" : L"Absolute Positions";
+        WindowsDesktopMessage::Send(UWM::UtilO::SetStatusBarText, text);
     }
 }
 

@@ -20,13 +20,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ApplicationDoc.cpp" />
+    <ClCompile Include="ApplicationLogicView.cpp" />
     <ClCompile Include="ApplicationPropertiesPageDlg.cpp" />
     <ClCompile Include="AppMessageFilePropertiesPageDlg.cpp" />
     <ClCompile Include="AppTreeNode.cpp" />
     <ClCompile Include="BuildWnd.cpp" />
     <ClCompile Include="CodeFilePropertiesPageDlg.cpp" />
     <ClCompile Include="CodeMenu.cpp" />
-    <ClCompile Include="CompilerOutputTabViewPage.cpp" />
+    <ClCompile Include="CompilerOutputView.cpp" />
+    <ClCompile Include="DesignerDoc.cpp" />
     <ClCompile Include="DictionaryBasedDoc.cpp" />
     <ClCompile Include="DictionaryPropertiesPageDlg.cpp" />
     <ClCompile Include="FileModificationChecker.cpp" />
@@ -35,7 +37,7 @@
     <ClCompile Include="LogicDialogBar.cpp" />
     <ClCompile Include="LogicReferenceWnd.cpp" />
     <ClCompile Include="ManageFilesDlg.cpp" />
-    <ClCompile Include="MessageEditTabViewPage.cpp" />
+    <ClCompile Include="MessageEditView.cpp" />
     <ClCompile Include="NewFileCreator.cpp" />
     <ClCompile Include="PathAdjusterDlg.cpp" />
     <ClCompile Include="PropertyGrid\BoolProperty.cpp" />
@@ -54,7 +56,6 @@
     </ClCompile>
     <ClCompile Include="StringEncoderDlg.cpp" />
     <ClCompile Include="TableSpecPropertiesPageDlg.cpp" />
-    <ClCompile Include="TabViewContainer.cpp" />
     <ClCompile Include="TextDisplayPageDlg.cpp" />
     <ClCompile Include="TextTemplatePreviewer.cpp" />
     <ClCompile Include="UnfloatableDialogBar.cpp" />
@@ -64,6 +65,7 @@
     <ClInclude Include="AppFileTypeImageList.h" />
     <ClInclude Include="ApplicationChildWnd.h" />
     <ClInclude Include="ApplicationDoc.h" />
+    <ClInclude Include="ApplicationLogicView.h" />
     <ClInclude Include="ApplicationPropertiesPageDlg.h" />
     <ClInclude Include="AppMessageFilePropertiesPageDlg.h" />
     <ClInclude Include="AppTreeNode.h" />
@@ -72,7 +74,8 @@
     <ClInclude Include="CodeFilePropertiesPageDlg.h" />
     <ClInclude Include="CodeMenu.h" />
     <ClInclude Include="CompilerMessageType.h" />
-    <ClInclude Include="CompilerOutputTabViewPage.h" />
+    <ClInclude Include="CompilerOutputView.h" />
+    <ClInclude Include="DesignerDoc.h" />
     <ClInclude Include="DesignerObjectTransporter.h" />
     <ClInclude Include="DictionaryBasedDoc.h" />
     <ClInclude Include="DictionaryPropertiesPageDlg.h" />
@@ -83,7 +86,7 @@
     <ClInclude Include="LogicDialogBar.h" />
     <ClInclude Include="LogicReferenceWnd.h" />
     <ClInclude Include="ManageFilesDlg.h" />
-    <ClInclude Include="MessageEditTabViewPage.h" />
+    <ClInclude Include="MessageEditView.h" />
     <ClInclude Include="NewFileCreator.h" />
     <ClInclude Include="OnUpdateHints.h" />
     <ClInclude Include="PathAdjusterDlg.h" />
@@ -102,7 +105,6 @@
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="StringEncoderDlg.h" />
     <ClInclude Include="TableSpecPropertiesPageDlg.h" />
-    <ClInclude Include="TabViewContainer.h" />
     <ClInclude Include="TextDisplayPageDlg.h" />
     <ClInclude Include="TextTemplatePreviewer.h" />
     <ClInclude Include="UnfloatableDialogBar.h" />

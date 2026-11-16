@@ -77,7 +77,7 @@ namespace UWM::Ranges
 
     // zUtilO
     constexpr unsigned UtilOStart      = UtilFLast + 1;
-    constexpr unsigned UtilOLast       = UtilOStart + 5;
+    constexpr unsigned UtilOLast       = UtilOStart + 10;
 
     // zUToolO
     constexpr unsigned UToolStart      = UtilOLast + 1;

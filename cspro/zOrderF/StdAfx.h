@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
@@ -7,6 +7,7 @@
 #include <zToolsO/Utf8.h>
 #include <zUtilO/ImsaStr.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/UWM.h>
 #include <zEditO/zEditO.h>
 #include <zEditO/UWM.h>
 #include <zDictO/DDClass.h>

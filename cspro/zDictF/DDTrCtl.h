@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: DDTrCtl.h
@@ -115,7 +115,7 @@ protected:
     afx_msg void OnEditModify();
     afx_msg void OnEditAddNext();
     afx_msg void OnEditRelation();
-    afx_msg void OnShiftF10();
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg void OnCopyName();
     afx_msg void OnViewQuestionnaire();
     afx_msg void OnViewDictionary();

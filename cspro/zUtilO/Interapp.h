@@ -51,7 +51,6 @@ class CSpecFile;
 #define WM_IMSA_FILEOPEN                            WM_IMSA_INTERAPP+1
 #define WM_IMSA_FILECLOSE                           WM_IMSA_INTERAPP+2
 #define WM_IMSA_SETFOCUS                            WM_IMSA_INTERAPP+3
-#define WM_IMSA_SET_STATUSBAR_PANE                  WM_IMSA_INTERAPP+5
 #define WM_IMSA_WRITECASE                           WM_IMSA_INTERAPP+6
 #define WM_IMSA_UPDATE_SYMBOLTBL                    WM_IMSA_INTERAPP+8  //used by zDictF,zOrderF,zFormF to communicate with the aplication
 #define WM_IMSA_ENGINEABORT                         WM_IMSA_INTERAPP+9

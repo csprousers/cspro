@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "FileModificationChecker.h"
-#include <zUtilO/TextSourceEditable.h>
 
 
 bool FileModificationChecker::ShouldReloadFile(const TextSourceEditable* const text_source)

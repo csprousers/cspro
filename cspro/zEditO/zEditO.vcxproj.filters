@@ -9,15 +9,16 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{12d69d42-132b-4614-b25f-82a2363878bc}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CSProScintillaCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSProScintillaFindReplaceDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EditCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GoToDlg.cpp">
@@ -33,12 +34,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LogicView.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MessageEditCtrl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ReadOnlyEditCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ScintillaColorizer.cpp">
@@ -64,9 +59,6 @@
     <ClInclude Include="CSProScintillaFindReplaceDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EditCtrl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GoToDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -82,13 +74,16 @@
     <ClInclude Include="LogicView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MessageEditCtrl.h">
+    <ClInclude Include="LogicViewTextSourceModifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ReadOnlyEditCtrl.h">
+    <ClInclude Include="MarginProperties.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource_win32.h">
@@ -115,7 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zEditO.rc">
-      <Filter>Source Files</Filter>
+      <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
 </Project>

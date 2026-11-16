@@ -190,7 +190,7 @@ BEGIN
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
-    VK_F3,          ID_EDIT_FIND_NEXT,      VIRTKEY, NOINVERT
+    VK_F3,          ID_EDIT_REPEAT,         VIRTKEY, NOINVERT
     VK_F3,          ID_EDIT_FIND_PREV,      VIRTKEY, CONTROL, NOINVERT
     "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
@@ -348,7 +348,7 @@ BEGIN
         MENUITEM "Copy for a &Spreadsheet",     ID_EDIT_COPY_SS
         MENUITEM SEPARATOR
         MENUITEM "&Find...\tCtrl+F",            ID_EDIT_FIND
-        MENUITEM "Find &Next\tF3",              ID_EDIT_FIND_NEXT
+        MENUITEM "Find &Next\tF3",              ID_EDIT_REPEAT
         MENUITEM "Find &Previous\tCtrl+F3",     ID_EDIT_FIND_PREV
         MENUITEM SEPARATOR
         MENUITEM "&Goto Line...\tCtrl+G",       ID_VIEW_GOTOLINE
@@ -631,7 +631,6 @@ END
 STRINGTABLE
 BEGIN
     ID_OPTIONS_LINEDRAW     "Use DOS Line Draw Font instead of ANSI characters\nDOS Line Draw Font"
-    ID_EDIT_FIND_NEXT       "Find next occurrence of search text"
     ID_EDIT_FIND_PREV       "Find previous occurrence of search text"
     ID_ENCODING_ANSI        "Render file using the ANSI code page"
     ID_ENCODING_UTF8        "Render file as UTF-8 text"
