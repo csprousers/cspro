@@ -1,12 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zTableF/zTableF.h>
 #include <zTableF/TabTreeNode.h>
 #include <zDictF/DDTrCtl.h>
 
-
-/////////////////////////////////////////////////////////////////////////////
-// CTabTreeCtrl window
 
 class CLASS_DECL_ZTABLEF CTabTreeCtrl : public CTreeCtrl
 {
@@ -92,11 +89,9 @@ protected:
     afx_msg void OnEditTablePrintFmt();
     afx_msg void OnEditTabSetProp();
     afx_msg void OnEditTableProp();
-    afx_msg void OnShiftF10();
     afx_msg void OnEditCopytablestructure();
     afx_msg void OnEditPastetable();
 
-public:
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnTvnBegindrag(NMHDR *pNMHDR, LRESULT *pResult);
@@ -104,8 +99,8 @@ public:
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
     afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
     afx_msg void OnTvnSelchanging(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 
-// Attributes
 private:
     CDocTemplate* m_pDocTemplate;
     CTabulateDoc* m_pDoc;

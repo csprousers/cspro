@@ -49,7 +49,6 @@ CTabTreeCtrl::~CTabTreeCtrl()
 
 
 BEGIN_MESSAGE_MAP(CTabTreeCtrl, CTreeCtrl)
-    //{{AFX_MSG_MAP(CTabTreeCtrl)
     ON_NOTIFY_REFLECT(TVN_DELETEITEM, OnDeleteitem)
     ON_NOTIFY_REFLECT(TVN_GETDISPINFO, OnGetdispinfo)
     ON_WM_RBUTTONUP()
@@ -74,16 +73,15 @@ BEGIN_MESSAGE_MAP(CTabTreeCtrl, CTreeCtrl)
 
     ON_COMMAND(ID_EDIT_TABSET_PROP ,OnEditTabSetProp)
     ON_COMMAND(ID_EDIT_TABLE_PROP ,OnEditTableProp)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
 
     ON_WM_LBUTTONDOWN()
     ON_NOTIFY_REFLECT(TVN_SELCHANGED, OnSelchanged)
-    //}}AFX_MSG_MAP
     ON_NOTIFY_REFLECT(TVN_BEGINDRAG, OnTvnBegindrag)
     ON_WM_LBUTTONUP()
     ON_WM_MOUSEMOVE()
     ON_WM_KEYDOWN()
     ON_NOTIFY_REFLECT(TVN_SELCHANGING, OnTvnSelchanging)
+    ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1095,11 +1093,12 @@ void CTabTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         if (hMenu.GetMenuState(iLastItem, MF_BYPOSITION) & MF_SEPARATOR) {
             hMenu.RemoveMenu(iLastItem, MF_BYPOSITION);
         }
-        hMenu.TrackPopupMenu (TPM_RIGHTBUTTON, point.x, point.y, this);
 
+        hMenu.TrackPopupMenu(TPM_RIGHTBUTTON, point.x, point.y, this);
+        return;
     }
-    CTreeCtrl::OnRButtonUp(nFlags, point);
 
+    __super::OnRButtonUp(nFlags, point);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1117,7 +1116,7 @@ void CTabTreeCtrl::OnRButtonDown(UINT nFlags, CPoint point)
         SelectItem(hItem);
         return;
     }
-    CTreeCtrl::OnRButtonDown(nFlags, point);
+    __super::OnRButtonDown(nFlags, point);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1155,7 +1154,7 @@ void CTabTreeCtrl::OnLButtonDown(UINT nFlags, CPoint point)
         }
     }
 
-    CTreeCtrl::OnLButtonDown(nFlags, point);
+    __super::OnLButtonDown(nFlags, point);
 }
 
 
@@ -1231,7 +1230,7 @@ void CTabTreeCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
     }
 #endif
 
-    CTreeCtrl::OnLButtonDblClk(nFlags, point);
+    __super::OnLButtonDblClk(nFlags, point);
 }
 
 
@@ -2016,7 +2015,7 @@ void CTabTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
             m_hitemDrop = nullptr;
             ReleaseCapture();
             m_bDragging = false;
-            CTreeCtrl::OnLButtonUp(nFlags, point);            // mfc-gen
+            __super::OnLButtonUp(nFlags, point);            // mfc-gen
             return;
         }
 
@@ -2070,7 +2069,7 @@ void CTabTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
     m_hitemDrag = nullptr;
     m_hitemDrop = nullptr;
 
-    CTreeCtrl::OnLButtonUp(nFlags, point);            // mfc-gen
+    __super::OnLButtonUp(nFlags, point);            // mfc-gen
 }
 
 
@@ -2117,7 +2116,7 @@ void CTabTreeCtrl::OnMouseMove(UINT nFlags, CPoint point)
 
     }
 
-    CTreeCtrl::OnMouseMove(nFlags, point);
+    __super::OnMouseMove(nFlags, point);
 }
 
 
@@ -2147,7 +2146,7 @@ BOOL CTabTreeCtrl::PreTranslateMessage(MSG* pMsg)
         return TRUE;
     }
 
-    return CTreeCtrl::PreTranslateMessage(pMsg);
+    return __super::PreTranslateMessage(pMsg);
 }
 
 
@@ -2187,8 +2186,8 @@ void CTabTreeCtrl::OnEditTableProp()
 void CTabTreeCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     // TODO: Add your message handler code here and/or call default
+    __super::OnKeyDown(nChar, nRepCnt, nFlags);
 
-    CTreeCtrl::OnKeyDown(nChar, nRepCnt, nFlags);
     switch (nChar)
     {
         case VK_DELETE:
@@ -2231,11 +2230,11 @@ void CTabTreeCtrl::OnTvnSelchanging(NMHDR *pNMHDR, LRESULT *pResult)
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                         CTabTreeCtrl::OnShiftF10
+//                         CTabTreeCtrl::OnContextMenu
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CTabTreeCtrl::OnShiftF10() {
-
+void CTabTreeCtrl::OnContextMenu(CWnd* /*pWnd*/, CPoint /*point*/)
+{
     PostMessage(WM_RBUTTONUP);
 }

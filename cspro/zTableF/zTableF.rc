@@ -405,8 +405,6 @@ BEGIN
     "H",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "R",            ID_RUN,                 VIRTKEY, CONTROL, NOINVERT
     "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
-    VK_APPS,        ID_SHIFT_F10,           VIRTKEY, NOINVERT
-    VK_F10,         ID_SHIFT_F10,           VIRTKEY, SHIFT, NOINVERT
     "K",            ID_COMPILE,             VIRTKEY, CONTROL, NOINVERT
     "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
     VK_HOME,        ID_VIEW_FIRST_PAGE,     VIRTKEY, ALT, NOINVERT

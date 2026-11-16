@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // TabView.h : header file
 //
@@ -189,7 +189,6 @@ public:
     afx_msg void OnSelChangeAreaComboBox();
     afx_msg void OnEditCopycellsonly();
     afx_msg void OnFilePrint();
-    afx_msg void OnShiftF10();
     afx_msg void OnEditCopytablestructure();
     afx_msg void OnUpdateEditCopytablestructure(CCmdUI *pCmdUI);
     afx_msg void OnEditPastetable();

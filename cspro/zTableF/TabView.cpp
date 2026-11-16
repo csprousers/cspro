@@ -83,7 +83,6 @@ BEGIN_MESSAGE_MAP(CTabView, CView)
 
     ON_COMMAND(ID_DESELECTALL, OnDeselectAll)
     ON_COMMAND(ID_EDIT_SELECT_ALL, OnSelectAll)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_WM_MOUSEMOVE()
     //}}AFX_MSG_MAP
       ON_MESSAGE(WM_IMSA_DROPITEM,OnDropItem)
@@ -5400,17 +5399,6 @@ void CTabView::RestoreScrollPos()
         m_pGrid->SendMessage(WM_SIZE);
         m_iVertScrollPos =-1;
         m_iHorzScrollPos =-1;
-    }
-}
-
-void CTabView::OnShiftF10()
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd->IsKindOf(RUNTIME_CLASS(CTabTreeCtrl))) {
-        pWnd->PostMessage(WM_COMMAND, ID_SHIFT_F10);
-    }
-    else {
-        m_pGrid->PostMessage(WM_COMMAND, ID_SHIFT_F10);
     }
 }
 
