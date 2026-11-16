@@ -85,9 +85,9 @@ BEGIN_MESSAGE_MAP(CFormTreeCtrl, CTreeCtrl)
     ON_NOTIFY_REFLECT(TVN_GETDISPINFO, OnGetDispInfo)
     ON_WM_RBUTTONUP()
     ON_WM_RBUTTONDOWN()
+    ON_WM_CONTEXTMENU()
     ON_NOTIFY_REFLECT(NM_SETFOCUS, OnSetFocus)
     ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -1563,7 +1563,7 @@ void CFormTreeCtrl::OnLButtonDown(UINT nFlags, CPoint point)
     } else {
         // Did not click on tree item, clicked on expander or empty space,
         // use base default behavior
-        CTreeCtrl::OnLButtonDown(nFlags, point);
+        __super::OnLButtonDown(nFlags, point);
     }
 
 }
@@ -1620,7 +1620,7 @@ void CFormTreeCtrl::OnLButtonUp(UINT nFlags, CPoint point)
         }
     }
 
-    //CTreeCtrl::OnLButtonUp(nFlags, point);    // mfc-generated
+    //__super::OnLButtonUp(nFlags, point);    // mfc-generated
 }
 
 // ***************************************************************************
@@ -1685,7 +1685,7 @@ void CFormTreeCtrl::OnMouseMove(UINT nFlags, CPoint point)
             BeginDrag(point);
         }
     }
-    CTreeCtrl::OnMouseMove(nFlags, point);
+    __super::OnMouseMove(nFlags, point);
 }
 
 // ***************************************************************************
@@ -1885,7 +1885,7 @@ void CFormTreeCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             }
             break;
         default:
-            CTreeCtrl::OnKeyDown(nChar, nRepCnt, nFlags); // BMD 24 Oct 2001
+            __super::OnKeyDown(nChar, nRepCnt, nFlags); // BMD 24 Oct 2001
             break;
     }
 }
@@ -2263,7 +2263,7 @@ void CFormTreeCtrl::OnEditReportProperties()
 CFormID* CFormTreeCtrl::GetSelectedFormId()
 {
     HTREEITEM hItem = GetSelectedItem();
-    return ( hItem != nullptr ) ? (CFormID*)GetItemData(hItem) : nullptr;
+    return ( hItem != nullptr ) ? reinterpret_cast<CFormID*>(GetItemData(hItem)) : nullptr;
 }
 
 
@@ -3195,11 +3195,10 @@ void CFormTreeCtrl::OnCapiMacros()
     }
 }
 
-void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
+
+void CFormTreeCtrl::OnRButtonUp(UINT /*nFlags*/, CPoint point)
 {
      // Set selection and focus to tree control
-    (void)nFlags;
-
     HTREEITEM hItem;
     if (point.x == 0 && point.y == 0) {
         hItem = GetSelectedItem();
@@ -3226,37 +3225,70 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         AddToSelection(hItem);
     }
 
-    CFormID* pID = (CFormID*) GetItemData (hItem);
-    if (pID->GetItemPtr())
-    {
-        AfxTrace(L"OnRButtonUp sel item %p %s\n", (LPARAM)hItem, ((CFormID*)GetItemData(hItem))->GetItemPtr()->GetName().GetString());
+    CFormID* pID = reinterpret_cast<CFormID*>(GetItemData(hItem));
+
+    CFormScrollView* pFV = GetFormView();    // get the currently displayed form
+    CFormChildWnd* pFrame = (CFormChildWnd*)pFV->GetParentFrame();
+    pFV->TreeSelectionChanged(GetSelectedFormItems());
+
+    ClientToScreen(&point);
+    const int command_id = ShowContextMenu(pID, point.x, point.y);
+
+    if (!pFrame->IsLogicViewActive()) {//if we are not in logicview leave the rightclicked item as the selection
+        m_hRestoreItemSelection = NULL;
+        m_bSendMsg = TRUE;
     }
 
-    CFormScrollView*    pFV = GetFormView();    // get the currently displayed form
+    if( command_id != 0 )
+        SendMessage(WM_COMMAND, command_id);
+
+    RestoreItemSelection();
+}
+
+
+void CFormTreeCtrl::OnContextMenu(CWnd* const /*pWnd*/, CPoint /*point*/)
+{
+    CFormID* const pID = GetSelectedFormId();
+
+    if( pID == nullptr )
+        return;
+
+    CRect rect;
+
+    if( !GetItemRect(pID->GetHItem(), rect, TRUE) )
+        return;
+
+    ClientToScreen(rect);
+    const int command_id = ShowContextMenu(pID, rect.right, rect.bottom);
+
+    if( command_id != 0 )
+        SendMessage(WM_COMMAND, command_id);
+}
+
+
+int CFormTreeCtrl::ShowContextMenu(CFormID* const pID, const int x, const int y)
+{
+    ASSERT(pID != nullptr);
+    eNodeType eNT = pID->GetItemType();
+
+    if (eNT == eINVALID_TYPE)
+        return 0;     // no prop dialogs for these guys...though default level to form?
+
+    CDEItemBase* pItem = (CDEItemBase*)pID->GetItemPtr();
+    CFormScrollView* pFV = GetFormView();    // get the currently displayed form
     CFormChildWnd* pFrame = (CFormChildWnd*)pFV->GetParentFrame();
-    bool bIsFormViewActive = ( pFrame->GetViewMode() == FormViewMode::Form );
+    bool bAmIActive = pFrame->IsFormFrameActive();
     UINT deleteFlags = 0;
+
+    bool bIsFormViewActive = ( pFrame->GetViewMode() == FormViewMode::Form );
 
     // get the proper form up in the view
     const bool isQuestionnaireView = ( pFrame->GetViewMode() == FormViewMode::QuestionnaireView );
 
-    pFV->TreeSelectionChanged(GetSelectedFormItems());
-
-    eNodeType eNT = pID->GetItemType();
-
-    if (eNT == eINVALID_TYPE)
-        return;     // no prop dialogs for these guys...though default level to form?
-
-
-    CDEItemBase* pItem = (CDEItemBase*)pID->GetItemPtr();
-
-    bool bAmIActive = pFrame->IsFormFrameActive();
-
     BCMenu popMenu;
-
     popMenu.CreatePopupMenu();
 
-    auto selectedItems = GetSelectedFormItems();
+    const std::vector<CFormID*> selectedItems = GetSelectedFormItems();
     bool selectedItemsInBlock = false;
 
     if (pItem)
@@ -3264,7 +3296,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
         selectedItemsInBlock = std::any_of(selectedItems.begin(), selectedItems.end(),
             [&](const CFormID* pItem) {
                 HTREEITEM hParent = GetParentItem(pItem->GetHItem());
-                return hParent != NULL && ((CFormID*)GetItemData(hParent))->GetItemType() == eFTT_BLOCK;
+                return hParent != NULL && (reinterpret_cast<CFormID*>(GetItemData(hParent))->GetItemType()) == eFTT_BLOCK;
             });
     }
 
@@ -3414,27 +3446,12 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
     pFV->m_bAddRFT = false;
     pFV->m_bAddForm = false;
 
-    CRect rect;
-    GetWindowRect(rect);   // GetClientRect will not work, nd offset of entire screen
-
-    rect.OffsetRect (5,5);
     popMenu.LoadToolbar(IDR_FORM_FRAME);   // BMD 09 Apr 2004
-    int iMenuSelection = popMenu.TrackPopupMenu (TPM_RIGHTBUTTON | TPM_RETURNCMD, rect.left + point.x, rect.top + point.y, this);
-    if (!pFrame->IsLogicViewActive()) {//if we are not in logicview leave the rightclicked item as the selection
-        m_hRestoreItemSelection = NULL;
-        m_bSendMsg = TRUE;
-    }
-    switch (iMenuSelection) {
-    case 0:
-        RestoreItemSelection();
-        break;
-    default:
-        SendMessage(WM_COMMAND, iMenuSelection);
-        RestoreItemSelection();
-        break;
-    }
-//  CTreeCtrl::OnRButtonUp(nFlags, point);
+
+    constexpr UINT style = TPM_LEFTALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD;
+    return popMenu.TrackPopupMenu(style, x, y, this);
 }
+
 
 void CFormTreeCtrl::RestoreItemSelection()
 {
@@ -3448,6 +3465,8 @@ void CFormTreeCtrl::RestoreItemSelection()
         m_hRestoreItemSelection = NULL;
     }
 }
+
+
 BOOL CFormTreeCtrl::PreTranslateMessage(MSG* pMsg)
 {
     if (pMsg->message == WM_KEYDOWN) {
@@ -3463,8 +3482,9 @@ BOOL CFormTreeCtrl::PreTranslateMessage(MSG* pMsg)
             }
         }
     }
-    return CTreeCtrl::PreTranslateMessage(pMsg);
+    return __super::PreTranslateMessage(pMsg);
 }
+
 
 void CFormTreeCtrl::OnRButtonDown(UINT nFlags, CPoint point)
 {
@@ -3483,8 +3503,9 @@ void CFormTreeCtrl::OnRButtonDown(UINT nFlags, CPoint point)
         return;
     }
 
-    CTreeCtrl::OnRButtonDown(nFlags, point);
+    __super::OnRButtonDown(nFlags, point);
 }
+
 
 CImageList* CFormTreeCtrl::CreateDragImageEx(HTREEITEM hItem)
 {
@@ -3590,17 +3611,6 @@ void CFormTreeCtrl::SwitchRefresh()
     {
         pView->TreeSelectionChanged(std::vector<CFormID*> {pNodeID});
     }
-}
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                         CFormTreeCtrl::OnShiftF10
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CFormTreeCtrl::OnShiftF10() {
-
-    PostMessage(WM_RBUTTONUP);
 }
 
 

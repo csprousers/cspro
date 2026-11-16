@@ -54,6 +54,7 @@ IMPLEMENT_DYNCREATE(CFormScrollView, CScrollView)
 BEGIN_MESSAGE_MAP(CFormScrollView, CScrollView)
     ON_WM_LBUTTONDOWN()
     ON_WM_RBUTTONUP()
+    ON_WM_CONTEXTMENU()
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_WM_KEYDOWN()
@@ -103,7 +104,6 @@ BEGIN_MESSAGE_MAP(CFormScrollView, CScrollView)
     ON_COMMAND(ID_EDIT_CUT, OnEditCut)
     ON_COMMAND(ID_FIELDFONT, OnFieldFont)
     ON_COMMAND(ID_FIELDCOLORS, OnFieldColors)
-    ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_PROPERTIES, OnProperties)
     ON_COMMAND(ID_EDIT_MULTIPLE_FIELDPROP, OnEditMultipleFieldProperties)
     ON_MESSAGE(WM_IMSA_DROPITEM,OnDropItem)
@@ -3693,7 +3693,27 @@ bool CFormScrollView::UserRightClickedOverTrackers (CDEItemBase* pRightClickItem
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
+void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, const CPoint point)
+{
+    ShowContextMenu(point);
+}
+
+
+void CFormScrollView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
+{
+    // the right-click context menu code will be used,
+    // so simulate a right-click only when one item is selected
+    if( GetNumTrackers() == 1 )
+    {
+        const CFormTracker tracker = GetTracker(0);
+        CRect rect = tracker.GetRect();
+        point = rect.CenterPoint();
+        ShowContextMenu(point);
+    }
+}
+
+
+void CFormScrollView::ShowContextMenu(const CPoint& point)
 {
     BCMenu popMenu;
     CRect rect;
@@ -8624,15 +8644,6 @@ CDERoster* CFormScrollView::DropAnItemRoster(DictTreeNode* dict_tree_node, CPoin
     CreateGrid(pRoster);
 
     return  pRoster;
-}
-
-
-void CFormScrollView::OnShiftF10()
-{
-    CWnd* pWnd = GetFocus();
-    if (pWnd->IsKindOf(RUNTIME_CLASS(CFormTreeCtrl))) {
-        pWnd->PostMessage(WM_COMMAND, ID_SHIFT_F10);
-    }
 }
 
 

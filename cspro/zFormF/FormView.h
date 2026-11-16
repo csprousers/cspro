@@ -273,6 +273,7 @@ protected:
 
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
+    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -325,12 +326,13 @@ protected:
     afx_msg void OnUpdateLayoutHorizontallyCenter(CCmdUI* pCmdUI);
     afx_msg void OnLayoutVerticallyCenter();
     afx_msg void OnUpdateLayoutVerticallyCenter(CCmdUI* pCmdUI);
-    afx_msg void OnShiftF10();
     afx_msg void OnProperties(); // 20120612
     LRESULT OnDropItem (WPARAM wParam,LPARAM lParam);
     LRESULT OnMarkDictItems (WPARAM wParam,LPARAM lParam);
 
 private:
+    void ShowContextMenu(const CPoint& point);
+
     TCHAR GetDecimalCharacter();
 
     bool AlignRosterColumns(const std::variant<HorizontalAlignment, VerticalAlignment>& alignment);
