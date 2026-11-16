@@ -83,11 +83,11 @@ public:
     // --------------------------------------------------------------------------
 
     // Converts the value to a string representation for display.
-    ZENGINEO_API [[nodiscard]] SharableString ToString() const;
+    [[nodiscard]] ZENGINEO_API SharableString ToString() const;
 
     // EV_TODO: Returns true if the value is undefined.
     // For now, undefined means a double set to NOTAPPL and SharableString being a blank string.
-    ZENGINEO_API [[nodiscard]] bool IsUndefined() const;
+    [[nodiscard]] ZENGINEO_API bool IsUndefined() const;
 
 
     // --------------------------------------------------------------------------

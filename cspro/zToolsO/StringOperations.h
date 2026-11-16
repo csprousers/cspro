@@ -132,17 +132,17 @@ public:
 
     // returns the offset into the string, measured in wide characters;
     // the offset does not need to be valid, and if not found, std::string_view::npos is returned
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideGetOffset(std::string_view text_sv, size_t wide_offset);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t WideGetOffset(std::string_view text_sv, size_t wide_offset);
 
     // returns the offset into the string, measured in wide characters;
     // the offset must be valid;
     // can also return const char* / char*
     template<typename RT = size_t, typename CT>
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static RT WideGetOffset(CT* text, size_t wide_offset);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static RT WideGetOffset(CT* text, size_t wide_offset);
 
     // returns a substring with the offset and count measured in wide characters;
     // note that a std::string_view, not a std::string, is returned
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string_view WideSubstring(std::string_view text_sv, size_t wide_offset, size_t wide_count = std::string_view::npos);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string_view WideSubstring(std::string_view text_sv, size_t wide_offset, size_t wide_count = std::string_view::npos);
 
     // sets the character at the wide offset
     CLASS_DECL_ZTOOLSO static void WideSetChar(std::string& text, size_t wide_offset, wchar_t ch);
@@ -194,8 +194,8 @@ public:
     [[nodiscard]] static std::wstring ToLower(wstring_view text_sv);
     [[nodiscard]] static bool IsLower(wstring_view text_sv);
 
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string ToProperCase(std::string text);
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string TitleToCamelCase(std::string text);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string ToProperCase(std::string text);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string TitleToCamelCase(std::string text);
 
 
     // --------------------------------------------------------------------------
@@ -219,7 +219,7 @@ public:
     static constexpr std::string_view WhitespaceChars_sv = WhitespaceChars;
 
     [[nodiscard]] static bool Equals(wstring_view sv1, wstring_view sv2) noexcept;
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static bool Equals(std::string_view sv1, wstring_view sv2);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static bool Equals(std::string_view sv1, wstring_view sv2);
     [[nodiscard]] static bool Equals(wstring_view sv1, std::string_view sv2) { return Equals(sv2, sv1); }
 
     // std::string_view's operator== promotes null-terminated strings to string views,
@@ -227,8 +227,8 @@ public:
     [[nodiscard]] static bool Equals(std::string_view sv1, const char* text2) noexcept;
     [[nodiscard]] static bool Equals(const char* text1, std::string_view sv2) noexcept { return Equals(sv2, text1); }
 
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static int CompareNoCase(std::string_view sv1, std::string_view sv2);
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static int CompareNoCase(wstring_view sv1, wstring_view sv2);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static int CompareNoCase(std::string_view sv1, std::string_view sv2);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static int CompareNoCase(wstring_view sv1, wstring_view sv2);
 
     // returns whether the two strings are equal in a case-insensitive manner
     template<typename ST1, typename ST2>
@@ -255,24 +255,24 @@ public:
 
     // searches in a case-insensitive manner, the source string, for the substring;
     // if not found, std::string_view::npos (-1) is returned
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t FindNoCase(std::string_view source_sv, std::string_view substring_sv, size_t offset = 0);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t FindNoCase(std::string_view source_sv, std::string_view substring_sv, size_t offset = 0);
 
     // returns the indices of two characters, with the second character coming after the first;
     // if both are not found, then the second returned value will be equal to npos
     [[nodiscard]] static std::tuple<size_t, size_t> FindCharacters(std::string_view text_sv, char ch1, char ch2, size_t offset = 0);
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::tuple<size_t, size_t> FindCharacters(wstring_view text_sv, wchar_t ch1, wchar_t ch2, size_t offset = 0);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::tuple<size_t, size_t> FindCharacters(wstring_view text_sv, wchar_t ch1, wchar_t ch2, size_t offset = 0);
 
     // returns the index of the first whitespace character in the source string;
     // if not found, std::string_view::npos (-1) is returned
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t FindFirstWhitespace(std::string_view source_sv, size_t offset = 0);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t FindFirstWhitespace(std::string_view source_sv, size_t offset = 0);
 
     // returns the substring between the two characters found using the above function;
     // if both are not found, then an empty string view is returned
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string_view GetTextBetweenCharacters(std::string_view text_sv, char ch1, char ch2);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string_view GetTextBetweenCharacters(std::string_view text_sv, char ch1, char ch2);
 
     // returns the strings to the left and right of the character;
     // if the character is not found, the left string will be equal to the entire string and the right string will be empty
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::tuple<std::string_view, std::string_view> GetTextOnEitherSideOfCharacter(std::string_view text_sv, char ch);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::tuple<std::string_view, std::string_view> GetTextOnEitherSideOfCharacter(std::string_view text_sv, char ch);
 
 
     // --------------------------------------------------------------------------
@@ -382,7 +382,7 @@ public:
     CLASS_DECL_ZTOOLSO static std::wstring& Remove(std::wstring& text, wchar_t ch);
 
     // removes all whitespace characters from the text
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string RemoveWhitespace(std::string_view text_sv);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string RemoveWhitespace(std::string_view text_sv);
 
     // sets the length of the string to the desired length, padding with spaces if necessary
     template<bool insert_spaces_at_end = true, typename ST>
@@ -412,14 +412,14 @@ public:
     [[nodiscard]] static std::string Concatenate(T&& arg1, Args const&... args);
 
     // removes any text following the character; the character is optionally removed
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string_view RemoveTextFollowingCharacter(std::string_view text_sv, char ch, bool remove_ch);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string_view RemoveTextFollowingCharacter(std::string_view text_sv, char ch, bool remove_ch);
 
     // the default number of spaces per tab and a space string that can be used for the tabs
     static constexpr int DefaultSpacesPerTab = 4;
     static constexpr const char* SingleTabAsSpaces = "    ";
 
     // Converts tabs to spaces, using DefaultSpacesPerTab as the default number of spaces per tab.
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static int ConvertTabsToSpaces(std::string& text, int position_in_line = 0, int spaces_per_tab = DefaultSpacesPerTab);
+    CLASS_DECL_ZTOOLSO static int ConvertTabsToSpaces(std::string& text, int position_in_line = 0, int spaces_per_tab = DefaultSpacesPerTab);
 
     // Converts tabs to spaces and right-trims each line.
     CLASS_DECL_ZTOOLSO static void ConvertTabsToSpacesAndTrimRightEachLine(std::string& text);
@@ -483,21 +483,21 @@ public:
     [[nodiscard]] static std::string CreateSingleStringUsingCallback(const T& objects, const CF& callback_function, std::string_view separator_sv = ", ");
 
     // if text2_sv is not empty, it is appended to text1, separated by a colon
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string CreateColonSeparatedString(std::string text1, std::string_view text2_sv);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string CreateColonSeparatedString(std::string text1, std::string_view text2_sv);
 
     // if text2_sv is not empty, it is appended to text1, wrapped in parentheses
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string CreateParentheticalExpression(std::string text1, std::string_view text2_sv);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::string CreateParentheticalExpression(std::string text1, std::string_view text2_sv);
 
     // wraps the text at newline characters and width boundaries, adding hyphens as necessary
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::vector<std::wstring> WrapText(wstring_view text_sv, size_t maximum_line_width);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::vector<std::wstring> WrapText(wstring_view text_sv, size_t maximum_line_width);
 
     // returns a C string that contains the specified number of repeating characters
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static const char* GetRepeatingCharacterString(wchar_t ch, size_t length);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static const char* GetRepeatingCharacterString(wchar_t ch, size_t length);
 
     [[nodiscard]] static const char* GetDashedLine(size_t length) { return GetRepeatingCharacterString('-', length); }
 
     // returns a vector of bytes with the text and an optional null terminator
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::vector<std::byte> CreateByteVector(std::string_view text_sv, bool include_null_terminator = false);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static std::vector<std::byte> CreateByteVector(std::string_view text_sv, bool include_null_terminator = false);
 
 
     // --------------------------------------------------------------------------
@@ -510,12 +510,12 @@ private:
     template<typename ST>
     [[nodiscard]] static const auto* GetStringData(const ST& sv_or_cstr);
 
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideLengthWorker(const char* text_start, const char* text_end);
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideLengthWorker(const char* text_start);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t WideLengthWorker(const char* text_start, const char* text_end);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t WideLengthWorker(const char* text_start);
 
     // returns the offset from the end of a UTF-8 string in wide characters;
     // e.g., WideGetOffsetFromEnd("abcdéf", 2) == 4
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideGetOffsetFromEnd(std::string_view text_sv, size_t wide_offset);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t WideGetOffsetFromEnd(std::string_view text_sv, size_t wide_offset);
 
     template<bool insert_spaces_at_end = true>
     CLASS_DECL_ZTOOLSO static void WideMakeExactLengthAdjuster(std::string& text, const ptrdiff_t non_zero_length_difference);
@@ -539,10 +539,10 @@ private:
     static ST& MakeTrimWorker(ST& text, SVT trimmed_text_sv);
 
     template<bool to_upper>
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static wchar_t WideCharToCaseWithLocale(wchar_t ch);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static wchar_t WideCharToCaseWithLocale(wchar_t ch);
 
     template<bool to_upper>
-    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t FindFirstNonMatchingWideCase(std::string_view text_sv);
+    [[nodiscard]] CLASS_DECL_ZTOOLSO static size_t FindFirstNonMatchingWideCase(std::string_view text_sv);
 
     // out_text should be null (in which case a new string is created with the modified case (if necessary)
     // or should be set to in_text, in which case the modified case string replaces the input text

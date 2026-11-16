@@ -20,6 +20,7 @@
 #pragma warning(error:4717) // 'function' : recursive on all control paths, function will cause runtime stack overflow
 #pragma warning(error:4834) // discarding return value of function with 'nodiscard' attribute
 #pragma warning(error:5205) // delete of an abstract class 'type-name' that has a non-virtual destructor results in undefined behavior
+#pragma warning(error:5240) // 'attribute-string': attribute is ignored in this syntactic position
 
 
 // issue some warnings as errors only in debug mode (on the desktop):
